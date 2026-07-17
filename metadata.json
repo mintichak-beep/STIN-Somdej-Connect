@@ -1,0 +1,6 @@
+{
+  "name": "STIN-Somdej connect",
+  "description": "Enterprise-grade clinical placement, accommodation, and transportation management system for Srisavarindhira Thai Red Cross Institute of Nursing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
