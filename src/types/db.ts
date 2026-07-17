@@ -231,3 +231,44 @@ export interface RecentActivity {
   userDisplayName: string;
   timestamp: string;
 }
+
+export interface ClinicalWardSchedule {
+  id: string;
+  academicYear: string;
+  semester: string; // "1" (ภาคการศึกษาต้น) or "2" (ภาคการศึกษาปลาย)
+  courseName: string;
+  dateRange: string;
+  days: string;
+  wards: string[];
+}
+
+export interface Bill {
+  billId: string;
+  roomId: string;
+  tenantId: string; // studentId
+  month: string; // e.g. "สิงหาคม"
+  year: string;  // e.g. "2569"
+  waterUnit: number;
+  electricUnit: number;
+  waterAmount: number;
+  electricAmount: number;
+  totalAmount: number;
+  dueDate: string;
+  status: 'Unpaid' | 'Pending' | 'Paid' | 'Rejected'; // 'ยังไม่ชำระ' | 'รอตรวจสอบ' | 'ชำระแล้ว' | 'ปฏิเสธ'
+}
+
+export interface Payment {
+  paymentId: string;
+  billId: string;
+  roomId: string;
+  tenantId: string;
+  amount: number;
+  slipUrl: string; // Base64 data URL
+  uploadTime: string;
+  transferDate: string;
+  status: 'Pending' | 'Approved' | 'Rejected'; // 'รอตรวจสอบ' | 'อนุมัติ' | 'ปฏิเสธ'
+  approvedBy?: string;
+  approvedAt?: string;
+  remark?: string;
+}
+

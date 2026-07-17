@@ -7,6 +7,7 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Profile } from './pages/Profile';
 import { Unauthorized } from './pages/Unauthorized';
 import { Dashboard } from './pages/Dashboard';
+import { UtilityPage } from './pages/utilities/UtilityPage';
 
 import { AcademicYearPage } from './pages/academic-years/AcademicYearPage';
 import { AcademicYearForm } from './pages/academic-years/AcademicYearForm';
@@ -39,6 +40,7 @@ import { FloorEditPage } from './pages/floors/FloorEditPage';
 import { FloorDetailPage } from './pages/floors/FloorDetailPage';
 import { RoomAllocationPage } from './pages/room-allocation/RoomAllocationPage';
 import { WorkflowPage } from './pages/workflow/WorkflowPage';
+import { ClinicalWardsPage } from './pages/clinical-wards/ClinicalWardsPage';
 import { StudentListPage } from './pages/students/StudentListPage';
 import { VehicleListPage } from './pages/vehicles/VehicleListPage';
 import { DriverListPage } from './pages/drivers/DriverListPage';
@@ -282,6 +284,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/clinical-wards"
+            element={
+              <ProtectedRoute feature="building">
+                <ClinicalWardsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/vehicles" element={<VehicleListPage />} />
           <Route path="/drivers" element={<DriverListPage />} />
           <Route path="/transportation" element={<TransportationSchedulePage />} />
@@ -292,6 +302,14 @@ export default function App() {
           <Route path="/reports/students" element={<StudentReportPage />} />
           <Route path="/reports/occupancy" element={<OccupancyReportPage />} />
           <Route path="/reports/export" element={<ExportCenterPage />} />
+          <Route
+            path="/utilities"
+            element={
+              <ProtectedRoute>
+                <UtilityPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Fallbacks */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

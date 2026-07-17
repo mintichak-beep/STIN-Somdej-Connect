@@ -2,7 +2,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
   LayoutDashboard, CalendarRange, CalendarDays, User, 
-  Building2, Bed, Truck, GraduationCap, CheckCircle, Layers, LayoutGrid, Car, Users, BarChart3
+  Building2, Bed, Truck, GraduationCap, CheckCircle, Layers, LayoutGrid, Car, Users, BarChart3,
+  Sparkles, Calendar, Receipt
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -63,6 +64,10 @@ export function Sidebar({ id }: SidebarProps) {
               <User className="h-4 w-4 shrink-0" />
               <span>My Profile</span>
             </button>
+            <button onClick={() => navigate('/utilities')} className={getBtnStyles('/utilities')}>
+              <Receipt className="h-4 w-4 shrink-0" />
+              <span>ค่าน้ำ / ค่าไฟ</span>
+            </button>
             <div className="px-4 py-3 mt-4 bg-red-50/55 border border-red-100/50 rounded-xl text-[10px] font-bold text-red-600 leading-relaxed dark:bg-red-950/20 dark:border-red-900/30">
               Student Mode Active: System management panels are administrator-gated.
             </div>
@@ -94,6 +99,14 @@ export function Sidebar({ id }: SidebarProps) {
               <p className="px-4 pb-1 text-[9px] font-black tracking-wider text-gray-400 uppercase dark:text-zinc-500">
                 Operations
               </p>
+              <button onClick={() => navigate('/workflow')} className={getBtnStyles('/workflow')}>
+                <Sparkles className="h-4 w-4 shrink-0 text-red-600 dark:text-red-500 animate-pulse" />
+                <span className="font-extrabold text-red-600 dark:text-red-400">One-Click Workflow</span>
+              </button>
+              <button onClick={() => navigate('/clinical-wards')} className={getBtnStyles('/clinical-wards')}>
+                <Calendar className="h-4 w-4 shrink-0" />
+                <span>Clinical Wards & Rotations</span>
+              </button>
               <button onClick={() => navigate('/students')} className={getBtnStyles('/students')}>
                 <User className="h-4 w-4 shrink-0" />
                 <span>Students</span>
@@ -117,6 +130,10 @@ export function Sidebar({ id }: SidebarProps) {
               <button onClick={() => navigate('/reports/dashboard')} className={getBtnStyles('/reports/dashboard')}>
                 <BarChart3 className="h-4 w-4 shrink-0" />
                 <span>Reports</span>
+              </button>
+              <button onClick={() => navigate('/utilities')} className={getBtnStyles('/utilities')}>
+                <Receipt className="h-4 w-4 shrink-0" />
+                <span>ตรวจสอบการชำระเงิน</span>
               </button>
               <button onClick={() => navigate('/hospitals')} className={getBtnStyles('/hospitals')}>
                 <Building2 className="h-4 w-4 shrink-0" />

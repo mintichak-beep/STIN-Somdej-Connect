@@ -1,7 +1,8 @@
 import { 
   Student, Teacher, AcademicYear, Semester, Course, Section, Hospital, 
   Building, Floor, Room, RoomAssignment, Vehicle, Driver, 
-  TransportSchedule, TransportAssignment, RecentActivity 
+  TransportSchedule, TransportAssignment, RecentActivity, ClinicalWardSchedule,
+  Bill, Payment
 } from '../types/db';
 
 const STORAGE_KEYS = {
@@ -20,7 +21,10 @@ const STORAGE_KEYS = {
   DRIVERS: 'cpatms_drivers',
   TRANSPORT_SCHEDULES: 'cpatms_transport_schedules',
   TRANSPORT_ASSIGNMENTS: 'cpatms_transport_assignments',
-  ACTIVITIES: 'cpatms_activities'
+  ACTIVITIES: 'cpatms_activities',
+  CLINICAL_WARD_SCHEDULES: 'cpatms_clinical_ward_schedules',
+  BILLS: 'cpatms_bills',
+  PAYMENTS: 'cpatms_payments'
 };
 
 // Initial realistic data
@@ -127,6 +131,45 @@ const INITIAL_SECTIONS: Section[] = [
   { id: 's-sec3', name: 'Section 1', courseId: 'c-ns311', status: 'active' },
   { id: 's-sec4', name: 'Section 2', courseId: 'c-ns311', status: 'active' },
   { id: 's-sec5', name: 'Section 1', courseId: 'c-ns411', status: 'active' }
+];
+
+const INITIAL_CLINICAL_WARD_SCHEDULES: ClinicalWardSchedule[] = [
+  {
+    id: 'cws-1',
+    academicYear: '2569',
+    semester: '1',
+    courseName: 'รายวิชา ปฏิบัติมารดาฯ 1',
+    dateRange: '11 ส.ค. - 18 ธ.ค. 2569',
+    days: 'อังคาร-ศุกร์',
+    wards: ['ฝากครรภ์ (ANC)', 'ห้องคลอด (DR)']
+  },
+  {
+    id: 'cws-2',
+    academicYear: '2569',
+    semester: '1',
+    courseName: 'รายวิชาปฏิบัติการพยาบาลสุขภาพจิตและจิตเวช',
+    dateRange: '12 ต.ค. 2569 - 22 ม.ค. 2570',
+    days: 'จันทร์-ศุกร์',
+    wards: ['คลินิกซอซี']
+  },
+  {
+    id: 'cws-3',
+    academicYear: '2569',
+    semester: '2',
+    courseName: 'รายวิชา ปฏิบัติมารดาฯ 2',
+    dateRange: '13 ม.ค. - 4 มิ.ย. 2570',
+    days: 'พุธ-ศุกร์',
+    wards: ['ห้องคลอด (DR)']
+  },
+  {
+    id: 'cws-4',
+    academicYear: '2569',
+    semester: '2',
+    courseName: 'ปฏิบัติการรักษาโรคเบื้องต้น',
+    dateRange: '12 ม.ค. - 9 เม.ย. 2570',
+    days: 'อังคาร-ศุกร์',
+    wards: ['แผนกเวชปฏิบัติรักษาโรคทั่วไป (OPD) อาคารอนุสรณ์ 100 ปี ชั้น 1', 'แผนกอุบัติเหตุและฉุกเฉิน (ER)']
+  }
 ];
 
 const INITIAL_HOSPITALS: Hospital[] = [
@@ -506,6 +549,7 @@ const INITIAL_STUDENTS: Student[] = [
     studentId: '1', 
     studentNumber: 'S6601001', 
     studentName: 'Miss Apisara Rakdee', 
+    email: 'student@stin.ac.th',
     section: '1', 
     academicYear: '2569', 
     hospital: 'Siriraj Hospital', 
@@ -548,6 +592,107 @@ const INITIAL_ACTIVITIES: RecentActivity[] = [
   { id: 'act-4', type: 'room_assign', title: 'Dorm Room Assigned', description: 'Assigned Room 101 in Dormitory A to Miss Apisara Rakdee', userId: 'admin-123', userDisplayName: 'STIN Administrator', timestamp: new Date(Date.now() - 1000 * 60 * 200).toISOString() },
   { id: 'act-5', type: 'transport_assign', title: 'Transportation Assigned', description: 'Assigned Miss Apisara Rakdee to STIN Campus ⇄ Siriraj shuttle', userId: 'admin-123', userDisplayName: 'STIN Administrator', timestamp: new Date(Date.now() - 1000 * 60 * 250).toISOString() },
   { id: 'act-6', type: 'report_gen', title: 'Placement Performance Report', description: 'Generated monthly summary of clinical placements for Academic Year 2569 Semester 1', userId: 'admin-123', userDisplayName: 'STIN Administrator', timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString() }
+];
+
+const INITIAL_BILLS: Bill[] = [
+  {
+    billId: 'bill-siriraj-2569-06',
+    roomId: 'r-dormA-101',
+    tenantId: 'st-1',
+    month: 'มิถุนายน',
+    year: '2569',
+    waterUnit: 25,
+    electricUnit: 140,
+    waterAmount: 125,
+    electricAmount: 560,
+    totalAmount: 685,
+    dueDate: '2026-07-05',
+    status: 'Paid'
+  },
+  {
+    billId: 'bill-siriraj-2569-07',
+    roomId: 'r-dormA-101',
+    tenantId: 'st-1',
+    month: 'กรกฎาคม',
+    year: '2569',
+    waterUnit: 28,
+    electricUnit: 155,
+    waterAmount: 140,
+    electricAmount: 620,
+    totalAmount: 760,
+    dueDate: '2026-08-05',
+    status: 'Unpaid'
+  },
+  {
+    billId: 'bill-siriraj-2569-08',
+    roomId: 'r-dormA-101',
+    tenantId: 'st-1',
+    month: 'สิงหาคม',
+    year: '2569',
+    waterUnit: 30,
+    electricUnit: 180,
+    waterAmount: 150,
+    electricAmount: 720,
+    totalAmount: 870,
+    dueDate: '2026-09-05',
+    status: 'Unpaid'
+  },
+  {
+    billId: 'bill-chula-2569-06',
+    roomId: 'r-chula-101',
+    tenantId: 'st-5',
+    month: 'มิถุนายน',
+    year: '2569',
+    waterUnit: 18,
+    electricUnit: 90,
+    waterAmount: 90,
+    electricAmount: 360,
+    totalAmount: 450,
+    dueDate: '2026-07-05',
+    status: 'Paid'
+  },
+  {
+    billId: 'bill-chula-2569-07',
+    roomId: 'r-chula-101',
+    tenantId: 'st-5',
+    month: 'กรกฎาคม',
+    year: '2569',
+    waterUnit: 20,
+    electricUnit: 110,
+    waterAmount: 100,
+    electricAmount: 440,
+    totalAmount: 540,
+    dueDate: '2026-08-05',
+    status: 'Pending'
+  },
+  {
+    billId: 'bill-sawan-2569-07',
+    roomId: 'r-sawan-101',
+    tenantId: 'st-10',
+    month: 'กรกฎาคม',
+    year: '2569',
+    waterUnit: 15,
+    electricUnit: 85,
+    waterAmount: 75,
+    electricAmount: 340,
+    totalAmount: 415,
+    dueDate: '2026-08-05',
+    status: 'Unpaid'
+  }
+];
+
+const INITIAL_PAYMENTS: Payment[] = [
+  {
+    paymentId: 'pay-chula-2569-07',
+    billId: 'bill-chula-2569-07',
+    roomId: 'r-chula-101',
+    tenantId: 'st-5',
+    amount: 540,
+    slipUrl: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?auto=format&fit=crop&q=80&w=200',
+    uploadTime: '2026-07-16T15:30:00.000Z',
+    transferDate: '2026-07-16',
+    status: 'Pending'
+  }
 ];
 
 // Load and retrieve localStorage helper with fallback and event notifier
@@ -614,6 +759,15 @@ export const mockDB = {
   
   getActivities: (): RecentActivity[] => loadData(STORAGE_KEYS.ACTIVITIES, INITIAL_ACTIVITIES),
   saveActivities: (data: RecentActivity[]) => saveData(STORAGE_KEYS.ACTIVITIES, data),
+
+  getClinicalWardSchedules: (): ClinicalWardSchedule[] => loadData(STORAGE_KEYS.CLINICAL_WARD_SCHEDULES, INITIAL_CLINICAL_WARD_SCHEDULES),
+  saveClinicalWardSchedules: (data: ClinicalWardSchedule[]) => saveData(STORAGE_KEYS.CLINICAL_WARD_SCHEDULES, data),
+
+  getBills: (): Bill[] => loadData(STORAGE_KEYS.BILLS, INITIAL_BILLS),
+  saveBills: (data: Bill[]) => saveData(STORAGE_KEYS.BILLS, data),
+
+  getPayments: (): Payment[] => loadData(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS),
+  savePayments: (data: Payment[]) => saveData(STORAGE_KEYS.PAYMENTS, data),
 
   addActivity: (activity: Omit<RecentActivity, 'id' | 'timestamp'>) => {
     const list = loadData(STORAGE_KEYS.ACTIVITIES, INITIAL_ACTIVITIES);
