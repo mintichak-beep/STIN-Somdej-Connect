@@ -224,7 +224,7 @@ export interface Teacher {
 
 export interface RecentActivity {
   id: string;
-  type: 'login' | 'student_add' | 'teacher_add' | 'room_assign' | 'transport_assign' | 'report_gen';
+  type: 'login' | 'student_add' | 'teacher_add' | 'room_assign' | 'transport_assign' | 'report_gen' | 'edited_bill' | 'deleted_bill' | 'deleted_payment';
   title: string;
   description: string;
   userId: string;
@@ -255,6 +255,14 @@ export interface Bill {
   totalAmount: number;
   dueDate: string;
   status: 'Unpaid' | 'Pending' | 'Paid' | 'Rejected'; // 'ยังไม่ชำระ' | 'รอตรวจสอบ' | 'ชำระแล้ว' | 'ปฏิเสธ'
+  prevWaterMeter?: number;
+  currWaterMeter?: number;
+  waterRate?: number;
+  prevElectricMeter?: number;
+  currElectricMeter?: number;
+  electricRate?: number;
+  otherCharges?: number;
+  notes?: string;
 }
 
 export interface Payment {

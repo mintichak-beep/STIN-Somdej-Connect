@@ -58,6 +58,34 @@ export function UtilityPage() {
   const [newBillWaterUnit, setNewBillWaterUnit] = useState<number>(0);
   const [newBillElectricUnit, setNewBillElectricUnit] = useState<number>(0);
 
+  // Expanded utility bill tracking states
+  const [newBillPrevWaterMeter, setNewBillPrevWaterMeter] = useState<number>(0);
+  const [newBillCurrWaterMeter, setNewBillCurrWaterMeter] = useState<number>(0);
+  const [newBillWaterRate, setNewBillWaterRate] = useState<number>(5);
+  const [newBillPrevElectricMeter, setNewBillPrevElectricMeter] = useState<number>(0);
+  const [newBillCurrElectricMeter, setNewBillCurrElectricMeter] = useState<number>(0);
+  const [newBillElectricRate, setNewBillElectricRate] = useState<number>(4);
+  const [newBillOtherCharges, setNewBillOtherCharges] = useState<number>(0);
+  const [newBillNotes, setNewBillNotes] = useState<string>('');
+
+  const handleOpenCreator = () => {
+    setEditingBill(null);
+    setNewBillRoomId('');
+    setNewBillMonth('สิงหาคม');
+    setNewBillYear('2569');
+    setNewBillWaterUnit(0);
+    setNewBillElectricUnit(0);
+    setNewBillPrevWaterMeter(0);
+    setNewBillCurrWaterMeter(0);
+    setNewBillWaterRate(5);
+    setNewBillPrevElectricMeter(0);
+    setNewBillCurrElectricMeter(0);
+    setNewBillElectricRate(4);
+    setNewBillOtherCharges(0);
+    setNewBillNotes('');
+    setShowBillCreator(true);
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const itemsPerPage = 8;
 
@@ -116,6 +144,13 @@ export function UtilityPage() {
   const myBills = bills.filter(b => b.roomId === activeRoomId);
   const unpaidMyBills = myBills.filter(b => b.status === 'Unpaid' || b.status === 'Rejected');
   const totalOutstanding = unpaidMyBills.reduce((acc, b) => acc + b.totalAmount, 0);
+
+  // Reactive calculations for current form state
+  const calculatedWaterUnit = Math.max(0, newBillCurrWaterMeter - newBillPrevWaterMeter);
+  const calculatedElectricUnit = Math.max(0, newBillCurrElectricMeter - newBillPrevElectricMeter);
+  const calculatedWaterAmount = calculatedWaterUnit * newBillWaterRate;
+  const calculatedElectricAmount = calculatedElectricUnit * newBillElectricRate;
+  const calculatedTotalAmount = calculatedWaterAmount + calculatedElectricAmount + newBillOtherCharges;
 
   // File Handlers for upload
   const handleDrag = (e: React.DragEvent) => {
@@ -246,44 +281,69 @@ export function UtilityPage() {
       return;
     }
 
-    // Water rates: 5 THB per unit, Electricity rates: 4 THB per unit (simple formula as requested or fixed multiplication)
-    const waterAmount = newBillWaterUnit * 5;
-    const electricAmount = newBillElectricUnit * 4;
-    const totalAmount = waterAmount + electricAmount;
+    // Validation
+    if (newBillCurrWaterMeter < newBillPrevWaterMeter) {
+      showToast('เลขจดมิเตอร์น้ำประปาปัจจุบันต้องไม่น้อยกว่าค่าก่อนหน้า', 'error');
+      return;
+    }
+    if (newBillCurrElectricMeter < newBillPrevElectricMeter) {
+      showToast('เลขจดมิเตอร์ไฟฟ้าปัจจุบันต้องไม่น้อยกว่าค่าก่อนหน้า', 'error');
+      return;
+    }
+    if (newBillWaterRate < 0 || newBillElectricRate < 0 || newBillOtherCharges < 0) {
+      showToast('อัตราค่าบริการและค่าใช้จ่ายอื่นๆ ต้องไม่ต่ำกว่าศูนย์', 'error');
+      return;
+    }
 
     try {
       // Find tenant of the room
       const assignedTenant = students.find(s => s.roomId === newBillRoomId);
       const tenantId = assignedTenant?.studentId || 'unassigned';
 
+      const monthToNum: Record<string, string> = {
+        'มกราคม': '01', 'กุมภาพันธ์': '02', 'มีนาคม': '03', 'เมษายน': '04',
+        'พฤษภาคม': '05', 'มิถุนายน': '06', 'กรกฎาคม': '07', 'สิงหาคม': '08',
+        'กันยายน': '09', 'ตุลาคม': '10', 'พฤศจิกายน': '11', 'ธันวาคม': '12'
+      };
+      const adYear = Number(newBillYear) - 543;
+      const monthNum = monthToNum[newBillMonth] || '08';
+      const calculatedDueDate = `${adYear}-${monthNum}-05`;
+
+      const billPayload: any = {
+        roomId: newBillRoomId,
+        tenantId: tenantId,
+        month: newBillMonth,
+        year: newBillYear,
+        waterUnit: calculatedWaterUnit,
+        electricUnit: calculatedElectricUnit,
+        waterAmount: calculatedWaterAmount,
+        electricAmount: calculatedElectricAmount,
+        totalAmount: calculatedTotalAmount,
+        prevWaterMeter: newBillPrevWaterMeter,
+        currWaterMeter: newBillCurrWaterMeter,
+        waterRate: newBillWaterRate,
+        prevElectricMeter: newBillPrevElectricMeter,
+        currElectricMeter: newBillCurrElectricMeter,
+        electricRate: newBillElectricRate,
+        otherCharges: newBillOtherCharges,
+        notes: newBillNotes,
+      };
+
+      const adminName = user?.displayName || user?.email || 'ผู้ดูแลระบบ';
+      const adminId = user?.uid || 'admin-123';
+
       if (editingBill) {
-        await paymentService.updateBill(editingBill.billId, {
-          roomId: newBillRoomId,
-          tenantId: tenantId,
-          month: newBillMonth,
-          year: newBillYear,
-          waterUnit: newBillWaterUnit,
-          electricUnit: newBillElectricUnit,
-          waterAmount: waterAmount,
-          electricAmount: electricAmount,
-          totalAmount: totalAmount,
-        });
-        showToast(`แก้ไขบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${totalAmount}`, 'success');
+        billPayload.status = editingBill.status;
+        billPayload.dueDate = editingBill.dueDate;
+        
+        await paymentService.updateBill(editingBill.billId, billPayload, adminName, adminId);
+        showToast(`แก้ไขบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${calculatedTotalAmount}`, 'success');
       } else {
-        await paymentService.createBill({
-          roomId: newBillRoomId,
-          tenantId: tenantId,
-          month: newBillMonth,
-          year: newBillYear,
-          waterUnit: newBillWaterUnit,
-          electricUnit: newBillElectricUnit,
-          waterAmount: waterAmount,
-          electricAmount: electricAmount,
-          totalAmount: totalAmount,
-          dueDate: `${newBillYear === '2569' ? '2026' : '2027'}-${newBillMonth === 'สิงหาคม' ? '09' : '08'}-05`, // mock due date
-          status: 'Unpaid'
-        });
-        showToast(`สร้างบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${totalAmount}`, 'success');
+        billPayload.dueDate = calculatedDueDate;
+        billPayload.status = 'Unpaid';
+
+        await paymentService.createBill(billPayload, adminName, adminId);
+        showToast(`สร้างบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${calculatedTotalAmount}`, 'success');
       }
 
       setShowBillCreator(false);
@@ -291,6 +351,14 @@ export function UtilityPage() {
       setNewBillRoomId('');
       setNewBillWaterUnit(0);
       setNewBillElectricUnit(0);
+      setNewBillPrevWaterMeter(0);
+      setNewBillCurrWaterMeter(0);
+      setNewBillWaterRate(5);
+      setNewBillPrevElectricMeter(0);
+      setNewBillCurrElectricMeter(0);
+      setNewBillElectricRate(4);
+      setNewBillOtherCharges(0);
+      setNewBillNotes('');
     } catch (err: any) {
       showToast(editingBill ? 'เกิดข้อผิดพลาดในการแก้ไขบิล' : 'เกิดข้อผิดพลาดในการสร้างบิล', 'error');
     }
@@ -1019,6 +1087,17 @@ export function UtilityPage() {
                                       setNewBillYear(bill.year);
                                       setNewBillWaterUnit(bill.waterUnit);
                                       setNewBillElectricUnit(bill.electricUnit);
+                                      
+                                      // Populate new tracking fields
+                                      setNewBillPrevWaterMeter(bill.prevWaterMeter ?? 0);
+                                      setNewBillCurrWaterMeter(bill.currWaterMeter ?? bill.waterUnit);
+                                      setNewBillWaterRate(bill.waterRate ?? 5);
+                                      setNewBillPrevElectricMeter(bill.prevElectricMeter ?? 0);
+                                      setNewBillCurrElectricMeter(bill.currElectricMeter ?? bill.electricUnit);
+                                      setNewBillElectricRate(bill.electricRate ?? 4);
+                                      setNewBillOtherCharges(bill.otherCharges ?? 0);
+                                      setNewBillNotes(bill.notes ?? '');
+                                      
                                       setShowBillCreator(true);
                                     }}
                                     className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 cursor-pointer"
@@ -1449,6 +1528,14 @@ export function UtilityPage() {
                   setNewBillRoomId('');
                   setNewBillWaterUnit(0);
                   setNewBillElectricUnit(0);
+                  setNewBillPrevWaterMeter(0);
+                  setNewBillCurrWaterMeter(0);
+                  setNewBillWaterRate(5);
+                  setNewBillPrevElectricMeter(0);
+                  setNewBillCurrElectricMeter(0);
+                  setNewBillElectricRate(4);
+                  setNewBillOtherCharges(0);
+                  setNewBillNotes('');
                 }}
                 className="rounded-xl bg-gray-50 p-2 text-gray-400 hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 cursor-pointer"
               >
@@ -1458,7 +1545,7 @@ export function UtilityPage() {
 
             {/* Form */}
             <form onSubmit={handleCreateBill}>
-              <div className="p-6 space-y-4 text-xs">
+              <div className="p-6 space-y-4 text-xs max-h-[70vh] overflow-y-auto">
                 {/* Select Room */}
                 <div>
                   <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -1490,6 +1577,11 @@ export function UtilityPage() {
                       onChange={(e) => setNewBillMonth(e.target.value)}
                       className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold outline-hidden dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                     >
+                      <option value="มกราคม">มกราคม</option>
+                      <option value="กุมภาพันธ์">กุมภาพันธ์</option>
+                      <option value="มีนาคม">มีนาคม</option>
+                      <option value="เมษายน">เมษายน</option>
+                      <option value="พฤษภาคม">พฤษภาคม</option>
                       <option value="มิถุนายน">มิถุนายน</option>
                       <option value="กรกฎาคม">กรกฎาคม</option>
                       <option value="สิงหาคม">สิงหาคม</option>
@@ -1515,48 +1607,182 @@ export function UtilityPage() {
                   </div>
                 </div>
 
-                {/* Units input */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
-                      จำนวนหน่วยน้ำประปาที่ใช้
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      value={newBillWaterUnit}
-                      onChange={(e) => setNewBillWaterUnit(Number(e.target.value))}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold outline-hidden transition focus:border-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-                    />
-                    <span className="text-[10px] text-gray-400 mt-1 block">คิดอัตราหน่วยละ ฿5</span>
+                {/* Water Meter Section */}
+                <div className="rounded-2xl border border-blue-50 bg-blue-50/10 p-4 dark:border-blue-950/20 dark:bg-blue-950/5">
+                  <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-extrabold uppercase tracking-wider text-[10px] mb-3">
+                    <Droplet className="h-3.5 w-3.5 text-blue-500" />
+                    <span>ข้อมูลมิเตอร์น้ำประปา</span>
                   </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        เลขอ่านมิเตอร์ครั้งก่อน
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newBillPrevWaterMeter}
+                        onChange={(e) => setNewBillPrevWaterMeter(Number(e.target.value))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold outline-hidden focus:border-blue-500 dark:border-zinc-800 dark:bg-zinc-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        เลขอ่านมิเตอร์ครั้งนี้
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newBillCurrWaterMeter}
+                        onChange={(e) => setNewBillCurrWaterMeter(Number(e.target.value))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold outline-hidden focus:border-blue-500 dark:border-zinc-800 dark:bg-zinc-900"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        อัตราค่าน้ำ (บาท / หน่วย)
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newBillWaterRate}
+                        onChange={(e) => setNewBillWaterRate(Number(e.target.value))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold outline-hidden focus:border-blue-500 dark:border-zinc-800 dark:bg-zinc-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        จำนวนหน่วยน้ำที่ใช้ (คำนวณ)
+                      </label>
+                      <input
+                        type="number"
+                        disabled
+                        readOnly
+                        value={calculatedWaterUnit}
+                        className="w-full rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2 text-xs font-bold outline-hidden dark:border-zinc-800 dark:bg-zinc-800/20 text-gray-400"
+                      />
+                    </div>
+                  </div>
+                </div>
 
+                {/* Electric Meter Section */}
+                <div className="rounded-2xl border border-amber-50 bg-amber-50/10 p-4 dark:border-amber-950/20 dark:bg-amber-950/5">
+                  <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-extrabold uppercase tracking-wider text-[10px] mb-3">
+                    <Zap className="h-3.5 w-3.5 text-amber-500" />
+                    <span>ข้อมูลมิเตอร์ไฟฟ้า</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        เลขอ่านมิเตอร์ครั้งก่อน
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newBillPrevElectricMeter}
+                        onChange={(e) => setNewBillPrevElectricMeter(Number(e.target.value))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold outline-hidden focus:border-amber-500 dark:border-zinc-800 dark:bg-zinc-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        เลขอ่านมิเตอร์ครั้งนี้
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newBillCurrElectricMeter}
+                        onChange={(e) => setNewBillCurrElectricMeter(Number(e.target.value))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold outline-hidden focus:border-amber-500 dark:border-zinc-800 dark:bg-zinc-900"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        อัตราค่าไฟ (บาท / หน่วย)
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newBillElectricRate}
+                        onChange={(e) => setNewBillElectricRate(Number(e.target.value))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold outline-hidden focus:border-amber-500 dark:border-zinc-800 dark:bg-zinc-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1">
+                        จำนวนหน่วยไฟที่ใช้ (คำนวณ)
+                      </label>
+                      <input
+                        type="number"
+                        disabled
+                        readOnly
+                        value={calculatedElectricUnit}
+                        className="w-full rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2 text-xs font-bold outline-hidden dark:border-zinc-800 dark:bg-zinc-800/20 text-gray-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Other Charges & Notes */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
-                      จำนวนหน่วยไฟฟ้าที่ใช้
+                      ค่าบริการอื่นๆ (บาท)
                     </label>
                     <input
                       type="number"
                       required
                       min="0"
-                      value={newBillElectricUnit}
-                      onChange={(e) => setNewBillElectricUnit(Number(e.target.value))}
+                      value={newBillOtherCharges}
+                      onChange={(e) => setNewBillOtherCharges(Number(e.target.value))}
                       className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold outline-hidden transition focus:border-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                     />
-                    <span className="text-[10px] text-gray-400 mt-1 block">คิดอัตราหน่วยละ ฿4</span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                      หมายเหตุเพิ่มเติม
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="เช่น ค่าทำความสะอาด หรือโน้ตสั้น"
+                      value={newBillNotes}
+                      onChange={(e) => setNewBillNotes(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold outline-hidden transition focus:border-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+                    />
                   </div>
                 </div>
 
                 {/* Calculated preview */}
-                <div className="rounded-xl bg-gray-50 p-3.5 border border-gray-100 dark:bg-zinc-800/40 dark:border-zinc-800">
-                  <p className="font-extrabold text-gray-600 dark:text-zinc-400 mb-1">คำนวณยอดเงินเบื้องต้น:</p>
-                  <p className="font-black text-gray-900 dark:text-zinc-100">
-                    ค่าน้ำประปา: ฿{newBillWaterUnit * 5} • ค่าไฟฟ้า: ฿{newBillElectricUnit * 4}
-                  </p>
-                  <p className="font-black text-red-600 dark:text-red-500 mt-1">
-                    ยอดรวมสุทธิที่จะจัดเก็บ: ฿{newBillWaterUnit * 5 + newBillElectricUnit * 4}
-                  </p>
+                <div className="rounded-xl bg-gray-50 p-3.5 border border-gray-100 dark:bg-zinc-800/40 dark:border-zinc-800 space-y-1">
+                  <p className="font-extrabold text-gray-600 dark:text-zinc-400 mb-1">สรุปคำนวณยอดเงินเรียกเก็บ:</p>
+                  <div className="flex justify-between items-center text-gray-500 dark:text-zinc-400">
+                    <span>ค่าน้ำประปา ({calculatedWaterUnit} หน่วย x ฿{newBillWaterRate}):</span>
+                    <span className="font-bold text-gray-800 dark:text-zinc-200">฿{calculatedWaterAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-gray-500 dark:text-zinc-400">
+                    <span>ค่าไฟฟ้า ({calculatedElectricUnit} หน่วย x ฿{newBillElectricRate}):</span>
+                    <span className="font-bold text-gray-800 dark:text-zinc-200">฿{calculatedElectricAmount.toLocaleString()}</span>
+                  </div>
+                  {newBillOtherCharges > 0 && (
+                    <div className="flex justify-between items-center text-gray-500 dark:text-zinc-400">
+                      <span>ค่าบริการเพิ่มเติมอื่นๆ:</span>
+                      <span className="font-bold text-gray-800 dark:text-zinc-200">฿{newBillOtherCharges.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-gray-200 pt-1.5 mt-1.5 dark:border-zinc-700 flex justify-between items-center font-black text-gray-900 dark:text-zinc-100">
+                    <span className="text-red-600 dark:text-red-500">ยอดรวมจัดเก็บสุทธิ:</span>
+                    <span className="text-red-600 dark:text-red-500 text-sm">฿{calculatedTotalAmount.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
 
@@ -1570,6 +1796,14 @@ export function UtilityPage() {
                     setNewBillRoomId('');
                     setNewBillWaterUnit(0);
                     setNewBillElectricUnit(0);
+                    setNewBillPrevWaterMeter(0);
+                    setNewBillCurrWaterMeter(0);
+                    setNewBillWaterRate(5);
+                    setNewBillPrevElectricMeter(0);
+                    setNewBillCurrElectricMeter(0);
+                    setNewBillElectricRate(4);
+                    setNewBillOtherCharges(0);
+                    setNewBillNotes('');
                   }}
                   className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-700 hover:bg-gray-50 transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer"
                 >
@@ -1597,9 +1831,25 @@ export function UtilityPage() {
             <h3 className="text-base font-black text-gray-900 dark:text-zinc-50 mb-2">
               ยืนยันการลบรายการ?
             </h3>
-            <p className="text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed font-semibold">
+            <p className="text-gray-500 dark:text-zinc-400 mb-4 leading-relaxed font-semibold">
               คุณแน่ใจหรือไม่ว่าต้องการลบ{showDeleteConfirm.type === 'bill' ? 'บิลเรียกเก็บเงินค่าน้ำ/ค่าไฟนี้' : 'หลักฐานแจ้งโอนเงินนี้'}? การดำเนินการนี้ไม่สามารถย้อนกลับได้
             </p>
+
+            {/* Feature 5: Safety Validation Warning */}
+            {showDeleteConfirm.type === 'bill' && payments.some(p => p.billId === showDeleteConfirm.id) && (
+              <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-left text-amber-800 dark:border-amber-950/40 dark:bg-amber-950/20 dark:text-amber-300">
+                <div className="flex gap-2 items-start">
+                  <AlertCircle className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-extrabold text-[10px] uppercase tracking-wider mb-0.5">คำเตือนจากระบบ</p>
+                    <p className="font-semibold text-xs leading-relaxed">
+                      บิลนี้มีรายการชำระเงินที่เชื่อมโยงอยู่ การลบบิลจะลบรายการชำระเงินที่เกี่ยวข้องทั้งหมดโดยอัตโนมัติ
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-center gap-3">
               <button
                 type="button"

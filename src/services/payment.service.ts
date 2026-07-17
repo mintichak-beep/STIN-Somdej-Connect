@@ -41,7 +41,11 @@ export const paymentService = {
     return bills.filter(b => b.roomId === roomId);
   },
 
-  createBill: async (data: Omit<Bill, 'billId'>): Promise<string> => {
+  createBill: async (
+    data: Omit<Bill, 'billId'>, 
+    adminName: string = 'ผู้ดูแลระบบ', 
+    adminId: string = 'admin-123'
+  ): Promise<string> => {
     const list = mockDB.getBills();
     const newBill: Bill = {
       ...data,
@@ -49,6 +53,15 @@ export const paymentService = {
     };
     list.push(newBill);
     mockDB.saveBills(list);
+
+    mockDB.addActivity({
+      type: 'room_assign', // Standard type from RecentActivity
+      title: 'สร้างบิลค่าบริการใหม่',
+      description: `สร้างบิลค่าบริการห้อง ${newBill.roomId} ประจำเดือน ${newBill.month} ${newBill.year} เป็นยอดเงินรวม ฿${newBill.totalAmount}`,
+      userId: adminId,
+      userDisplayName: adminName
+    });
+
     return newBill.billId;
   },
 
@@ -161,16 +174,38 @@ export const paymentService = {
     });
   },
 
-  updateBill: async (billId: string, data: Partial<Bill>): Promise<void> => {
+  updateBill: async (
+    billId: string, 
+    data: Partial<Bill>, 
+    adminName: string = 'ผู้ดูแลระบบ', 
+    adminId: string = 'admin-123'
+  ): Promise<void> => {
     const list = mockDB.getBills();
     const index = list.findIndex(b => b.billId === billId);
     if (index === -1) throw new Error('ไม่พบข้อมูลบิล');
-    list[index] = { ...list[index], ...data };
+    
+    const updatedBill = { ...list[index], ...data };
+    list[index] = updatedBill;
     mockDB.saveBills(list);
+
+    mockDB.addActivity({
+      type: 'edited_bill',
+      title: 'แก้ไขบิลค่าบริการ',
+      description: `แก้ไขบิลของห้อง ${updatedBill.roomId} ประจำเดือน ${updatedBill.month} ${updatedBill.year} เป็นยอด ฿${updatedBill.totalAmount}`,
+      userId: adminId,
+      userDisplayName: adminName
+    });
   },
 
-  deleteBill: async (billId: string): Promise<void> => {
+  deleteBill: async (
+    billId: string, 
+    adminName: string = 'ผู้ดูแลระบบ', 
+    adminId: string = 'admin-123'
+  ): Promise<void> => {
     const list = mockDB.getBills();
+    const bill = list.find(b => b.billId === billId);
+    if (!bill) throw new Error('ไม่พบข้อมูลบิล');
+
     const newList = list.filter(b => b.billId !== billId);
     mockDB.saveBills(newList);
 
@@ -178,12 +213,24 @@ export const paymentService = {
     const payments = mockDB.getPayments();
     const newPayments = payments.filter(p => p.billId !== billId);
     mockDB.savePayments(newPayments);
+
+    mockDB.addActivity({
+      type: 'deleted_bill',
+      title: 'ลบบิลเรียกเก็บเงิน',
+      description: `ลบบิลเรียกเก็บเงินของห้อง ${bill.roomId} รอบเดือน ${bill.month} ${bill.year}`,
+      userId: adminId,
+      userDisplayName: adminName
+    });
   },
 
-  deletePayment: async (paymentId: string): Promise<void> => {
+  deletePayment: async (
+    paymentId: string, 
+    adminName: string = 'ผู้ดูแลระบบ', 
+    adminId: string = 'admin-123'
+  ): Promise<void> => {
     const payments = mockDB.getPayments();
     const payment = payments.find(p => p.paymentId === paymentId);
-    if (!payment) return;
+    if (!payment) throw new Error('ไม่พบข้อมูลรายการชำระเงิน');
     
     const newPayments = payments.filter(p => p.paymentId !== paymentId);
     mockDB.savePayments(newPayments);
@@ -195,5 +242,13 @@ export const paymentService = {
       bills[billIndex].status = 'Unpaid';
       mockDB.saveBills(bills);
     }
+
+    mockDB.addActivity({
+      type: 'deleted_payment',
+      title: 'ลบรายการชำระเงิน',
+      description: `ลบหลักฐานการโอนของห้อง ${payment.roomId} ยอดเงิน ฿${payment.amount}`,
+      userId: adminId,
+      userDisplayName: adminName
+    });
   }
 };
