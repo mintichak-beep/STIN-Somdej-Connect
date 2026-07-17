@@ -7,7 +7,8 @@ import { Bill, Payment, Student } from '../../types/db';
 import { 
   Droplet, Zap, CreditCard, Receipt, UploadCloud, Check, X, 
   Search, Filter, ArrowUpDown, FileText, AlertCircle, Calendar,
-  ChevronLeft, ChevronRight, Eye, RefreshCw, Landmark, ThumbsUp, ThumbsDown
+  ChevronLeft, ChevronRight, Eye, RefreshCw, Landmark, ThumbsUp, ThumbsDown,
+  Pencil, Trash2
 } from 'lucide-react';
 
 export function UtilityPage() {
@@ -33,6 +34,7 @@ export function UtilityPage() {
   const [viewingSlipUrl, setViewingSlipUrl] = useState<string | null>(null);
 
   // Admin States
+  const [adminTab, setAdminTab] = useState<'payments' | 'bills'>('payments');
   const [adminSearch, setAdminSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [monthFilter, setMonthFilter] = useState<string>('All');
@@ -43,6 +45,10 @@ export function UtilityPage() {
   const [rejectionRemark, setRejectionRemark] = useState<string>('');
   const [showRejectionForm, setShowRejectionForm] = useState<boolean>(false);
   const [isReviewingAction, setIsReviewingAction] = useState<boolean>(false);
+  
+  // New edit/delete Admin states
+  const [editingBill, setEditingBill] = useState<Bill | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: 'bill' | 'payment'; id: string } | null>(null);
   
   // New Bill Creator States (Admin Feature for Convenience)
   const [showBillCreator, setShowBillCreator] = useState<boolean>(false);
@@ -232,7 +238,7 @@ export function UtilityPage() {
     }
   };
 
-  // Admin: create a new bill
+  // Admin: create a new bill or edit an existing one
   const handleCreateBill = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBillRoomId) {
@@ -250,27 +256,63 @@ export function UtilityPage() {
       const assignedTenant = students.find(s => s.roomId === newBillRoomId);
       const tenantId = assignedTenant?.studentId || 'unassigned';
 
-      await paymentService.createBill({
-        roomId: newBillRoomId,
-        tenantId: tenantId,
-        month: newBillMonth,
-        year: newBillYear,
-        waterUnit: newBillWaterUnit,
-        electricUnit: newBillElectricUnit,
-        waterAmount: waterAmount,
-        electricAmount: electricAmount,
-        totalAmount: totalAmount,
-        dueDate: `${newBillYear === '2569' ? '2026' : '2027'}-${newBillMonth === 'สิงหาคม' ? '09' : '08'}-05`, // mock due date
-        status: 'Unpaid'
-      });
+      if (editingBill) {
+        await paymentService.updateBill(editingBill.billId, {
+          roomId: newBillRoomId,
+          tenantId: tenantId,
+          month: newBillMonth,
+          year: newBillYear,
+          waterUnit: newBillWaterUnit,
+          electricUnit: newBillElectricUnit,
+          waterAmount: waterAmount,
+          electricAmount: electricAmount,
+          totalAmount: totalAmount,
+        });
+        showToast(`แก้ไขบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${totalAmount}`, 'success');
+      } else {
+        await paymentService.createBill({
+          roomId: newBillRoomId,
+          tenantId: tenantId,
+          month: newBillMonth,
+          year: newBillYear,
+          waterUnit: newBillWaterUnit,
+          electricUnit: newBillElectricUnit,
+          waterAmount: waterAmount,
+          electricAmount: electricAmount,
+          totalAmount: totalAmount,
+          dueDate: `${newBillYear === '2569' ? '2026' : '2027'}-${newBillMonth === 'สิงหาคม' ? '09' : '08'}-05`, // mock due date
+          status: 'Unpaid'
+        });
+        showToast(`สร้างบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${totalAmount}`, 'success');
+      }
 
-      showToast(`สร้างบิลสำหรับห้อง ${newBillRoomId} เรียบร้อย ยอดรวม ฿${totalAmount}`, 'success');
       setShowBillCreator(false);
+      setEditingBill(null);
       setNewBillRoomId('');
       setNewBillWaterUnit(0);
       setNewBillElectricUnit(0);
     } catch (err: any) {
-      showToast('เกิดข้อผิดพลาดในการสร้างบิล', 'error');
+      showToast(editingBill ? 'เกิดข้อผิดพลาดในการแก้ไขบิล' : 'เกิดข้อผิดพลาดในการสร้างบิล', 'error');
+    }
+  };
+
+  const handleDeleteBill = async (billId: string) => {
+    try {
+      await paymentService.deleteBill(billId);
+      showToast('ลบบิลเรียกเก็บเงินเรียบร้อยแล้ว', 'success');
+      setShowDeleteConfirm(null);
+    } catch (err) {
+      showToast('เกิดข้อผิดพลาดในการลบบิล', 'error');
+    }
+  };
+
+  const handleDeletePayment = async (paymentId: string) => {
+    try {
+      await paymentService.deletePayment(paymentId);
+      showToast('ลบรายการชำระเงินและปรับสถานะบิลกลับเป็นค้างชำระเรียบร้อยแล้ว', 'success');
+      setShowDeleteConfirm(null);
+    } catch (err) {
+      showToast('เกิดข้อผิดพลาดในการลบรายการชำระเงิน', 'error');
     }
   };
 
@@ -320,6 +362,50 @@ export function UtilityPage() {
   // Pagination calculations
   const totalPages = Math.ceil(sortedPayments.length / itemsPerPage) || 1;
   const paginatedPayments = sortedPayments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Filter and sort bills for the admin tab
+  const filteredBillsList = bills.filter(b => {
+    const studentObj = students.find(s => s.studentId === b.tenantId);
+    const studentName = studentObj?.studentName || '';
+    const roomObj = rooms.find(r => r.id === b.roomId);
+    const roomNum = roomObj?.roomNumber || b.roomId;
+
+    const matchesSearch = 
+      roomNum.toLowerCase().includes(adminSearch.toLowerCase()) ||
+      studentName.toLowerCase().includes(adminSearch.toLowerCase()) ||
+      b.month.toLowerCase().includes(adminSearch.toLowerCase());
+
+    const matchesStatus = statusFilter === 'All' || b.status === statusFilter;
+    const matchesMonth = monthFilter === 'All' || b.month === monthFilter;
+
+    return matchesSearch && matchesStatus && matchesMonth;
+  });
+
+  const sortedBillsList = [...filteredBillsList].sort((a, b) => {
+    let valueA: any = '';
+    let valueB: any = '';
+
+    if (sortBy === 'room') {
+      const roomA = rooms.find(r => r.id === a.roomId)?.roomNumber || a.roomId;
+      const roomB = rooms.find(r => r.id === b.roomId)?.roomNumber || b.roomId;
+      valueA = roomA;
+      valueB = roomB;
+    } else {
+      // Order by year and then month or default id order
+      valueA = a.billId;
+      valueB = b.billId;
+    }
+
+    if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+    if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalBillPages = Math.ceil(sortedBillsList.length / itemsPerPage) || 1;
+  const paginatedBillsList = sortedBillsList.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -632,6 +718,30 @@ export function UtilityPage() {
             </div>
           </div>
 
+          {/* Admin Navigation Tabs */}
+          <div className="flex border-b border-gray-100 dark:border-zinc-800">
+            <button
+              onClick={() => { setAdminTab('payments'); setCurrentPage(1); }}
+              className={`px-5 py-3 text-xs font-black tracking-wide border-b-2 transition cursor-pointer ${
+                adminTab === 'payments'
+                  ? 'border-red-600 text-red-600 dark:border-red-500 dark:text-red-500'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-zinc-100'
+              }`}
+            >
+              ตรวจสอบการแจ้งชำระสลิป ({payments.length} รายการ)
+            </button>
+            <button
+              onClick={() => { setAdminTab('bills'); setCurrentPage(1); }}
+              className={`px-5 py-3 text-xs font-black tracking-wide border-b-2 transition cursor-pointer ${
+                adminTab === 'bills'
+                  ? 'border-red-600 text-red-600 dark:border-red-500 dark:text-red-500'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-zinc-100'
+              }`}
+            >
+              ประวัติการออกบิลและบริหารจัดการ ({bills.length} บิล)
+            </button>
+          </div>
+
           {/* Table Container */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             {/* Filter controls */}
@@ -707,114 +817,265 @@ export function UtilityPage() {
             </div>
 
             {/* Verification Table */}
-            {paginatedPayments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-16 text-center">
-                <Receipt className="h-14 w-14 text-gray-300 mb-3" />
-                <p className="text-sm font-bold text-gray-500">ไม่พบข้อมูลใบเสร็จหรือหลักฐานโอนเงินตามเงื่อนไขที่เลือก</p>
-              </div>
-            ) : (
-              <div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-50 bg-gray-50/50 text-[10px] font-extrabold uppercase tracking-wider text-gray-400 dark:border-zinc-800 dark:bg-zinc-800/30">
-                        <th className="px-6 py-4">ห้องพัก</th>
-                        <th className="px-6 py-4">ชื่อผู้ส่งเงิน (ผู้เช่า)</th>
-                        <th className="px-6 py-4">บิลรอบประจำเดือน</th>
-                        <th className="px-6 py-4">ยอดเงินแจ้งโอน</th>
-                        <th className="px-6 py-4">วันเวลาแจ้งอัปโหลด</th>
-                        <th className="px-6 py-4">วันที่แจ้งโอน</th>
-                        <th className="px-6 py-4">สถานะสลิป</th>
-                        <th className="px-6 py-4 text-center">ตรวจสอบ</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-xs dark:divide-zinc-800">
-                      {paginatedPayments.map((pay) => {
-                        const studentObj = students.find(s => s.studentId === pay.tenantId);
-                        const billObj = bills.find(b => b.billId === pay.billId);
-                        const roomObj = rooms.find(r => r.id === pay.roomId);
-                        
-                        return (
-                          <tr key={pay.paymentId} className="hover:bg-gray-50/40 dark:hover:bg-zinc-900/30">
-                            <td className="px-6 py-4 font-black text-gray-900 dark:text-zinc-50">
-                              ห้อง {roomObj?.roomNumber || pay.roomId}
-                            </td>
-                            <td className="px-6 py-4 font-bold text-gray-700 dark:text-zinc-200">
-                              {studentObj?.studentName || `นักศึกษา S-${pay.tenantId}`}
-                            </td>
-                            <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
-                              {billObj?.month} {billObj?.year}
-                            </td>
-                            <td className="px-6 py-4 font-black text-emerald-600 dark:text-emerald-500">
-                              ฿{pay.amount.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
-                              {new Date(pay.uploadTime).toLocaleString('th-TH')}
-                            </td>
-                            <td className="px-6 py-4 text-gray-500 dark:text-zinc-400 font-medium">
-                              {pay.transferDate}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
-                                pay.status === 'Approved' 
-                                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
-                                  : pay.status === 'Pending'
-                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 animate-pulse'
-                                  : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
-                              }`}>
-                                {pay.status === 'Approved' && 'อนุมัติเรียบร้อย'}
-                                {pay.status === 'Pending' && 'รอตรวจสอบสลิป'}
-                                {pay.status === 'Rejected' && 'หลักฐานไม่ถูกต้อง'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <button
-                                id={`btn-review-${pay.paymentId}`}
-                                onClick={() => {
-                                  setSelectedPaymentForReview(pay);
-                                  setShowRejectionForm(false);
-                                }}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-3 py-1.5 text-[11px] font-black text-white hover:bg-red-700 transition cursor-pointer"
-                              >
-                                <span>รีวิวใบสลิป</span>
-                                <Eye className="h-3 w-3" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+            {adminTab === 'payments' && (
+              paginatedPayments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-16 text-center">
+                  <Receipt className="h-14 w-14 text-gray-300 mb-3" />
+                  <p className="text-sm font-bold text-gray-500">ไม่พบข้อมูลใบเสร็จหรือหลักฐานโอนเงินตามเงื่อนไขที่เลือก</p>
                 </div>
-
-                {/* Pagination footer */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between border-t border-gray-50 p-6 dark:border-zinc-800/60">
-                    <span className="text-[11px] text-gray-500">
-                      แสดงรายการที่ {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, sortedPayments.length)} จากทั้งหมด {sortedPayments.length} รายการ
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 cursor-pointer"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <span className="text-xs font-bold text-gray-800 dark:text-zinc-200">
-                        หน้า {currentPage} / {totalPages}
-                      </span>
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 cursor-pointer"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
+              ) : (
+                <div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-50 bg-gray-50/50 text-[10px] font-extrabold uppercase tracking-wider text-gray-400 dark:border-zinc-800 dark:bg-zinc-800/30">
+                          <th className="px-6 py-4">ห้องพัก</th>
+                          <th className="px-6 py-4">ชื่อผู้ส่งเงิน (ผู้เช่า)</th>
+                          <th className="px-6 py-4">บิลรอบประจำเดือน</th>
+                          <th className="px-6 py-4">ยอดเงินแจ้งโอน</th>
+                          <th className="px-6 py-4">วันเวลาแจ้งอัปโหลด</th>
+                          <th className="px-6 py-4">วันที่แจ้งโอน</th>
+                          <th className="px-6 py-4">สถานะสลิป</th>
+                          <th className="px-6 py-4 text-center">จัดการ / รีวิว</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 text-xs dark:divide-zinc-800">
+                        {paginatedPayments.map((pay) => {
+                          const studentObj = students.find(s => s.studentId === pay.tenantId);
+                          const billObj = bills.find(b => b.billId === pay.billId);
+                          const roomObj = rooms.find(r => r.id === pay.roomId);
+                          
+                          return (
+                            <tr key={pay.paymentId} className="hover:bg-gray-50/40 dark:hover:bg-zinc-900/30">
+                              <td className="px-6 py-4 font-black text-gray-900 dark:text-zinc-50">
+                                ห้อง {roomObj?.roomNumber || pay.roomId}
+                              </td>
+                              <td className="px-6 py-4 font-bold text-gray-700 dark:text-zinc-200">
+                                {studentObj?.studentName || `นักศึกษา S-${pay.tenantId}`}
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
+                                {billObj?.month} {billObj?.year}
+                              </td>
+                              <td className="px-6 py-4 font-black text-emerald-600 dark:text-emerald-500">
+                                ฿{pay.amount.toLocaleString()}
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
+                                {new Date(pay.uploadTime).toLocaleString('th-TH')}
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400 font-medium">
+                                {pay.transferDate}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
+                                  pay.status === 'Approved' 
+                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                    : pay.status === 'Pending'
+                                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 animate-pulse'
+                                    : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
+                                }`}>
+                                  {pay.status === 'Approved' && 'อนุมัติเรียบร้อย'}
+                                  {pay.status === 'Pending' && 'รอตรวจสอบสลิป'}
+                                  {pay.status === 'Rejected' && 'หลักฐานไม่ถูกต้อง'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    id={`btn-review-${pay.paymentId}`}
+                                    onClick={() => {
+                                      setSelectedPaymentForReview(pay);
+                                      setShowRejectionForm(false);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-3 py-1.5 text-[11px] font-black text-white hover:bg-red-700 transition cursor-pointer"
+                                  >
+                                    <span>รีวิวใบสลิป</span>
+                                    <Eye className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    id={`btn-delete-pay-${pay.paymentId}`}
+                                    onClick={() => {
+                                      setShowDeleteConfirm({ type: 'payment', id: pay.paymentId });
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1.5 text-[11px] font-black text-rose-600 hover:bg-rose-100 transition dark:border-rose-950/40 dark:bg-rose-950/30 dark:text-rose-400 cursor-pointer"
+                                    title="ลบหลักฐานการโอน"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    <span>ลบ</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </div>
+
+                  {/* Pagination footer */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-50 p-6 dark:border-zinc-800/60">
+                      <span className="text-[11px] text-gray-500">
+                        แสดงรายการที่ {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, sortedPayments.length)} จากทั้งหมด {sortedPayments.length} รายการ
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 cursor-pointer"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <span className="text-xs font-bold text-gray-800 dark:text-zinc-200">
+                          หน้า {currentPage} / {totalPages}
+                        </span>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 cursor-pointer"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+
+            {/* Bills Management Table */}
+            {adminTab === 'bills' && (
+              paginatedBillsList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-16 text-center">
+                  <FileText className="h-14 w-14 text-gray-300 mb-3" />
+                  <p className="text-sm font-bold text-gray-500">ไม่พบข้อมูลบิลเรียกเก็บเงินตามเงื่อนไขที่เลือก</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-50 bg-gray-50/50 text-[10px] font-extrabold uppercase tracking-wider text-gray-400 dark:border-zinc-800 dark:bg-zinc-800/30">
+                          <th className="px-6 py-4">ห้องพัก</th>
+                          <th className="px-6 py-4">ชื่อผู้เช่า</th>
+                          <th className="px-6 py-4">บิลรอบประจำเดือน</th>
+                          <th className="px-6 py-4">ค่าน้ำประปา</th>
+                          <th className="px-6 py-4">ค่าไฟฟ้า</th>
+                          <th className="px-6 py-4">ยอดรวมสุทธิ</th>
+                          <th className="px-6 py-4">สถานะบิล</th>
+                          <th className="px-6 py-4">วันครบกำหนดชำระ</th>
+                          <th className="px-6 py-4 text-center">จัดการ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 text-xs dark:divide-zinc-800">
+                        {paginatedBillsList.map((bill) => {
+                          const studentObj = students.find(s => s.studentId === bill.tenantId);
+                          const roomObj = rooms.find(r => r.id === bill.roomId);
+                          
+                          return (
+                            <tr key={bill.billId} className="hover:bg-gray-50/40 dark:hover:bg-zinc-900/30">
+                              <td className="px-6 py-4 font-black text-gray-900 dark:text-zinc-50">
+                                ห้อง {roomObj?.roomNumber || bill.roomId}
+                              </td>
+                              <td className="px-6 py-4 font-bold text-gray-700 dark:text-zinc-200">
+                                {studentObj?.studentName || `นักศึกษา S-${bill.tenantId}`}
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
+                                {bill.month} {bill.year}
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
+                                ฿{bill.waterAmount.toLocaleString()} ({bill.waterUnit} หน่วย)
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400">
+                                ฿{bill.electricAmount.toLocaleString()} ({bill.electricUnit} หน่วย)
+                              </td>
+                              <td className="px-6 py-4 font-black text-red-600 dark:text-red-500">
+                                ฿{bill.totalAmount.toLocaleString()}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
+                                  bill.status === 'Paid' 
+                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                    : bill.status === 'Pending'
+                                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 animate-pulse'
+                                    : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
+                                }`}>
+                                  {bill.status === 'Paid' && 'ชำระเงินเสร็จสิ้น'}
+                                  {bill.status === 'Pending' && 'รอตรวจสอบหลักฐาน'}
+                                  {bill.status === 'Unpaid' && 'ค้างชำระ'}
+                                  {bill.status === 'Rejected' && 'สลิปถูกปฏิเสธ'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 dark:text-zinc-400 font-medium">
+                                {bill.dueDate}
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    id={`btn-edit-bill-${bill.billId}`}
+                                    onClick={() => {
+                                      setEditingBill(bill);
+                                      setNewBillRoomId(bill.roomId);
+                                      setNewBillMonth(bill.month);
+                                      setNewBillYear(bill.year);
+                                      setNewBillWaterUnit(bill.waterUnit);
+                                      setNewBillElectricUnit(bill.electricUnit);
+                                      setShowBillCreator(true);
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 cursor-pointer"
+                                    title="แก้ไขข้อมูลบิล"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                    <span>แก้ไข</span>
+                                  </button>
+                                  <button
+                                    id={`btn-delete-bill-${bill.billId}`}
+                                    onClick={() => {
+                                      setShowDeleteConfirm({ type: 'bill', id: bill.billId });
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1.5 text-[11px] font-black text-rose-600 hover:bg-rose-100 transition dark:border-rose-950/40 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-950/50 cursor-pointer"
+                                    title="ลบบิล"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    <span>ลบ</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Bill Pagination footer */}
+                  {totalBillPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-50 p-6 dark:border-zinc-800/60">
+                      <span className="text-[11px] text-gray-500">
+                        แสดงรายการที่ {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, sortedBillsList.length)} จากทั้งหมด {sortedBillsList.length} รายการ
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 cursor-pointer"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <span className="text-xs font-bold text-gray-800 dark:text-zinc-200">
+                          หน้า {currentPage} / {totalBillPages}
+                        </span>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalBillPages))}
+                          disabled={currentPage === totalBillPages}
+                          className="rounded-xl border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 cursor-pointer"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
             )}
           </div>
         </div>
@@ -1178,11 +1439,17 @@ export function UtilityPage() {
               <div>
                 <span className="text-[10px] font-black uppercase text-red-600 dark:text-red-500 tracking-wider">ส่วนบริการผู้ดูแลระบบ</span>
                 <h3 className="text-base font-black text-gray-900 dark:text-zinc-100">
-                  บันทึกค่าน้ำและไฟฟ้าประจำเดือน
+                  {editingBill ? 'แก้ไขรายละเอียดบิลค่าบริการรายเดือน' : 'บันทึกค่าน้ำและไฟฟ้าประจำเดือน'}
                 </h3>
               </div>
               <button 
-                onClick={() => setShowBillCreator(false)}
+                onClick={() => {
+                  setShowBillCreator(false);
+                  setEditingBill(null);
+                  setNewBillRoomId('');
+                  setNewBillWaterUnit(0);
+                  setNewBillElectricUnit(0);
+                }}
                 className="rounded-xl bg-gray-50 p-2 text-gray-400 hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 cursor-pointer"
               >
                 <X className="h-4 w-4" />
@@ -1297,7 +1564,13 @@ export function UtilityPage() {
               <div className="flex items-center justify-end gap-3 border-t border-gray-50 bg-gray-50/55 px-6 py-4 dark:border-zinc-800/60 dark:bg-zinc-900/30">
                 <button
                   type="button"
-                  onClick={() => setShowBillCreator(false)}
+                  onClick={() => {
+                    setShowBillCreator(false);
+                    setEditingBill(null);
+                    setNewBillRoomId('');
+                    setNewBillWaterUnit(0);
+                    setNewBillElectricUnit(0);
+                  }}
                   className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-700 hover:bg-gray-50 transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer"
                 >
                   ยกเลิก
@@ -1306,10 +1579,49 @@ export function UtilityPage() {
                   type="submit"
                   className="rounded-xl bg-red-600 px-5 py-2.5 text-xs font-black text-white hover:bg-red-700 transition cursor-pointer"
                 >
-                  ออกบิลเรียกเก็บเงิน
+                  {editingBill ? 'บันทึกการแก้ไขบิล' : 'ออกบิลเรียกเก็บเงิน'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Delete Confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/65 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white p-6 shadow-2xl dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-center text-xs">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 mb-4">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <h3 className="text-base font-black text-gray-900 dark:text-zinc-50 mb-2">
+              ยืนยันการลบรายการ?
+            </h3>
+            <p className="text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed font-semibold">
+              คุณแน่ใจหรือไม่ว่าต้องการลบ{showDeleteConfirm.type === 'bill' ? 'บิลเรียกเก็บเงินค่าน้ำ/ค่าไฟนี้' : 'หลักฐานแจ้งโอนเงินนี้'}? การดำเนินการนี้ไม่สามารถย้อนกลับได้
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(null)}
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 font-bold text-gray-700 hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (showDeleteConfirm.type === 'bill') {
+                    handleDeleteBill(showDeleteConfirm.id);
+                  } else {
+                    handleDeletePayment(showDeleteConfirm.id);
+                  }
+                }}
+                className="rounded-xl bg-rose-600 px-5 py-2.5 font-black text-white hover:bg-rose-700 transition cursor-pointer"
+              >
+                ยืนยันการลบ
+              </button>
+            </div>
           </div>
         </div>
       )}

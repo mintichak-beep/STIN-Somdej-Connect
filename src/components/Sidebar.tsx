@@ -43,7 +43,7 @@ export function Sidebar({ id }: SidebarProps) {
           ST
         </div>
         <div>
-          <h2 className="text-sm font-black tracking-wide text-gray-900 dark:text-zinc-50">STIN CPATMS</h2>
+          <h2 className="text-xs font-black tracking-wide text-gray-900 dark:text-zinc-50 leading-tight">STIN-Somdej connect</h2>
           <p className="text-[10px] font-bold text-red-600 uppercase dark:text-red-500">Placement Hub</p>
         </div>
       </div>

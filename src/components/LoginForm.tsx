@@ -131,7 +131,7 @@ export function LoginForm() {
           {isSubmitting ? (
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
           ) : (
-            'Sign In to CPATMS'
+            'Sign In to STIN-Somdej connect'
           )}
         </button>
       </form>

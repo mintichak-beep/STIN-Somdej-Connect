@@ -159,5 +159,41 @@ export const paymentService = {
       userId: rejectedBy,
       userDisplayName: 'ผู้ดูแลระบบ'
     });
+  },
+
+  updateBill: async (billId: string, data: Partial<Bill>): Promise<void> => {
+    const list = mockDB.getBills();
+    const index = list.findIndex(b => b.billId === billId);
+    if (index === -1) throw new Error('ไม่พบข้อมูลบิล');
+    list[index] = { ...list[index], ...data };
+    mockDB.saveBills(list);
+  },
+
+  deleteBill: async (billId: string): Promise<void> => {
+    const list = mockDB.getBills();
+    const newList = list.filter(b => b.billId !== billId);
+    mockDB.saveBills(newList);
+
+    // Also remove related payments
+    const payments = mockDB.getPayments();
+    const newPayments = payments.filter(p => p.billId !== billId);
+    mockDB.savePayments(newPayments);
+  },
+
+  deletePayment: async (paymentId: string): Promise<void> => {
+    const payments = mockDB.getPayments();
+    const payment = payments.find(p => p.paymentId === paymentId);
+    if (!payment) return;
+    
+    const newPayments = payments.filter(p => p.paymentId !== paymentId);
+    mockDB.savePayments(newPayments);
+
+    // Revert corresponding Bill status to 'Unpaid'
+    const bills = mockDB.getBills();
+    const billIndex = bills.findIndex(b => b.billId === payment.billId);
+    if (billIndex !== -1) {
+      bills[billIndex].status = 'Unpaid';
+      mockDB.saveBills(bills);
+    }
   }
 };
