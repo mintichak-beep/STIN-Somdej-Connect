@@ -2,7 +2,8 @@ import {
   Student, Teacher, TrainingGroup, AcademicYear, Semester, Course, Section, Hospital, 
   Building, Floor, Room, RoomAssignment, Vehicle, Driver, 
   TransportSchedule, TransportAssignment, RecentActivity, ClinicalWardSchedule,
-  Bill, Payment
+  Bill, Payment, UtilityRecord, UtilityShare, PaymentProof, Document, DocumentSubmission, Announcement, Notification, 
+  SupervisionSchedule, SupervisionRecord, EvaluationForm, Evaluation, TrainingSite, HospitalCourse, Placement, CommunicationLog, AuditLog, User, SystemIssue, UserFeedback, PracticeAssignment, PracticeAssignmentHistory, PracticeSchedule, PracticeScheduleAssignment
 } from '../types/db';
 
 const STORAGE_KEYS = {
@@ -25,7 +26,13 @@ const STORAGE_KEYS = {
   CLINICAL_WARD_SCHEDULES: 'cpatms_clinical_ward_schedules',
   BILLS: 'cpatms_bills',
   PAYMENTS: 'cpatms_payments',
-  TRAINING_GROUPS: 'cpatms_training_groups'
+  TRAINING_GROUPS: 'cpatms_training_groups',
+  PRACTICE_ASSIGNMENTS: 'cpatms_practice_assignments',
+  PRACTICE_SCHEDULES: 'cpatms_practice_schedules',
+  PRACTICE_SCHEDULE_ASSIGNMENTS: 'cpatms_practice_schedule_assignments',
+  PRACTICE_ASSIGNMENT_HISTORY: 'cpatms_practice_assignment_history',
+  IMPORT_HISTORY: 'cpatms_import_history',
+  USERS: 'cpatms_users',
 };
 
 // Initial realistic data
@@ -815,6 +822,81 @@ export const mockDB = {
 
   getTrainingGroups: (): TrainingGroup[] => loadData(STORAGE_KEYS.TRAINING_GROUPS, INITIAL_TRAINING_GROUPS),
   saveTrainingGroups: (data: TrainingGroup[]) => saveData(STORAGE_KEYS.TRAINING_GROUPS, data),
+
+  getUtilityRecords: (): UtilityRecord[] => loadData('cpatms_utility_records', []),
+  saveUtilityRecords: (data: UtilityRecord[]) => saveData('cpatms_utility_records', data),
+  
+  getUtilityShares: (): UtilityShare[] => loadData('cpatms_utility_shares', []),
+  saveUtilityShares: (data: UtilityShare[]) => saveData('cpatms_utility_shares', data),
+  
+  getPaymentProofs: (): PaymentProof[] => loadData('cpatms_payment_proofs', []),
+  savePaymentProofs: (data: PaymentProof[]) => saveData('cpatms_payment_proofs', data),
+
+  getDocuments: (): Document[] => loadData('cpatms_documents', []),
+  saveDocuments: (data: Document[]) => saveData('cpatms_documents', data),
+  
+  getDocumentSubmissions: (): DocumentSubmission[] => loadData('cpatms_document_submissions', []),
+  saveDocumentSubmissions: (data: DocumentSubmission[]) => saveData('cpatms_document_submissions', data),
+  
+  getAnnouncements: (): Announcement[] => loadData('cpatms_announcements', []),
+  saveAnnouncements: (data: Announcement[]) => saveData('cpatms_announcements', data),
+  
+  getNotifications: (): Notification[] => loadData('cpatms_notifications', []),
+  saveNotifications: (data: Notification[]) => saveData('cpatms_notifications', data),
+
+  getSupervisionSchedules: (): SupervisionSchedule[] => loadData('cpatms_supervision_schedules', []),
+  saveSupervisionSchedules: (data: SupervisionSchedule[]) => saveData('cpatms_supervision_schedules', data),
+  
+  getSupervisionRecords: (): SupervisionRecord[] => loadData('cpatms_supervision_records', []),
+  saveSupervisionRecords: (data: SupervisionRecord[]) => saveData('cpatms_supervision_records', data),
+  
+  getEvaluationForms: (): EvaluationForm[] => loadData('cpatms_evaluation_forms', []),
+  saveEvaluationForms: (data: EvaluationForm[]) => saveData('cpatms_evaluation_forms', data),
+  
+  getEvaluations: (): Evaluation[] => loadData('cpatms_evaluations', []),
+  saveEvaluations: (data: Evaluation[]) => saveData('cpatms_evaluations', data),
+
+  getTrainingSites: (): TrainingSite[] => loadData('cpatms_training_sites', []),
+  saveTrainingSites: (data: TrainingSite[]) => saveData('cpatms_training_sites', data),
+  
+  getHospitalCourses: (): HospitalCourse[] => loadData('cpatms_hospital_courses', []),
+  saveHospitalCourses: (data: HospitalCourse[]) => saveData('cpatms_hospital_courses', data),
+  
+  getPlacements: (): Placement[] => loadData('cpatms_placements', []),
+  savePlacements: (data: Placement[]) => saveData('cpatms_placements', data),
+  
+  getCommunicationLogs: (): CommunicationLog[] => loadData('cpatms_communication_logs', []),
+  saveCommunicationLogs: (data: CommunicationLog[]) => saveData('cpatms_communication_logs', data),
+
+  getAuditLogs: (): AuditLog[] => loadData('cpatms_audit_logs', []),
+  saveAuditLogs: (data: AuditLog[]) => saveData('cpatms_audit_logs', data),
+  
+  getUsers: (): User[] => loadData('cpatms_users', []),
+  saveUsers: (data: User[]) => saveData('cpatms_users', data),
+  
+  getSystemIssues: (): SystemIssue[] => loadData('cpatms_system_issues', []),
+  saveSystemIssues: (data: SystemIssue[]) => saveData('cpatms_system_issues', data),
+  
+  getUserFeedback: (): UserFeedback[] => loadData('cpatms_user_feedback', []),
+  saveUserFeedback: (data: UserFeedback[]) => saveData('cpatms_user_feedback', data),
+  
+  getPracticeAssignments: (): PracticeAssignment[] => loadData(STORAGE_KEYS.PRACTICE_ASSIGNMENTS, []),
+  savePracticeAssignments: (data: PracticeAssignment[]) => saveData(STORAGE_KEYS.PRACTICE_ASSIGNMENTS, data),
+
+  getPracticeSchedules: (): PracticeSchedule[] => loadData(STORAGE_KEYS.PRACTICE_SCHEDULES, []),
+  savePracticeSchedules: (data: PracticeSchedule[]) => saveData(STORAGE_KEYS.PRACTICE_SCHEDULES, data),
+
+  getPracticeScheduleAssignments: (): PracticeScheduleAssignment[] => loadData(STORAGE_KEYS.PRACTICE_SCHEDULE_ASSIGNMENTS, []),
+  savePracticeScheduleAssignments: (data: PracticeScheduleAssignment[]) => saveData(STORAGE_KEYS.PRACTICE_SCHEDULE_ASSIGNMENTS, data),
+
+  getPracticeAssignmentHistory: (): PracticeAssignmentHistory[] => loadData(STORAGE_KEYS.PRACTICE_ASSIGNMENT_HISTORY, []),
+  
+  getImportHistory: (): any[] => loadData(STORAGE_KEYS.IMPORT_HISTORY, []),
+  saveImportHistory: (data: any[]) => saveData(STORAGE_KEYS.IMPORT_HISTORY, data),
+  
+  getUsers: (): User[] => loadData(STORAGE_KEYS.USERS, []),
+  saveUsers: (data: User[]) => saveData(STORAGE_KEYS.USERS, data),
+  savePracticeAssignmentHistory: (data: PracticeAssignmentHistory[]) => saveData(STORAGE_KEYS.PRACTICE_ASSIGNMENT_HISTORY, data),
 
   addActivity: (activity: Omit<RecentActivity, 'id' | 'timestamp'>) => {
     const list = loadData(STORAGE_KEYS.ACTIVITIES, INITIAL_ACTIVITIES);

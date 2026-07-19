@@ -22,9 +22,31 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /students/{studentId} {
+    match /documents/{docId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || (isStudent() && request.auth.uid == studentId);
+      allow write: if isTeacher();
     }
+    
+    match /announcements/{annId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher();
+    }
+    
+    match /supervisionSchedules/{schId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher();
+    }
+
+    match /auditLogs/{logId} {
+        allow read: if isTeacher();
+        allow write: if isSignedIn();
+    }
+    
+    match /trainingSites/{siteId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher();
+    }
+    
+    // ... and so on for all collections
   }
 }

@@ -39,5 +39,45 @@ export const studentService = {
     let list = mockDB.getStudents();
     list = list.filter(item => item.id !== id);
     mockDB.saveStudents(list);
+  },
+
+  bulkImport: async (students: Omit<Student, 'id' | 'createdAt' | 'status'>[]): Promise<{ successful: number, failed: number, errors: any[] }> => {
+    const list = mockDB.getStudents();
+    let successful = 0;
+    let failed = 0;
+    const errors: any[] = [];
+    
+    students.forEach(s => {
+      // Validate
+      const studentIdNum = parseInt(s.studentId, 10);
+      if (isNaN(studentIdNum) || s.studentId.length !== 7 || studentIdNum < 6610001 || studentIdNum > 6710230) {
+        failed++;
+        errors.push({ studentId: s.studentId, problem: 'Invalid length or out of range' });
+        return;
+      }
+      if (list.some(existing => existing.studentId === s.studentId)) {
+        failed++;
+        errors.push({ studentId: s.studentId, problem: 'Duplicate student ID' });
+        return;
+      }
+      
+      const newStudent: Student = {
+        ...s,
+        id: `s-${Date.now()}-${Math.random()}`,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        email: s.email || `${s.studentId}@stin.ac.th`,
+        fullName: s.fullName || `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+      };
+      
+      list.push(newStudent);
+      successful++;
+    });
+    
+    if (successful > 0) {
+        mockDB.saveStudents(list);
+    }
+    
+    return { successful, failed, errors };
   }
 };
