@@ -13,12 +13,17 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
     }
     
-    function isStudent() {
+    function isStudent(userId) {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student';
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isTeacher());
+      allow write: if isAdmin() || (isStudent(request.auth.uid) && request.auth.uid == userId && request.resource.data.role == resource.data.role); // Only allow updating their own profile without role change
+    }
+
+    match /students/{studentId} {
+      allow read: if isSignedIn() && (request.auth.uid == studentId || isAdmin() || isTeacher());
       allow write: if isAdmin();
     }
 
