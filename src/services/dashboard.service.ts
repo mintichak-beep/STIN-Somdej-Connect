@@ -188,7 +188,7 @@ export const dashboardService = {
     }
 
     const defaultAY = mockDB.getAcademicYears().find(a => a.status === 'active')?.id || 'ay-2569';
-    const defaultCourse = mockDB.getCourses()[0]?.id || 'c-ns212';
+    const defaultCourse = mockDB.getCourses()[0]?.id || 'c-maternal1';
     const defaultSection = mockDB.getSections().find(s => s.courseId === defaultCourse)?.id || 's-sec1';
     const defaultHospital = mockDB.getHospitals()[0]?.id || 'h-siriraj';
 
@@ -216,6 +216,13 @@ export const dashboardService = {
       const newStudent: Student = {
         id: `st-${Date.now()}-${i}`,
         studentId: sId,
+        studentNumber: sId,
+        studentName: name,
+        section: defaultSection,
+        academicYear: defaultAY,
+        hospital: defaultHospital,
+        rotationGroup: 'Group A',
+        DRSchedule: 'ANCส',
         name,
         email,
         phone,
@@ -225,6 +232,9 @@ export const dashboardService = {
         sectionId: defaultSection,
         hospitalId: defaultHospital,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: 'system',
+        updatedBy: 'system',
         status: 'active'
       };
       currentStudents.push(newStudent);

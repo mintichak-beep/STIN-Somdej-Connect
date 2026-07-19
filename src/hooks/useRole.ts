@@ -6,32 +6,14 @@ export function useRole() {
 
   const role: UserRole | null = user?.role || null;
 
-  const isAdmin = role === 'Administrator';
   const isTeacher = role === 'Teacher';
-  const isStudent = role === 'Student';
+  const isStudent = role === 'Nursing Student';
+  const isAdmin = role === 'Teacher'; // Map isAdmin check to isTeacher for backward compatibility
 
   // Role Permission mapping for features
   const canAccess = (feature: string): boolean => {
     if (!role) return false;
-    if (isAdmin) return true; // Administrator can access everything
-
-    const teacherFeatures = [
-      'dashboard',
-      'students',
-      'teachers',
-      'vehicles',
-      'drivers',
-      'transportation',
-      'rooms',
-      'reports',
-      'profile',
-      'academicYear',
-      'semester',
-      'course',
-      'section',
-      'hospital',
-      'building'
-    ];
+    if (isTeacher) return true; // Teacher has access to everything
 
     const studentFeatures = [
       'dashboard',
@@ -39,10 +21,6 @@ export function useRole() {
       'my-transportation',
       'profile'
     ];
-
-    if (isTeacher) {
-      return teacherFeatures.includes(feature);
-    }
 
     if (isStudent) {
       return studentFeatures.includes(feature);

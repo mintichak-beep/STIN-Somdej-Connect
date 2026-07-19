@@ -228,7 +228,7 @@ export const statisticsService = {
       }
     });
     const studentsByCourse = courses.map(c => ({
-      label: `${c.code} - ${c.name.split(' ')[0]}`,
+      label: `${c.code} - ${c.name}`,
       value: courseMap[c.id] || 0
     }));
 

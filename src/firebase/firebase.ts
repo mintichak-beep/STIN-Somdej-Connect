@@ -5,8 +5,8 @@ const DEFAULT_USERS: UserProfile[] = [
   {
     uid: 'admin-123',
     email: 'admin@stin.ac.th',
-    displayName: 'STIN Administrator',
-    role: 'Administrator',
+    displayName: 'STIN Lead Teacher',
+    role: 'Teacher',
     department: 'Information Technology',
     photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     phone: '02-234-5678',
@@ -32,7 +32,7 @@ const DEFAULT_USERS: UserProfile[] = [
     uid: 'student-789',
     email: 'student@stin.ac.th',
     displayName: 'Nong Somchai',
-    role: 'Student',
+    role: 'Nursing Student',
     department: 'First-Year Nursing Student',
     photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
     phone: '099-876-5432',
@@ -44,7 +44,8 @@ const DEFAULT_USERS: UserProfile[] = [
 ];
 
 export function initializeDB() {
-  if (!localStorage.getItem('cpatms_users')) {
+  const existing = localStorage.getItem('cpatms_users');
+  if (!existing || existing.includes('"Student"') || existing.includes('"Administrator"')) {
     localStorage.setItem('cpatms_users', JSON.stringify(DEFAULT_USERS));
   }
   if (!localStorage.getItem('cpatms_user_passwords')) {

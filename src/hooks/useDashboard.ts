@@ -67,9 +67,9 @@ export function useDashboard() {
   };
 
   // Role Security Gating Checks
-  const isStudent = user?.role === 'Student';
+  const isStudent = user?.role === 'Nursing Student';
   const isTeacher = user?.role === 'Teacher';
-  const isAdmin = user?.role === 'Administrator';
+  const isAdmin = user?.role === 'Teacher';
 
   // Quick Action execution wrappers
   const handleAddStudent = async (studentData: Omit<Student, 'id' | 'createdAt'>) => {

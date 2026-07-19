@@ -96,7 +96,7 @@ export function HospitalTable({
     const html = `
       <html>
         <head>
-          <title>CPATMS - Clinical Hospitals Master Registry</title>
+          <title>STIN-Somdej Connect - Clinical Hospitals Master Registry</title>
           <style>
             body { font-family: sans-serif; padding: 25px; color: #1f2937; }
             h1 { font-size: 22px; margin-bottom: 4px; font-weight: bold; }
@@ -111,7 +111,7 @@ export function HospitalTable({
           </style>
         </head>
         <body>
-          <h1>CPATMS Clinical Placement Accommodations</h1>
+          <h1>STIN-Somdej Connect Clinical Placements</h1>
           <p>Hospitals Master Registry List. Generated on: ${new Date().toLocaleDateString('th-TH')} ${new Date().toLocaleTimeString()}</p>
           <table>
             <thead>

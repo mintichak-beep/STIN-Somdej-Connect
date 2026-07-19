@@ -59,7 +59,7 @@ export const AuthService = {
       setTimeout(() => {
         // Simulate logging in with admin via Google
         const users = firebaseSim.getUsers();
-        const adminUser = users.find(u => u.role === 'Administrator') || users[0];
+        const adminUser = users.find(u => u.role === 'Teacher') || users[0];
         
         // Update last login
         const updatedUsers = users.map(u => {
@@ -99,7 +99,7 @@ export const AuthService = {
         const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
 
         if (!user) {
-          return reject(new Error('Email address not registered in CPATMS.'));
+          return reject(new Error('Email address not registered in STIN-Somdej Connect.'));
         }
 
         resolve(`Reset link successfully simulated and sent to ${email}`);

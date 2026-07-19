@@ -31,10 +31,10 @@ export function Login() {
             Academic Year 2026/2027
           </div>
           <h2 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-none">
-            Clinical Placement Accommodation & Transportation
+            STIN-Somdej Connect
           </h2>
           <p className="text-base text-red-100/90 leading-relaxed">
-            Welcome to the STIN-Somdej connect portal for Srisavarindhira Thai Red Cross Institute of Nursing. Seamlessly manage academic schedules, clinic room allocations, and transit assignments in one integrated platform.
+            Welcome to the STIN-Somdej Connect portal for Srisavarindhira Thai Red Cross Institute of Nursing. Seamlessly manage academic schedules, clinic room allocations, and transit assignments in one integrated platform.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export function Login() {
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-wider uppercase text-gray-900 dark:text-white">STIN-Somdej connect</h2>
+              <h2 className="text-sm font-black tracking-wider uppercase text-gray-900 dark:text-white">STIN-Somdej Connect</h2>
               <p className="text-[10px] font-semibold text-red-600 dark:text-red-500">STIN Nursing Institute</p>
             </div>
           </div>
@@ -69,7 +69,7 @@ export function Login() {
               Sign In
             </h3>
             <p className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
-              Enter your STIN account credentials to access STIN-Somdej connect.
+              Enter your STIN account credentials to access STIN-Somdej Connect.
             </p>
           </div>
 

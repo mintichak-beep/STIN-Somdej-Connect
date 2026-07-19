@@ -62,14 +62,11 @@ export function DashboardHeader({
         <div>
           <div className="flex items-center gap-2">
             <h1 id="header-title" className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-50 md:text-3xl font-sans">
-              STIN Clinical Portal
+              STIN-Somdej Connect
             </h1>
-            <span className="rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
-              CPATMS
-            </span>
           </div>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-            Clinical Placement Accommodation & Transportation Management System
+            Clinical Placement, Accommodation & Transportation Management Portal
           </p>
         </div>
 
@@ -104,7 +101,7 @@ export function DashboardHeader({
           <button
             id="logout-button"
             onClick={logout}
-            title="Sign out of CPATMS"
+            title="Sign out of STIN-Somdej Connect"
             className="rounded-xl border border-gray-200 p-2.5 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
           >
             <LogOut className="h-5 w-5" />

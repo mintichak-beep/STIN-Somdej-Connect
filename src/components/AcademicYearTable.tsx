@@ -92,7 +92,7 @@ export function AcademicYearTable({
     const html = `
       <html>
         <head>
-          <title>CPATMS - Academic Years Master Registry</title>
+          <title>STIN-Somdej Connect - Academic Years Master Registry</title>
           <style>
             body { font-family: sans-serif; padding: 20px; color: #333; }
             h1 { font-size: 20px; margin-bottom: 5px; }
@@ -104,7 +104,7 @@ export function AcademicYearTable({
         </head>
         <body>
           <h1>Academic Years Master Registry</h1>
-          <p>Generated on ${new Date().toLocaleString()} • CPATMS Portal</p>
+          <p>Generated on ${new Date().toLocaleString()} • STIN-Somdej Connect</p>
           <table>
             <thead>
               <tr>

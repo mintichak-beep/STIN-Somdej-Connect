@@ -153,6 +153,8 @@ export interface Vehicle {
   model: string;
   capacity: number;
   status: 'active' | 'maintenance' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Driver {
@@ -161,6 +163,8 @@ export interface Driver {
   phone: string;
   licenseNumber: string;
   status: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TransportSchedule {
@@ -170,6 +174,7 @@ export interface TransportSchedule {
   route: string; // e.g., "STIN to Siriraj Hospital"
   departureTime: string; // ISO string or e.g., "07:30"
   status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  pickupLocation?: string;
 }
 
 export interface TransportAssignment {
@@ -179,6 +184,7 @@ export interface TransportAssignment {
   pickupLocation: string;
   dropoffLocation: string;
   status: 'active' | 'completed' | 'cancelled';
+  seatNumber?: number;
 }
 
 export interface Student {
@@ -222,6 +228,20 @@ export interface Teacher {
   status: 'active' | 'inactive';
 }
 
+export interface TrainingGroup {
+  id: string;
+  name: string;
+  teacherId: string;
+  hospital: string;
+  studentIds: string[];
+  startDate: string;
+  endDate: string;
+  dormitoryIds: string[];
+  transportationId: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface RecentActivity {
   id: string;
   type: 'login' | 'student_add' | 'teacher_add' | 'room_assign' | 'transport_assign' | 'report_gen' | 'edited_bill' | 'deleted_bill' | 'deleted_payment';
@@ -263,6 +283,9 @@ export interface Bill {
   electricRate?: number;
   otherCharges?: number;
   notes?: string;
+  adjustmentAmount?: number;
+  adjustmentNote?: string;
+  rejectionNote?: string;
 }
 
 export interface Payment {

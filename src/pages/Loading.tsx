@@ -7,7 +7,7 @@ export function Loading() {
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-red-600 border-t-transparent dark:border-red-500"></div>
         </div>
         <p className="font-sans text-sm font-semibold tracking-wide text-gray-600 dark:text-zinc-400">
-          Loading CPATMS Platform...
+          Loading STIN-Somdej Connect...
         </p>
       </div>
     </div>

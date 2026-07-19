@@ -114,7 +114,7 @@ export function FloorTable({
     const html = `
       <html>
         <head>
-          <title>CPATMS - Floors Registry List</title>
+          <title>STIN-Somdej Connect - Floors Registry List</title>
           <style>
             body { font-family: sans-serif; padding: 25px; color: #1f2937; }
             h1 { font-size: 20px; margin-bottom: 4px; font-weight: bold; }
@@ -129,7 +129,7 @@ export function FloorTable({
           </style>
         </head>
         <body>
-          <h1>CPATMS Clinical Placement Accommodations</h1>
+          <h1>STIN-Somdej Connect Accommodations</h1>
           <p>Floors Master Registry. Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
           <table>
             <thead>

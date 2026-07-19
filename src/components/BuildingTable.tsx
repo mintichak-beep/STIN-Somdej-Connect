@@ -108,7 +108,7 @@ export function BuildingTable({
     const html = `
       <html>
         <head>
-          <title>CPATMS - Building Registry List</title>
+          <title>STIN-Somdej Connect - Building Registry List</title>
           <style>
             body { font-family: sans-serif; padding: 25px; color: #1f2937; }
             h1 { font-size: 20px; margin-bottom: 4px; font-weight: bold; }
@@ -123,7 +123,7 @@ export function BuildingTable({
           </style>
         </head>
         <body>
-          <h1>CPATMS Clinical Placement Accommodations</h1>
+          <h1>STIN-Somdej Connect Accommodations</h1>
           <p>Buildings Master Registry. Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
           <table>
             <thead>

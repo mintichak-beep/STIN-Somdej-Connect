@@ -102,7 +102,7 @@ export function SemesterTable({
     const html = `
       <html>
         <head>
-          <title>CPATMS - Semester Term Master Registry</title>
+          <title>STIN-Somdej Connect - Semester Term Master Registry</title>
           <style>
             body { font-family: sans-serif; padding: 20px; color: #333; }
             h1 { font-size: 20px; margin-bottom: 5px; }
@@ -114,7 +114,7 @@ export function SemesterTable({
         </head>
         <body>
           <h1>Semester Term Master Registry</h1>
-          <p>Generated on ${new Date().toLocaleString()} • CPATMS Portal</p>
+          <p>Generated on ${new Date().toLocaleString()} • STIN-Somdej Connect</p>
           <table>
             <thead>
               <tr>

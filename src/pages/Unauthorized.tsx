@@ -1,4 +1,4 @@
-import { Link } from 'react';
+import { Link } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export function Unauthorized() {
@@ -16,7 +16,7 @@ export function Unauthorized() {
             Access Denied
           </h2>
           <p className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
-            You do not have administrative permission to view this section of the CPATMS application.
+            You do not have administrative permission to view this section of the STIN-Somdej Connect application.
           </p>
         </div>
 

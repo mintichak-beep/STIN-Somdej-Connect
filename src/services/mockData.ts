@@ -1,5 +1,5 @@
 import { 
-  Student, Teacher, AcademicYear, Semester, Course, Section, Hospital, 
+  Student, Teacher, TrainingGroup, AcademicYear, Semester, Course, Section, Hospital, 
   Building, Floor, Room, RoomAssignment, Vehicle, Driver, 
   TransportSchedule, TransportAssignment, RecentActivity, ClinicalWardSchedule,
   Bill, Payment
@@ -24,7 +24,8 @@ const STORAGE_KEYS = {
   ACTIVITIES: 'cpatms_activities',
   CLINICAL_WARD_SCHEDULES: 'cpatms_clinical_ward_schedules',
   BILLS: 'cpatms_bills',
-  PAYMENTS: 'cpatms_payments'
+  PAYMENTS: 'cpatms_payments',
+  TRAINING_GROUPS: 'cpatms_training_groups'
 };
 
 // Initial realistic data
@@ -119,18 +120,19 @@ const INITIAL_SEMESTERS: Semester[] = [
 ];
 
 const INITIAL_COURSES: Course[] = [
-  { id: 'c-ns111', code: 'NS111', name: 'Anatomy and Physiology', status: 'active' },
-  { id: 'c-ns212', code: 'NS212', name: 'Adult and Gerontological Nursing', status: 'active' },
-  { id: 'c-ns311', code: 'NS311', name: 'Maternal-Newborn Nursing and Midwifery I', status: 'active' },
-  { id: 'c-ns411', code: 'NS411', name: 'Community Health Nursing and Primary Care', status: 'active' }
+  { id: 'c-maternal1', code: 'NS321', name: 'ปฏิบัติการพยาบาลมารดาฯ 1', status: 'active' },
+  { id: 'c-maternal2', code: 'NS322', name: 'ปฏิบัติการพยาบาลมารดาฯ 2', status: 'active' },
+  { id: 'c-pmc', code: 'NS421', name: 'ปฏิบัติการรักษาโรคเบื้องต้น', status: 'active' },
+  { id: 'c-psy', code: 'NS422', name: 'ปฏิบัติการพยาบาลสุขภาพจิตและจิตเวช', status: 'active' }
 ];
 
 const INITIAL_SECTIONS: Section[] = [
-  { id: 's-sec1', name: 'Section 1', courseId: 'c-ns212', status: 'active' },
-  { id: 's-sec2', name: 'Section 2', courseId: 'c-ns212', status: 'active' },
-  { id: 's-sec3', name: 'Section 1', courseId: 'c-ns311', status: 'active' },
-  { id: 's-sec4', name: 'Section 2', courseId: 'c-ns311', status: 'active' },
-  { id: 's-sec5', name: 'Section 1', courseId: 'c-ns411', status: 'active' }
+  { id: 's-sec1', name: 'Section 1', courseId: 'c-maternal1', status: 'active' },
+  { id: 's-sec2', name: 'Section 2', courseId: 'c-maternal1', status: 'active' },
+  { id: 's-sec3', name: 'Section 1', courseId: 'c-maternal2', status: 'active' },
+  { id: 's-sec4', name: 'Section 2', courseId: 'c-maternal2', status: 'active' },
+  { id: 's-sec5', name: 'Section 1', courseId: 'c-pmc', status: 'active' },
+  { id: 's-sec6', name: 'Section 1', courseId: 'c-psy', status: 'active' }
 ];
 
 const INITIAL_CLINICAL_WARD_SCHEDULES: ClinicalWardSchedule[] = [
@@ -536,11 +538,11 @@ const INITIAL_TRANSPORT_SCHEDULES: TransportSchedule[] = [
 ];
 
 const INITIAL_TEACHERS: Teacher[] = [
-  { id: 't-1', teacherId: 'T001', name: 'Ajarn Somsri Saeli', email: 'somsri@stin.ac.th', phone: '081-445-5661', department: 'Fundamental Nursing', courseIds: ['c-ns111', 'c-ns212'], status: 'active' },
-  { id: 't-2', teacherId: 'T002', name: 'Dr. Malee Prasert', email: 'malee@stin.ac.th', phone: '082-556-6772', department: 'Obstetric Nursing', courseIds: ['c-ns311'], status: 'active' },
-  { id: 't-3', teacherId: 'T003', name: 'Ajarn Kitti Wongsawat', email: 'kitti@stin.ac.th', phone: '083-667-7883', department: 'Community Nursing', courseIds: ['c-ns411'], status: 'active' },
-  { id: 't-4', teacherId: 'T004', name: 'Dr. Nattaporn Siri', email: 'nattaporn@stin.ac.th', phone: '084-778-8994', department: 'Adult Nursing & Surgery', courseIds: ['c-ns212'], status: 'active' },
-  { id: 't-5', teacherId: 'T005', name: 'Ajarn Piyanut Boonsong', email: 'piyanut@stin.ac.th', phone: '085-889-9005', department: 'Pediatric Nursing', courseIds: ['c-ns311', 'c-ns411'], status: 'inactive' }
+  { id: 't-1', teacherId: 'T001', name: 'Ajarn Somsri Saeli', email: 'somsri@stin.ac.th', phone: '081-445-5661', department: 'Fundamental Nursing', courseIds: ['c-maternal1', 'c-maternal2'], status: 'active' },
+  { id: 't-2', teacherId: 'T002', name: 'Dr. Malee Prasert', email: 'malee@stin.ac.th', phone: '082-556-6772', department: 'Obstetric Nursing', courseIds: ['c-maternal1'], status: 'active' },
+  { id: 't-3', teacherId: 'T003', name: 'Ajarn Kitti Wongsawat', email: 'kitti@stin.ac.th', phone: '083-667-7883', department: 'Community Nursing', courseIds: ['c-pmc'], status: 'active' },
+  { id: 't-4', teacherId: 'T004', name: 'Dr. Nattaporn Siri', email: 'nattaporn@stin.ac.th', phone: '084-778-8994', department: 'Adult Nursing & Surgery', courseIds: ['c-psy'], status: 'active' },
+  { id: 't-5', teacherId: 'T005', name: 'Ajarn Piyanut Boonsong', email: 'piyanut@stin.ac.th', phone: '085-889-9005', department: 'Pediatric Nursing', courseIds: ['c-maternal1', 'c-pmc'], status: 'inactive' }
 ];
 
 const INITIAL_STUDENTS: Student[] = [
@@ -695,6 +697,20 @@ const INITIAL_PAYMENTS: Payment[] = [
   }
 ];
 
+const INITIAL_TRAINING_GROUPS: TrainingGroup[] = [
+  {
+    id: 'tg-1',
+    name: 'Siriraj Hospital Group A',
+    teacherId: 't-1',
+    hospital: 'Siriraj Hospital',
+    studentIds: ['st-1'],
+    startDate: '2026-07-01',
+    endDate: '2026-08-31',
+    dormitoryIds: ['r-dormA-101'],
+    transportationId: 'ts-01'
+  }
+];
+
 // Load and retrieve localStorage helper with fallback and event notifier
 function loadData<T>(key: string, fallback: T[]): T[] {
   const item = localStorage.getItem(key);
@@ -702,6 +718,34 @@ function loadData<T>(key: string, fallback: T[]): T[] {
     localStorage.setItem(key, JSON.stringify(fallback));
     return fallback;
   }
+  
+  // Clean up any stale courses/sections/teachers referencing old course IDs
+  try {
+    if (key === 'cpatms_courses') {
+      const parsed = JSON.parse(item) as any[];
+      if (parsed.some(c => c && c.id && c.id.startsWith('c-ns'))) {
+        localStorage.setItem(key, JSON.stringify(fallback));
+        return fallback;
+      }
+    }
+    if (key === 'cpatms_sections') {
+      const parsed = JSON.parse(item) as any[];
+      if (parsed.some(s => s && s.courseId && s.courseId.startsWith('c-ns'))) {
+        localStorage.setItem(key, JSON.stringify(fallback));
+        return fallback;
+      }
+    }
+    if (key === 'cpatms_teachers') {
+      const parsed = JSON.parse(item) as any[];
+      if (parsed.some(t => t && t.courseIds && t.courseIds.some((cid: string) => cid.startsWith('c-ns')))) {
+        localStorage.setItem(key, JSON.stringify(fallback));
+        return fallback;
+      }
+    }
+  } catch (e) {
+    console.error("Migration error", e);
+  }
+
   return JSON.parse(item);
 }
 
@@ -768,6 +812,9 @@ export const mockDB = {
 
   getPayments: (): Payment[] => loadData(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS),
   savePayments: (data: Payment[]) => saveData(STORAGE_KEYS.PAYMENTS, data),
+
+  getTrainingGroups: (): TrainingGroup[] => loadData(STORAGE_KEYS.TRAINING_GROUPS, INITIAL_TRAINING_GROUPS),
+  saveTrainingGroups: (data: TrainingGroup[]) => saveData(STORAGE_KEYS.TRAINING_GROUPS, data),
 
   addActivity: (activity: Omit<RecentActivity, 'id' | 'timestamp'>) => {
     const list = loadData(STORAGE_KEYS.ACTIVITIES, INITIAL_ACTIVITIES);

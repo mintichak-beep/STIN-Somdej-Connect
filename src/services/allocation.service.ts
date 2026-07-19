@@ -8,7 +8,7 @@ export const allocationService = {
   },
 
   getAvailableRooms: async () => {
-    return mockDB.getRooms().filter(r => r.status === 'Available');
+    return mockDB.getRooms().filter(r => r.status === 'active');
   },
 
   calculateAssignments: (students: Student[], rooms: any[]): AllocationState[] => {
@@ -23,8 +23,8 @@ export const allocationService = {
     // Sort groups by size descending
     const sortedGroups = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length);
 
-    let room4Bed = rooms.filter(r => r.capacity === 4 && r.status === 'Available');
-    let room3Bed = rooms.filter(r => r.capacity === 3 && r.status === 'Available');
+    let room4Bed = rooms.filter(r => r.capacity === 4 && r.status === 'active');
+    let room3Bed = rooms.filter(r => r.capacity === 3 && r.status === 'active');
 
     sortedGroups.forEach(([period, groupStudents]) => {
       let remaining = [...groupStudents];
@@ -56,12 +56,12 @@ export const allocationService = {
       const student = students.find(s => s.id === assignment.studentId);
       if (student) {
         student.roomId = assignment.roomId;
-        student.bedNumber = assignment.bedId;
+        student.bedId = assignment.bedId;
       }
       
       const room = rooms.find(r => r.id === assignment.roomId);
       if (room) {
-        room.status = 'Occupied';
+        room.status = 'full';
       }
     });
 
