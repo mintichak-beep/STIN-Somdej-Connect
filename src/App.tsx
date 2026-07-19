@@ -2,7 +2,10 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthGuard } from './components/AuthGuard';
 import { PublicRoute } from './components/PublicRoute';
-import { Login } from './pages/Login';
+import { LandingPage } from './pages/LandingPage';
+import { StudentSearch } from './pages/StudentSearch';
+import { StudentProfile } from './pages/StudentProfile';
+import { TeacherLogin } from './pages/TeacherLogin';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Unauthorized } from './pages/Unauthorized';
 import { Dashboard } from './pages/Dashboard';
@@ -12,15 +15,27 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
+          {/* Landing / Welcome Page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Student Access Portal (No Auth Required) */}
+          <Route path="/student" element={<StudentSearch />} />
+          <Route path="/student/profile" element={<StudentProfile />} />
+
+          {/* Teacher Auth Routes */}
           <Route
-            path="/login"
+            path="/teacher/login"
             element={
               <PublicRoute>
-                <Login />
+                <TeacherLogin />
               </PublicRoute>
             }
           />
+          <Route
+            path="/login"
+            element={<Navigate to="/teacher/login" replace />}
+          />
+          
           <Route
             path="/forgot-password"
             element={
@@ -30,22 +45,26 @@ export default function App() {
             }
           />
 
-          {/* Unauthorized */}
+          {/* Unauthorized page */}
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Protected Dashboard Route */}
+          {/* Secure Teacher Dashboard Routes */}
           <Route
-            path="/dashboard"
+            path="/teacher/dashboard"
             element={
-              <AuthGuard>
+              <AuthGuard allowedRoles={['teacher', 'Teacher']}>
                 <Dashboard />
               </AuthGuard>
             }
           />
 
-          {/* Fallbacks */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Backwards Compatibility / Fallback redirects */}
+          <Route
+            path="/dashboard"
+            element={<Navigate to="/teacher/dashboard" replace />}
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

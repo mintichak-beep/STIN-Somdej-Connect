@@ -6,9 +6,9 @@ export function useRole() {
 
   const role: UserRole | null = user?.role || null;
 
-  const isTeacher = role === 'Teacher';
-  const isStudent = role === 'Nursing Student';
-  const isAdmin = role === 'Teacher'; // Map isAdmin check to isTeacher for backward compatibility
+  const isTeacher = role === 'Teacher' || role === 'teacher';
+  const isStudent = role === 'Nursing Student' || role === 'student';
+  const isAdmin = isTeacher; // Map isAdmin check to isTeacher for backward compatibility
 
   // Role Permission mapping for features
   const canAccess = (feature: string): boolean => {

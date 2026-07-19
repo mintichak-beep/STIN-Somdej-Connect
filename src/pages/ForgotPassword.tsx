@@ -176,7 +176,7 @@ export function ForgotPassword() {
 
         <div className="border-t border-gray-100 dark:border-zinc-800 pt-6 text-center">
           <Link
-            to="/login"
+            to="/teacher/login"
             className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition-colors hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200"
           >
             <ArrowLeft className="h-4 w-4" />

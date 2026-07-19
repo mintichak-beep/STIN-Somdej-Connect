@@ -83,7 +83,7 @@ async function syncUserProfile(user: any): Promise<UserProfile> {
       email: user.email!,
       displayName: user.displayName || "STIN User",
       photoURL: user.photoURL || "",
-      role: "student", // Default role
+      role: "teacher", // Default role for registering teachers
       status: "active", 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -25,8 +25,8 @@ export const AuthGuard = ({ children, allowedRoles = [] }: AuthGuardProps) => {
           setUser(firebaseUser);
           setRole(userDoc.data().role);
         } else {
-            setUser(null);
-            setRole(null);
+          setUser(null);
+          setRole(null);
         }
       } else {
         setUser(null);
@@ -38,13 +38,30 @@ export const AuthGuard = ({ children, allowedRoles = [] }: AuthGuardProps) => {
     return () => unsubscribe();
   }, []);
 
-  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-zinc-950">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-red-600 border-t-transparent"></div>
+          <p className="text-xs font-semibold text-gray-500">กำลังตรวจสอบสิทธิ์การเข้าใช้งาน...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!user) {
+    return <Navigate to="/teacher/login" state={{ from: location }} replace />;
+  }
 
-  if (allowedRoles.length > 0 && role && !allowedRoles.includes(role)) {
-    // Redirect to their respective dashboard if they try to access unauthorized pages
-    return <Navigate to={`/${role}-dashboard`} replace />;
+  // Double check if role is allowed
+  if (allowedRoles.length > 0) {
+    const currentRole = role || '';
+    const hasAccess = allowedRoles.some(
+      (r) => r.toLowerCase() === currentRole.toLowerCase()
+    );
+    if (!hasAccess) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <>{children}</>;
