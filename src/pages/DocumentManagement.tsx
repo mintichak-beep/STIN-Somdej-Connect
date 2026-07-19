@@ -31,12 +31,12 @@ export function DocumentManagement() {
         {docs.map(doc => (
             <div key={doc.id} className="bg-white dark:bg-zinc-900 p-4 rounded-xl border">
                 <div className="flex justify-between items-start mb-2">
-                    <FileText className="text-blue-500" />
+                    <FileText className="text-red-500" />
                     <span className="text-xs font-bold text-gray-500">{doc.category}</span>
                 </div>
                 <h4 className="font-bold">{doc.title}</h4>
                 <p className="text-sm text-gray-600 mb-4">{doc.description}</p>
-                <button className="flex items-center gap-2 text-sm text-blue-600">
+                <button className="flex items-center gap-2 text-sm text-red-600">
                     <Download className="h-4 w-4" /> Download
                 </button>
             </div>

@@ -455,7 +455,7 @@ export function ReportsCenter() {
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                       {r.dormitoryId}
                     </td>
-                    <td className="px-4 py-3 text-blue-600 dark:text-blue-400 text-right font-mono">
+                    <td className="px-4 py-3 text-red-600 dark:text-red-400 text-right font-mono">
                       ฿{r.totalWaterCost.toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-amber-600 dark:text-amber-400 text-right font-mono">
@@ -538,7 +538,7 @@ function SummaryCard({
   const colorClasses = {
     indigo:
       "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
-    blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+    blue: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
     emerald:
       "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
     amber:

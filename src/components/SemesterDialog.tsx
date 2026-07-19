@@ -148,7 +148,7 @@ export function SemesterDialog({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-50 pb-4 dark:border-zinc-900/60">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400">
                 {isEdit ? <Edit3 className="h-5 w-5" /> : <CalendarRange className="h-5 w-5" />}
               </div>
               <div>

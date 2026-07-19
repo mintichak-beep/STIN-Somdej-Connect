@@ -554,7 +554,7 @@ function SummaryCard({
   const colorClasses = {
     indigo:
       "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
-    blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+    blue: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
     emerald:
       "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
     amber:

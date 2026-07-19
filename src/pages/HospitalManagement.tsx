@@ -1,44 +1,132 @@
-import React, { useState, useEffect } from 'react';
-import { trainingSiteService } from '../services/trainingSite.service';
-import { TrainingSite } from '../types/db';
-import { DashboardCard } from '../components/DashboardCard';
-import { Building2, Plus } from 'lucide-react';
-import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { useState, useEffect } from "react";
+import { DataTable } from "../components/DataTable";
+import { Modal } from "../components/Modal";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { hospitalService } from "../services/app.service";
+import { Hospital } from "../types/app";
 
 export function HospitalManagement() {
-  const [sites, setSites] = useState<TrainingSite[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    quota: 0,
+    address: ""
+  });
+
+  const fetchData = async () => {
+    const data = await hospitalService.getAll();
+    setHospitals(data);
+  };
 
   useEffect(() => {
-    async function fetchData() {
-        const data = await trainingSiteService.getAll();
-        setSites(data);
-        setLoading(false);
-    }
     fetchData();
   }, []);
 
-  if (loading) return <LoadingSkeleton />;
+  const handleOpenAdd = () => {
+    setSelectedHospital(null);
+    setFormData({ name: "", quota: 0, address: "" });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (hospital: Hospital) => {
+    setSelectedHospital(hospital);
+    setFormData({
+      name: hospital.name,
+      quota: hospital.quota,
+      address: hospital.address
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedHospital) {
+      await hospitalService.update(selectedHospital.id, formData);
+    } else {
+      await hospitalService.create(formData as any);
+    }
+    setIsModalOpen(false);
+    fetchData();
+  };
+
+  const handleDelete = async () => {
+    if (selectedHospital) {
+      await hospitalService.delete(selectedHospital.id);
+      setIsDeleteOpen(false);
+      fetchData();
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Hospital Coordination Center</h2>
-        <button className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700">
-          <Plus className="h-4 w-4" /> Add Hospital
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sites.map(site => (
-            <DashboardCard key={site.id} title={site.name} icon={Building2}>
-                <p className="text-sm">Type: {site.hospitalType}</p>
-                <p className="text-sm">Contact: {site.contactPerson}</p>
-                <div className="mt-4 flex gap-2">
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{site.status}</span>
-                </div>
-            </DashboardCard>
-        ))}
-      </div>
+      <DataTable
+        title="จัดการข้อมูลแหล่งฝึก"
+        data={hospitals}
+        searchFields={["name", "address"]}
+        columns={[
+          { header: "ชื่อแหล่งฝึก", accessor: "name" },
+          { header: "โควตา (คน)", accessor: "quota" },
+          { header: "ที่อยู่", accessor: "address" },
+        ]}
+        onAdd={handleOpenAdd}
+        onEdit={handleOpenEdit}
+        onDelete={(hospital) => {
+          setSelectedHospital(hospital);
+          setIsDeleteOpen(true);
+        }}
+      />
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={selectedHospital ? "แก้ไขข้อมูลแหล่งฝึก" : "เพิ่มข้อมูลแหล่งฝึก"}
+      >
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">ชื่อแหล่งฝึก</label>
+            <input
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">โควตา (คน)</label>
+            <input
+              type="number"
+              required
+              value={formData.quota}
+              onChange={(e) => setFormData({ ...formData, quota: parseInt(e.target.value) })}
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">ที่อยู่</label>
+            <textarea
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all min-h-[100px]"
+            />
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 text-sm font-black text-zinc-500">ยกเลิก</button>
+            <button type="submit" className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100">บันทึก</button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title="ยืนยันการลบข้อมูล"
+        message={`คุณต้องการลบข้อมูลแหล่งฝึก ${selectedHospital?.name} ใช่หรือไม่?`}
+      />
     </div>
   );
 }

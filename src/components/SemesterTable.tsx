@@ -254,8 +254,8 @@ export function SemesterTable({
                         <div className="flex items-center gap-1.5 font-extrabold text-gray-900 dark:text-zinc-50 font-sans text-sm">
                           <span>{sem.semesterName}</span>
                           {sem.isCurrent && (
-                            <span className="inline-flex items-center gap-0.5 rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider uppercase text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
-                              <Star className="h-2.5 w-2.5 fill-blue-500 text-blue-500" />
+                            <span className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider uppercase text-red-700 dark:bg-red-950/40 dark:text-red-400">
+                              <Star className="h-2.5 w-2.5 fill-red-500 text-red-500" />
                               Current
                             </span>
                           )}

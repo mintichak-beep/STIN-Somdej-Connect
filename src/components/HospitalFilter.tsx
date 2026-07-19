@@ -13,13 +13,13 @@ interface HospitalFilterProps {
 }
 
 const HOSPITAL_TYPES = [
-  { value: 'all', label: 'All Hospital Types' },
-  { value: 'University Hospital', label: 'University Hospital' },
-  { value: 'Regional Hospital', label: 'Regional Hospital' },
-  { value: 'General Hospital', label: 'General Hospital' },
-  { value: 'Community Hospital', label: 'Community Hospital' },
-  { value: 'Private Hospital', label: 'Private Hospital' },
-  { value: 'Specialized Hospital', label: 'Specialized Hospital' }
+  { value: 'all', label: 'All Training Site Types' },
+  { value: 'University Hospital', label: 'University Site' },
+  { value: 'Regional Hospital', label: 'Regional Site' },
+  { value: 'General Hospital', label: 'General Site' },
+  { value: 'Community Hospital', label: 'Community Site' },
+  { value: 'Private Hospital', label: 'Private Site' },
+  { value: 'Specialized Hospital', label: 'Specialized Site' }
 ];
 
 const THAI_PROVINCES = [

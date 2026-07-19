@@ -230,7 +230,7 @@ export const StudentManagementCenter = () => {
                         setAssignType('group');
                         setIsAssignModalOpen(true);
                       }}
-                      className="inline-flex items-center gap-1.5 text-blue-600 hover:underline dark:text-blue-400"
+                      className="inline-flex items-center gap-1.5 text-red-600 hover:underline dark:text-red-400"
                     >
                       <Users className="h-3.5 w-3.5" />
                       {groups.find(g => g.id === student.practiceGroupId)?.name || 'Unassigned'}
@@ -243,7 +243,7 @@ export const StudentManagementCenter = () => {
                         setAssignType('hospital');
                         setIsAssignModalOpen(true);
                       }}
-                      className="inline-flex items-center gap-1.5 text-blue-600 hover:underline dark:text-blue-400"
+                      className="inline-flex items-center gap-1.5 text-red-600 hover:underline dark:text-red-400"
                     >
                       <Building2 className="h-3.5 w-3.5" />
                       {hospitals.find(h => h.id === student.hospitalId)?.shortName || 'Unassigned'}

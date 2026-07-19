@@ -39,7 +39,7 @@ export function DormitoryManagement() {
         {dormitories.map(dorm => (
           <DashboardCard key={dorm.id} title={dorm.name} hoverEffect={true} className={selectedDorm === dorm.id ? 'border-red-500' : ''}>
             <p className="text-sm">{dorm.address}</p>
-            <button onClick={() => selectDorm(dorm.id)} className="mt-4 text-blue-600 font-bold text-sm">Manage Rooms</button>
+            <button onClick={() => selectDorm(dorm.id)} className="mt-4 text-red-600 font-bold text-sm">Manage Rooms</button>
           </DashboardCard>
         ))}
       </div>

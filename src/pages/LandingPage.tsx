@@ -46,7 +46,7 @@ export function LandingPage() {
             
             {/* Student pathway */}
             <div className="group relative rounded-2xl border border-gray-200 bg-white p-8 text-left shadow-sm transition-all hover:border-red-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-red-900/50">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 mb-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 mb-6">
                 <Search className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">

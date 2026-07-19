@@ -227,7 +227,7 @@ export function PracticeAssignmentCenter() {
         {!showWizard && (
           <button
             onClick={() => setShowWizard(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
           >
             <Plus className="h-4 w-4" /> Create Assignment
           </button>
@@ -240,31 +240,31 @@ export function PracticeAssignmentCenter() {
             <h3 className="font-bold text-lg">New Practice Assignment</h3>
             <div className="flex items-center text-sm gap-2">
               <span
-                className={`px-2 py-1 rounded-full ${step >= 1 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`}
+                className={`px-2 py-1 rounded-full ${step >= 1 ? "bg-red-600 text-white" : "bg-gray-200 text-gray-600"}`}
               >
                 1. Course
               </span>
               <ChevronRight className="w-4 h-4 text-gray-400" />
               <span
-                className={`px-2 py-1 rounded-full ${step >= 2 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`}
+                className={`px-2 py-1 rounded-full ${step >= 2 ? "bg-red-600 text-white" : "bg-gray-200 text-gray-600"}`}
               >
                 2. Location
               </span>
               <ChevronRight className="w-4 h-4 text-gray-400" />
               <span
-                className={`px-2 py-1 rounded-full ${step >= 3 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`}
+                className={`px-2 py-1 rounded-full ${step >= 3 ? "bg-red-600 text-white" : "bg-gray-200 text-gray-600"}`}
               >
                 3. Details
               </span>
               <ChevronRight className="w-4 h-4 text-gray-400" />
               <span
-                className={`px-2 py-1 rounded-full ${step >= 4 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`}
+                className={`px-2 py-1 rounded-full ${step >= 4 ? "bg-red-600 text-white" : "bg-gray-200 text-gray-600"}`}
               >
                 4. Students
               </span>
               <ChevronRight className="w-4 h-4 text-gray-400" />
               <span
-                className={`px-2 py-1 rounded-full ${step >= 5 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`}
+                className={`px-2 py-1 rounded-full ${step >= 5 ? "bg-red-600 text-white" : "bg-gray-200 text-gray-600"}`}
               >
                 5. Confirm
               </span>
@@ -318,7 +318,7 @@ export function PracticeAssignmentCenter() {
               <div className="space-y-4 max-w-md mx-auto">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Hospital / Training Site *
+                    Training Site / แหล่งฝึก *
                   </label>
                   <select
                     className="w-full border rounded p-2 dark:bg-zinc-800 dark:border-zinc-700"
@@ -330,15 +330,15 @@ export function PracticeAssignmentCenter() {
                       })
                     }
                   >
-                    <option value="">-- Select Hospital --</option>
+                    <option value="">-- Select Training Site --</option>
                     {trainingSites.map((ts) => (
                       <option key={ts.id} value={ts.name}>
                         {ts.name}
                       </option>
                     ))}
-                    <option value="โรงพยาบาลสมเด็จ">โรงพยาบาลสมเด็จ</option>
-                    <option value="โรงพยาบาลจุฬาลงกรณ์">
-                      โรงพยาบาลจุฬาลงกรณ์
+                    <option value="แหล่งฝึกสมเด็จ">แหล่งฝึกสมเด็จ</option>
+                    <option value="แหล่งฝึกจุฬาลงกรณ์">
+                      แหล่งฝึกจุฬาลงกรณ์
                     </option>
                   </select>
                 </div>
@@ -487,7 +487,7 @@ export function PracticeAssignmentCenter() {
                   <div className="font-medium">
                     {wizardData.practiceGroupId}
                   </div>
-                  <div className="text-gray-500">Hospital & Ward</div>
+                  <div className="text-gray-500">Training Site & Ward</div>
                   <div className="font-medium">
                     {wizardData.trainingSiteId} - {wizardData.wardDepartment}
                   </div>
@@ -526,7 +526,7 @@ export function PracticeAssignmentCenter() {
             {step < 5 ? (
               <button
                 onClick={handleNext}
-                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Next <ChevronRight className="w-4 h-4" />
               </button>
@@ -552,11 +552,11 @@ export function PracticeAssignmentCenter() {
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
-                    <MapPin className="text-blue-500" />
+                    <MapPin className="text-red-500" />
                     <h4 className="font-bold text-lg">{a.courseId}</h4>
                   </div>
                   <span
-                    className={`text-xs font-bold px-2 py-1 rounded bg-blue-100 text-blue-800`}
+                    className={`text-xs font-bold px-2 py-1 rounded bg-red-100 text-red-800`}
                   >
                     {a.status || "assigned"}
                   </span>
@@ -591,7 +591,7 @@ export function PracticeAssignmentCenter() {
                       setEditingAssignment(a);
                       setEditFormData(a);
                     }}
-                    className="text-blue-600 flex items-center gap-1 text-sm hover:bg-blue-50 p-1 px-2 rounded"
+                    className="text-red-600 flex items-center gap-1 text-sm hover:bg-red-50 p-1 px-2 rounded"
                   >
                     <Edit2 className="h-4 w-4" /> Edit
                   </button>
@@ -633,7 +633,7 @@ export function PracticeAssignmentCenter() {
             </div>
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="p-3 bg-blue-50 text-blue-800 text-sm rounded-lg mb-4">
+              <div className="p-3 bg-red-50 text-red-800 text-sm rounded-lg mb-4">
                 Editing placement for Student ID:{" "}
                 <span className="font-bold">{editingAssignment.studentId}</span>
               </div>
@@ -658,7 +658,7 @@ export function PracticeAssignmentCenter() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Hospital / Site
+                  Training Site / แหล่งฝึก
                 </label>
                 <input
                   type="text"
@@ -737,7 +737,7 @@ export function PracticeAssignmentCenter() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
                   Save Changes
                 </button>

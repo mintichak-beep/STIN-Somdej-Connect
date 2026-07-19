@@ -1329,7 +1329,7 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                   <div>
                     <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
-                      <Droplets className="h-5 w-5 text-blue-500" /> Water &
+                      <Droplets className="h-5 w-5 text-red-500" /> Water &
                       Electricity Billing
                     </h3>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -1404,7 +1404,7 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
                         <div className="space-y-2.5 text-xs font-semibold text-zinc-500 border-t pt-4 dark:border-zinc-800">
                           <div className="flex justify-between items-center">
                             <span className="flex items-center gap-1.5">
-                              <Droplets className="h-3.5 w-3.5 text-blue-500" />{" "}
+                              <Droplets className="h-3.5 w-3.5 text-red-500" />{" "}
                               Water Share ({currentBill.waterUnit} units)
                             </span>
                             <span className="font-bold text-zinc-800 dark:text-white">

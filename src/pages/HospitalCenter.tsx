@@ -103,7 +103,7 @@ export const HospitalCenter = () => {
     <div className="space-y-6 p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-zinc-900 dark:text-white">Hospital Center</h1>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-zinc-900 dark:text-white">Training Site Center</h1>
           <p className="text-sm text-zinc-500 font-medium">Manage clinical training sites and coordinators</p>
         </div>
         <button
@@ -114,7 +114,7 @@ export const HospitalCenter = () => {
           className="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-rose-200 dark:shadow-none"
         >
           <Plus className="w-4 h-4" />
-          Add New Hospital
+          Add New Training Site
         </button>
       </div>
 
@@ -124,7 +124,7 @@ export const HospitalCenter = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search by hospital name or province..."
+              placeholder="Search by training site name or province..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
@@ -211,12 +211,12 @@ export const HospitalCenter = () => {
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
-                {editingHospital ? 'Edit Hospital' : 'Add New Hospital'}
+                {editingHospital ? 'Edit Training Site' : 'Add New Training Site'}
               </h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Hospital Name</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Training Site Name</label>
                   <input
                     type="text"
                     required
@@ -285,7 +285,7 @@ export const HospitalCenter = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase transition-colors shadow-lg shadow-rose-200 dark:shadow-none"
                 >
-                  {editingHospital ? 'Save Changes' : 'Register Hospital'}
+                  {editingHospital ? 'Save Changes' : 'Register Training Site'}
                 </button>
               </div>
             </form>

@@ -1,0 +1,170 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Student record",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "fullName": { "type": "string" },
+        "yearLevel": { "type": "string" },
+        "classGroup": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "firstName", "lastName", "fullName", "status"]
+    },
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Teacher record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "department": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "department"]
+    },
+    "Hospital": {
+      "title": "Hospital",
+      "description": "Hospital record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "quota": { "type": "number" },
+        "address": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "quota"]
+    },
+    "Dormitory": {
+      "title": "Dormitory",
+      "description": "Dormitory record",
+      "type": "object",
+      "properties": {
+        "dormitoryName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["dormitoryName"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Room record within a dormitory",
+      "type": "object",
+      "properties": {
+        "dormitoryId": { "type": "string" },
+        "building": { "type": "string" },
+        "floor": { "type": "string" },
+        "roomNumber": { "type": "string" },
+        "capacity": { "type": "number" },
+        "currentOccupancy": { "type": "number" },
+        "studentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["dormitoryId", "roomNumber"]
+    },
+    "Van": {
+      "title": "Van",
+      "description": "Van record",
+      "type": "object",
+      "properties": {
+        "plateNumber": { "type": "string" },
+        "seats": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["plateNumber", "seats"]
+    },
+    "Allocation": {
+      "title": "Allocation",
+      "description": "Student practice allocation",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "hospitalId": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "vanId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "hospitalId", "teacherId", "roomId", "vanId", "startDate", "endDate"]
+    },
+    "WeeklyBill": {
+      "title": "WeeklyBill",
+      "description": "Weekly utility bill record",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "billingWeek": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "waterUsage": { "type": "number" },
+        "electricityUsage": { "type": "number" },
+        "waterCharge": { "type": "number" },
+        "electricityCharge": { "type": "number" },
+        "otherCharges": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "paymentStatus": { "type": "string", "enum": ["pending", "waiting_verification", "paid", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["roomId", "studentId", "billingWeek", "totalAmount", "paymentStatus"]
+    },
+    "PaymentSlip": {
+      "title": "PaymentSlip",
+      "description": "Payment slip for a bill",
+      "type": "object",
+      "properties": {
+        "billId": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "uploadedAt": { "type": "string", "format": "date-time" },
+        "verificationStatus": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "adminRemark": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["billId", "fileUrl", "verificationStatus"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notification",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["bill", "payment", "approval", "rejection"] },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "isRead"]
+    }
+  },
+  "firestore": {
+    "students": { "schema": { "$ref": "#/entities/Student" }, "description": "Collection of students" },
+    "teachers": { "schema": { "$ref": "#/entities/Teacher" }, "description": "Collection of teachers" },
+    "hospitals": { "schema": { "$ref": "#/entities/Hospital" }, "description": "Collection of hospitals" },
+    "dormitories": { "schema": { "$ref": "#/entities/Dormitory" }, "description": "Collection of dormitories" },
+    "rooms": { "schema": { "$ref": "#/entities/Room" }, "description": "Collection of rooms" },
+    "vans": { "schema": { "$ref": "#/entities/Van" }, "description": "Collection of vans" },
+    "allocations": { "schema": { "$ref": "#/entities/Allocation" }, "description": "Collection of allocations" },
+    "weeklyBills": { "schema": { "$ref": "#/entities/WeeklyBill" }, "description": "Collection of weekly utility bills" },
+    "paymentSlips": { "schema": { "$ref": "#/entities/PaymentSlip" }, "description": "Collection of payment slips" },
+    "notifications": { "schema": { "$ref": "#/entities/Notification" }, "description": "Collection of notifications" }
+  }
+}

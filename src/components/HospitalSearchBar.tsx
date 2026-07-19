@@ -14,7 +14,7 @@ export function HospitalSearchBar({
   id,
   value,
   onChange,
-  placeholder = 'Search hospitals by name, code, province...',
+  placeholder = 'Search training sites by name, code, province...',
   viewMode,
   onViewModeChange
 }: HospitalSearchBarProps) {

@@ -34,7 +34,7 @@ export function FloorCard({
 
   // Find associated hospital
   const hospital = [].find((h) => h.id === floor.hospitalId);
-  const hospitalName = hospital ? hospital.hospitalNameEN : 'Unknown Hospital';
+  const hospitalName = hospital ? hospital.hospitalNameEN : 'Unknown Training Site';
 
   // Action Menu List
   const actions: ActionMenuItem[] = [

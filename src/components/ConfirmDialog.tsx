@@ -1,110 +1,64 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { AlertTriangle, X } from 'lucide-react';
+import { Modal } from "./Modal";
+import { AlertTriangle } from "lucide-react";
 
 interface ConfirmDialogProps {
-  id?: string;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: () => void;
   title: string;
-  description: string;
+  message: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: 'danger' | 'warning' | 'info';
-  isSubmitting?: boolean;
+  variant?: "danger" | "warning" | "info";
 }
 
 export function ConfirmDialog({
-  id,
   isOpen,
   onClose,
   onConfirm,
   title,
-  description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
-  variant = 'danger',
-  isSubmitting = false
+  message,
+  confirmLabel = "ยืนยัน",
+  cancelLabel = "ยกเลิก",
+  variant = "danger"
 }: ConfirmDialogProps) {
-  if (!isOpen) return null;
-
-  const colorMap = {
-    danger: {
-      iconBg: 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400',
-      btn: 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-700 text-white'
-    },
-    warning: {
-      iconBg: 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400',
-      btn: 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-700 text-white'
-    },
-    info: {
-      iconBg: 'bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400',
-      btn: 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white'
-    }
+  const variantStyles = {
+    danger: "bg-red-600 hover:bg-red-700 shadow-red-100",
+    warning: "bg-amber-500 hover:bg-amber-600 shadow-amber-100",
+    info: "bg-red-600 hover:bg-red-700 shadow-red-100"
   };
 
-  const selectedColor = colorMap[variant];
-
   return (
-    <AnimatePresence>
-      <div id={id} className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-xs"
-        />
-
-        {/* Dialog Panel */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ type: 'spring', duration: 0.3 }}
-          className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
-        >
-          {/* Close button */}
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      <div className="space-y-6">
+        <div className="flex items-start gap-4">
+          <div className={`p-3 rounded-2xl ${variant === 'danger' ? 'bg-red-50 text-red-600' : variant === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              {message}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 cursor-pointer"
+            className="px-6 py-2.5 text-sm font-black text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-all"
           >
-            <X className="h-5 w-5" />
+            {cancelLabel}
           </button>
-
-          <div className="flex items-start gap-4">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${selectedColor.iconBg}`}>
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div className="flex-1 space-y-1">
-              <h3 className="text-base font-extrabold text-gray-900 dark:text-zinc-50">
-                {title}
-              </h3>
-              <p className="text-xs font-semibold text-gray-500 leading-relaxed dark:text-zinc-400">
-                {description}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-900/80 cursor-pointer disabled:opacity-50"
-            >
-              {cancelLabel}
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isSubmitting}
-              className={`rounded-xl px-4 py-2 text-xs font-bold shadow-xs transition cursor-pointer disabled:opacity-50 ${selectedColor.btn}`}
-            >
-              {isSubmitting ? 'Processing...' : confirmLabel}
-            </button>
-          </div>
-        </motion.div>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className={`px-6 py-2.5 text-sm font-black text-white rounded-xl transition-all shadow-sm ${variantStyles[variant]}`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
       </div>
-    </AnimatePresence>
+    </Modal>
   );
 }

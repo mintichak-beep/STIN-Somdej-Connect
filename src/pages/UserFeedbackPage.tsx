@@ -35,7 +35,7 @@ export function UserFeedbackPage() {
                 <label className="block text-sm">Comment</label>
                 <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="border rounded px-2 py-1 w-full h-24" />
             </div>
-            <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+            <button onClick={handleSubmit} className="bg-red-600 text-white px-4 py-2 rounded">Submit</button>
         </div>
       </DashboardCard>
     </div>

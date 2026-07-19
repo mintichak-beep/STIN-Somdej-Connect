@@ -147,7 +147,7 @@ Action Items: ${analysis.actionItems.join(', ')}
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <FileSearch className="w-8 h-8 text-blue-600" />
+          <FileSearch className="w-8 h-8 text-red-600" />
           PDF Import & AI Analysis
         </h1>
         <p className="mt-2 text-gray-600">
@@ -160,7 +160,7 @@ Action Items: ${analysis.actionItems.join(', ')}
           {...getRootProps()}
           className={`
             border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all
-            ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}
+            ${isDragActive ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-red-400 hover:bg-gray-50'}
           `}
         >
           <motion.div
@@ -168,8 +168,8 @@ Action Items: ${analysis.actionItems.join(', ')}
             animate={{ opacity: 1, y: 0 }}
           >
             <input {...getInputProps()} />
-            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Upload className="w-8 h-8 text-blue-600" />
+            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Upload className="w-8 h-8 text-red-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900">
               {isDragActive ? 'Drop PDF here' : 'Select or drag a PDF file'}
@@ -181,7 +181,7 @@ Action Items: ${analysis.actionItems.join(', ')}
 
       {(isExtracting || isAnalyzing) && (
         <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 flex flex-col items-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+          <Loader2 className="w-12 h-12 text-red-600 animate-spin mb-4" />
           <h3 className="text-xl font-semibold text-gray-900">
             {isExtracting ? 'Extracting text from PDF...' : 'Analyzing content with AI...'}
           </h3>
@@ -217,8 +217,8 @@ Action Items: ${analysis.actionItems.join(', ')}
           {/* Header Info */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="bg-blue-50 p-3 rounded-xl">
-                <FileText className="w-6 h-6 text-blue-600" />
+              <div className="bg-red-50 p-3 rounded-xl">
+                <FileText className="w-6 h-6 text-red-600" />
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">{extractionResult.filename}</h3>
@@ -247,7 +247,7 @@ Action Items: ${analysis.actionItems.join(', ')}
           <div className="grid grid-cols-1 gap-6">
             <AnalysisSection 
               title="Executive Summary" 
-              icon={<FileStack className="w-5 h-5 text-blue-600" />}
+              icon={<FileStack className="w-5 h-5 text-red-600" />}
               isExpanded={expandedSections.summary}
               onToggle={() => toggleSection('summary')}
             >

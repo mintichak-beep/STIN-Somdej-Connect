@@ -236,7 +236,7 @@ export function StudentProfile() {
                     <Building2 className="h-6 w-6" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">โรงพยาบาลแหล่งฝึกหลัก (Hospital Affiliate)</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">แหล่งฝึกหลัก (Practice Site Affiliate)</p>
                     <p className="font-bold text-gray-800 dark:text-zinc-200 text-lg">
                       {hospital ? hospital.name : student.hospital || 'รพ. สมเด็จพระบรมราชเทวี ณ ศรีราชา'}
                     </p>

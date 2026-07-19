@@ -2452,7 +2452,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                                     room.gender === "Female"
                                       ? "bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400"
                                       : room.gender === "Male"
-                                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400"
+                                        ? "bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400"
                                         : "bg-zinc-50 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                                   }`}
                                 >
@@ -3851,8 +3851,8 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Water Bill */}
-                    <div className="p-4 rounded-xl bg-blue-50/10 border border-blue-100/50 space-y-3">
-                      <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1">
+                    <div className="p-4 rounded-xl bg-red-50/10 border border-red-100/50 space-y-3">
+                      <span className="text-[10px] font-black text-red-600 uppercase tracking-widest flex items-center gap-1">
                         <Droplets className="h-4 w-4" /> Water Supply (ค่าน้ำ)
                       </span>
                       <div className="grid grid-cols-2 gap-2">
@@ -4223,7 +4223,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                   </p>
                   <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 rounded-xl border text-[11px] space-y-2 text-zinc-600 dark:text-zinc-400">
                     <p className="font-bold flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-blue-500" />{" "}
+                      <span className="h-2 w-2 rounded-full bg-red-500" />{" "}
                       Standard Rates:
                     </p>
                     <ul className="list-disc list-inside pl-2 space-y-1">
@@ -4826,7 +4826,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                         annTargetType === "course"
                           ? "e.g. การพยาบาลผู้ใหญ่ 2"
                           : annTargetType === "hospital"
-                            ? "e.g. โรงพยาบาลสมเด็จ"
+                            ? "e.g. แหล่งฝึกสมเด็จ"
                             : "e.g. Group A1"
                       }
                       value={annTargetId}
@@ -4888,7 +4888,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                           {a.priority}
                         </span>
                         {a.targetType && a.targetType !== "all" && (
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">
                             To: {a.targetType} {a.targetId}
                           </span>
                         )}

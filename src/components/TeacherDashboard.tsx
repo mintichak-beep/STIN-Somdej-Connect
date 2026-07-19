@@ -9,7 +9,7 @@ export function TeacherDashboard() {
       title: "Students Assigned",
       value: "0",
       icon: Users,
-      color: "text-blue-600",
+      color: "text-red-600",
     },
     {
       title: "Practice Groups",

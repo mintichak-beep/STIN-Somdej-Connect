@@ -32,17 +32,17 @@ export function HospitalDeleteDialog({
           </div>
           <div className="space-y-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Confirm Delete Hospital Profile
+              Confirm Delete Training Site Profile
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              This action cannot be undone. All buildings, rooms, placements and resources connected to this hospital will be affected.
+              This action cannot be undone. All buildings, rooms, placements and resources connected to this training site will be affected.
             </p>
           </div>
         </div>
 
         {/* Selected target display */}
         <div className="bg-rose-50/50 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900/30 rounded-xl p-3.5 text-xs text-rose-800 dark:text-rose-300 font-semibold">
-          Target Hospital: <span className="font-bold underline">{hospitalName}</span>
+          Target Training Site: <span className="font-bold underline">{hospitalName}</span>
         </div>
 
         {/* Action Controls */}

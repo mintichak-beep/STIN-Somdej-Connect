@@ -10,7 +10,7 @@ export function SummaryCards() {
   const trips = [];
 
   const cards = [
-    { title: 'Nursing Students', value: students.length, icon: Users, color: 'text-blue-600' },
+    { title: 'Nursing Students', value: students.length, icon: Users, color: 'text-red-600' },
     { title: 'Training Groups', value: groups.length, icon: Users, color: 'text-indigo-600' },
     { title: 'Hospitals', value: hospitals.length, icon: Hospital, color: 'text-emerald-600' },
     { title: 'Dormitories', value: dorms.length, icon: Bed, color: 'text-purple-600' },

@@ -63,7 +63,7 @@ export const TeacherOperationDashboard = () => {
   if (loading) return <LoadingSkeleton />;
 
   const stats = [
-    { label: 'Total Students', value: data.totalStudents, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Students', value: data.totalStudents, icon: Users, color: 'text-red-600', bg: 'bg-red-50' },
     { label: 'Total Courses', value: data.totalCourses, icon: BookOpen, color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'Total Hospitals', value: data.totalHospitals, icon: Building2, color: 'text-red-600', bg: 'bg-red-50' },
     { label: 'Total Groups', value: data.totalGroups, icon: Layers, color: 'text-green-600', bg: 'bg-green-50' },
@@ -178,7 +178,7 @@ export const TeacherOperationDashboard = () => {
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center justify-between border-b border-gray-100 p-4 dark:border-zinc-800">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <Users className="h-5 w-5 text-red-600" />
               <h3 className="font-bold dark:text-white">Recently Imported Students</h3>
             </div>
           </div>

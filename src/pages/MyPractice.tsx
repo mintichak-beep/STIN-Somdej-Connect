@@ -40,11 +40,11 @@ export function MyPractice() {
               key={a.id}
               className="bg-white dark:bg-zinc-900 p-6 rounded-xl border relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+              <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 dark:bg-zinc-800 rounded-lg">
-                    <Briefcase className="text-blue-600 h-6 w-6" />
+                  <div className="p-2 bg-red-50 dark:bg-zinc-800 rounded-lg">
+                    <Briefcase className="text-red-600 h-6 w-6" />
                   </div>
                   <div>
                     <h4 className="font-bold text-lg">{a.courseId}</h4>
@@ -54,7 +54,7 @@ export function MyPractice() {
                   </div>
                 </div>
                 <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full ${a.status === "assigned" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}
+                  className={`text-xs font-bold px-3 py-1 rounded-full ${a.status === "assigned" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
                 >
                   {a.status === "assigned" ? "Assigned" : a.status || "Active"}
                 </span>

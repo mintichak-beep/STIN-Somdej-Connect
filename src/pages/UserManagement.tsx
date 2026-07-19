@@ -31,7 +31,7 @@ export function UserManagement() {
         {users.map(user => (
             <div key={user.uid} className="bg-white dark:bg-zinc-900 p-4 rounded-xl border">
                 <div className="flex justify-between items-start mb-2">
-                    <Users className="text-blue-500" />
+                    <Users className="text-red-500" />
                     <span className={`text-xs font-bold px-2 py-1 rounded ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{user.status}</span>
                 </div>
                 <h4 className="font-bold">{user.name}</h4>

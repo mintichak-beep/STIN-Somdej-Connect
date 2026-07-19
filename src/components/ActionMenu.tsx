@@ -43,7 +43,7 @@ export function ActionMenu({ id, actions }: ActionMenuProps) {
       case 'activate': return <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />;
       case 'deactivate': return <Ban className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />;
       case 'duplicate': return <Copy className="h-3.5 w-3.5 shrink-0" />;
-      case 'current': return <FolderHeart className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />;
+      case 'current': return <FolderHeart className="h-3.5 w-3.5 shrink-0 text-red-600 dark:text-red-400" />;
       default: return null;
     }
   };

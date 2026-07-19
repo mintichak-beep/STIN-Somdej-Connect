@@ -67,12 +67,12 @@ export function SemesterCard({
 
   return (
     <div id={id} className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-xs transition hover:bg-slate-50/40 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900/10">
-      <div className="absolute top-0 left-0 h-1.5 w-full bg-blue-600 transition-transform group-hover:scale-x-105" />
+      <div className="absolute top-0 left-0 h-1.5 w-full bg-red-600 transition-transform group-hover:scale-x-105" />
 
       <div>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400">
               <CalendarRange className="h-4.5 w-4.5" />
             </div>
             <div>
@@ -81,7 +81,7 @@ export function SemesterCard({
                   {item.semesterName}
                 </h4>
                 {item.isCurrent && (
-                  <span className="rounded-md bg-blue-50 p-1 text-[8px] font-black uppercase tracking-wider text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
+                  <span className="rounded-md bg-red-50 p-1 text-[8px] font-black uppercase tracking-wider text-red-700 dark:bg-red-950/40 dark:text-red-400">
                     Active Term
                   </span>
                 )}
