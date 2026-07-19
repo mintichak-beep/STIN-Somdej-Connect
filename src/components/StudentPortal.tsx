@@ -141,8 +141,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ onAdminClick }) =>
         expenseType: uploadForm.expenseType,
         amount: parseFloat(uploadForm.amount),
         slipUrl: uploadForm.slipUrl,
-        status: 'pending',
-        createdAt: new Date().toISOString()
+        status: 'pending'
       });
       setUploadSuccess(true);
       setUploadForm({
@@ -154,7 +153,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ onAdminClick }) =>
         amount: '',
         slipUrl: ''
       });
-      loadData(); // Refresh history
+      await loadData(); // Refresh history
     } catch (err: any) {
       setUploadError(err.message || 'เกิดข้อผิดพลาดในการอัปโหลดหลักฐาน');
     } finally {
@@ -178,8 +177,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ onAdminClick }) =>
         roomNumber: issueForm.roomNumber,
         title: issueForm.title,
         description: issueForm.description,
-        status: 'pending',
-        createdAt: new Date().toISOString()
+        status: 'pending'
       });
       setIssueSuccess(true);
       setIssueForm({
@@ -189,7 +187,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ onAdminClick }) =>
         title: '',
         description: ''
       });
-      loadData(); // Refresh issues list
+      await loadData(); // Refresh issues list
     } catch (err: any) {
       setIssueError(err.message || 'เกิดข้อผิดพลาดในการส่งข้อมูลแจ้งปัญหา');
     } finally {

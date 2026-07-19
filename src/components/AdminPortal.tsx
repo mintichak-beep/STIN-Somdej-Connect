@@ -13,6 +13,7 @@ interface AdminPortalProps {
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'students' | 'rooms' | 'payments' | 'announcements' | 'issues' | 'settings'>('dashboard');
   const [loading, setLoading] = useState<boolean>(true);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   // States
   const [students, setStudents] = useState<Student[]>([]);
@@ -111,15 +112,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
     e.preventDefault();
     if (!studentForm.studentId || !studentForm.firstName || !studentForm.lastName) return;
 
+    setIsProcessing(true);
     try {
       if (editingStudent) {
         await dbService.updateStudent(editingStudent.id!, studentForm);
       } else {
-        await dbService.createStudent({
-          ...studentForm,
-          fullName: `${studentForm.firstName} ${studentForm.lastName}`.trim(),
-          createdAt: new Date().toISOString()
-        });
+        await dbService.createStudent(studentForm);
       }
       setStudentForm({
         studentId: '',
@@ -133,9 +131,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
       });
       setEditingStudent(null);
       setShowAddStudentModal(false);
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูลนักศึกษา');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -232,14 +232,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
     e.preventDefault();
     if (!roomForm.roomNumber || !roomForm.capacity) return;
 
+    setIsProcessing(true);
     try {
       if (editingRoom) {
         await dbService.updateRoom(editingRoom.id!, roomForm);
       } else {
         await dbService.createRoom({
           ...roomForm,
-          studentIds: [],
-          createdAt: new Date().toISOString()
+          studentIds: []
         });
       }
       setRoomForm({
@@ -251,9 +251,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
       });
       setEditingRoom(null);
       setShowAddRoomModal(false);
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการจัดเก็บข้อมูลห้องพัก');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -288,13 +290,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
       return;
     }
 
+    setIsProcessing(true);
     try {
       await dbService.updatePaymentStatus(inspectingPayment.id!, status, rejectNotes);
       setInspectingPayment(null);
       setRejectNotes('');
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการเปลี่ยนสถานะการเงิน');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -314,14 +319,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
     e.preventDefault();
     if (!annForm.title || !annForm.content) return;
 
+    setIsProcessing(true);
     try {
       if (editingAnn) {
         await dbService.updateAnnouncement(editingAnn.id!, annForm);
       } else {
-        await dbService.createAnnouncement({
-          ...annForm,
-          createdAt: new Date().toISOString()
-        });
+        await dbService.createAnnouncement(annForm);
       }
       setAnnForm({
         title: '',
@@ -330,9 +333,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
       });
       setEditingAnn(null);
       setShowAddAnnModal(false);
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการประกาศข้อมูลข่าวสาร');
+    } finally {
+      setIsProcessing(false);
     }
   };
 

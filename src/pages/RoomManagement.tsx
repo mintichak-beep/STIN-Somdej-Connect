@@ -4,7 +4,7 @@ import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { roomService, dormitoryService, studentService } from "../services/app.service";
 import { Room, Dormitory, Student } from "../types/app";
-import { Home, Plus } from "lucide-react";
+import { Home, Plus, AlertCircle } from "lucide-react";
 
 export function RoomManagement() {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -14,6 +14,9 @@ export function RoomManagement() {
   const [isDormModalOpen, setIsDormModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dormError, setDormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     dormitoryId: "",
@@ -66,21 +69,39 @@ export function RoomManagement() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedRoom) {
-      await roomService.update(selectedRoom.id, formData);
-    } else {
-      await roomService.create(formData as any);
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (selectedRoom) {
+        await roomService.update(selectedRoom.id, formData);
+      } else {
+        await roomService.create(formData as any);
+      }
+      setIsModalOpen(false);
+      await fetchData();
+    } catch (err: any) {
+      console.error("Save error:", err);
+      setError(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูลห้องพัก");
+    } finally {
+      setIsSaving(false);
     }
-    setIsModalOpen(false);
-    fetchData();
   };
 
   const handleSaveDorm = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dormitoryService.create(dormFormData as any);
-    setIsDormModalOpen(false);
-    setDormFormData({ dormitoryName: "" });
-    fetchData();
+    setIsSaving(true);
+    setDormError(null);
+    try {
+      await dormitoryService.create(dormFormData as any);
+      setIsDormModalOpen(false);
+      setDormFormData({ dormitoryName: "" });
+      await fetchData();
+    } catch (err: any) {
+      console.error("Save dorm error:", err);
+      setDormError(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูลหอพัก");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -134,6 +155,12 @@ export function RoomManagement() {
         title={selectedRoom ? "แก้ไขข้อมูลห้องพัก" : "เพิ่มข้อมูลห้องพัก"}
       >
         <form onSubmit={handleSave} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">หอพัก</label>
             <select
@@ -207,8 +234,21 @@ export function RoomManagement() {
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 text-sm font-black text-zinc-500">ยกเลิก</button>
-            <button type="submit" className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100">บันทึก</button>
+            <button 
+              type="button" 
+              onClick={() => setIsModalOpen(false)} 
+              className="px-6 py-2.5 text-sm font-black text-zinc-500 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              ยกเลิก
+            </button>
+            <button 
+              type="submit" 
+              className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+            </button>
           </div>
         </form>
       </Modal>
@@ -219,6 +259,12 @@ export function RoomManagement() {
         title="เพิ่มข้อมูลหอพัก"
       >
         <form onSubmit={handleSaveDorm} className="space-y-4">
+          {dormError && (
+            <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {dormError}
+            </div>
+          )}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">ชื่อหอพัก</label>
             <input
@@ -229,8 +275,21 @@ export function RoomManagement() {
             />
           </div>
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={() => setIsDormModalOpen(false)} className="px-6 py-2.5 text-sm font-black text-zinc-500">ยกเลิก</button>
-            <button type="submit" className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100">บันทึก</button>
+            <button 
+              type="button" 
+              onClick={() => setIsDormModalOpen(false)} 
+              className="px-6 py-2.5 text-sm font-black text-zinc-500 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              ยกเลิก
+            </button>
+            <button 
+              type="submit" 
+              className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+            </button>
           </div>
         </form>
       </Modal>

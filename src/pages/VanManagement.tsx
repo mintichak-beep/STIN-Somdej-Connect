@@ -10,6 +10,8 @@ export function VanManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState<Van | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     plateNumber: "",
@@ -42,13 +44,22 @@ export function VanManagement() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedVan) {
-      await vanService.update(selectedVan.id, formData);
-    } else {
-      await vanService.create(formData as any);
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (selectedVan) {
+        await vanService.update(selectedVan.id, formData);
+      } else {
+        await vanService.create(formData as any);
+      }
+      setIsModalOpen(false);
+      await fetchData();
+    } catch (err: any) {
+      console.error("Save error:", err);
+      setError(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูลรถตู้");
+    } finally {
+      setIsSaving(false);
     }
-    setIsModalOpen(false);
-    fetchData();
   };
 
   const handleDelete = async () => {
@@ -83,6 +94,11 @@ export function VanManagement() {
         title={selectedVan ? "แก้ไขข้อมูลรถตู้" : "เพิ่มข้อมูลรถตู้"}
       >
         <form onSubmit={handleSave} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100">
+              {error}
+            </div>
+          )}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">เลขทะเบียนรถ</label>
             <input
@@ -103,8 +119,21 @@ export function VanManagement() {
             />
           </div>
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 text-sm font-black text-zinc-500">ยกเลิก</button>
-            <button type="submit" className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100">บันทึก</button>
+            <button 
+              type="button" 
+              onClick={() => setIsModalOpen(false)} 
+              className="px-6 py-2.5 text-sm font-black text-zinc-500 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              ยกเลิก
+            </button>
+            <button 
+              type="submit" 
+              className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+            </button>
           </div>
         </form>
       </Modal>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { AlertCircle } from "lucide-react";
 import { studentService } from "../services/app.service";
 import { Student } from "../types/app";
 
@@ -13,6 +14,8 @@ export function StudentManagement() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     studentId: "",
@@ -99,18 +102,27 @@ export function StudentManagement() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    setError(null);
     const data = {
       ...formData,
       fullName: `${formData.firstName} ${formData.lastName}`
     };
 
-    if (selectedStudent) {
-      await studentService.update(selectedStudent.id, data);
-    } else {
-      await studentService.create(data as any);
+    try {
+      if (selectedStudent) {
+        await studentService.update(selectedStudent.id, data);
+      } else {
+        await studentService.create(data as any);
+      }
+      setIsModalOpen(false);
+      await fetchData();
+    } catch (err: any) {
+      console.error("Save error:", err);
+      setError(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    } finally {
+      setIsSaving(false);
     }
-    setIsModalOpen(false);
-    fetchData();
   };
 
   const handleDelete = async () => {
@@ -166,6 +178,12 @@ export function StudentManagement() {
         title={selectedStudent ? "แก้ไขข้อมูลนักศึกษา" : "เพิ่มข้อมูลนักศึกษา"}
       >
         <form onSubmit={handleSave} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">รหัสนักศึกษา</label>
@@ -232,15 +250,17 @@ export function StudentManagement() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-6 py-2.5 text-sm font-black text-zinc-500"
+              className="px-6 py-2.5 text-sm font-black text-zinc-500 disabled:opacity-50"
+              disabled={isSaving}
             >
               ยกเลิก
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100"
+              className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100 disabled:opacity-50"
+              disabled={isSaving}
             >
-              บันทึก
+              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         </form>
