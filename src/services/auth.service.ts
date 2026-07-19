@@ -13,9 +13,11 @@ export const AuthService = {
   login: async (email: string, password: string, _rememberMe: boolean): Promise<UserProfile> => {
     const auth = getAuthInstance();
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log('User logged in:', userCredential.user.uid);
     const userDoc = await getDoc(doc(getDb(), 'users', userCredential.user.uid));
     
     if (!userDoc.exists()) {
+      console.log('User doc not found:', userCredential.user.uid);
       throw new Error('User profile not found.');
     }
 
