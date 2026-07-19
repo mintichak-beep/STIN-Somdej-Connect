@@ -31,6 +31,7 @@ import { TeacherOperationCenter } from "../TeacherOperationCenter";
 import { TeacherOperationDashboard } from "../TeacherOperationDashboard";
 import { ReportsCenter } from "../ReportsCenter";
 import { SystemActivityLog } from "../SystemActivityLog";
+import PDFImportCenter from "../PDFImportCenter";
 
 function AccessDeniedPlaceholder() {
   const { switchRole } = useAuth() as any;
@@ -126,6 +127,8 @@ export function DashboardHome() {
         <UserFeedbackPage />
       ) : activeTab === "analytics" ? (
         <AdminAnalytics />
+      ) : activeTab === "pdf-analysis" ? (
+        <PDFImportCenter />
       ) : activeTab === "students" ? (
         isTeacher ? <StudentManagementCenter /> : <AccessDeniedPlaceholder />
       ) : activeTab === "import-students" ? (
