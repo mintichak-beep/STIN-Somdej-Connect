@@ -19,7 +19,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isTeacher());
-      allow write: if isAdmin() || (isStudent(request.auth.uid) && request.auth.uid == userId && request.resource.data.role == resource.data.role); // Only allow updating their own profile without role change
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
 
     match /students/{studentId} {

@@ -7,7 +7,7 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 export const AuthService = {
   login: async (email: string, password: string, _rememberMe: boolean): Promise<UserProfile> => {
@@ -38,15 +38,29 @@ export const AuthService = {
   googleLogin: async (): Promise<UserProfile> => {
     const provider = new GoogleAuthProvider();
     const userCredential = await signInWithPopup(getAuthInstance(), provider);
-    const userDoc = await getDoc(doc(getDb(), 'users', userCredential.user.uid));
+    const db = getDb();
+    const userDocRef = doc(db, 'users', userCredential.user.uid);
+    const userDoc = await getDoc(userDocRef);
     
     if (!userDoc.exists()) {
-      throw new Error('User profile not found.');
+      const newUser: UserProfile = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email!,
+        displayName: userCredential.user.displayName || 'New User',
+        photoURL: userCredential.user.photoURL || '',
+        role: 'student',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString()
+      };
+      await setDoc(userDocRef, newUser);
+      return newUser;
     }
 
     const userData = userDoc.data() as UserProfile;
     
-    await updateDoc(doc(getDb(), 'users', userCredential.user.uid), {
+    await updateDoc(userDocRef, {
       lastLogin: serverTimestamp()
     });
 

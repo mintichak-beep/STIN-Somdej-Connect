@@ -12,7 +12,8 @@ import { Link } from 'react-router-dom';
 const loginSchema = z.object({
   email: z.string()
     .min(1, 'Email is required')
-    .email('Please enter a valid email address ending with e.g. @stin.ac.th'),
+    .email('Please enter a valid email address')
+    .refine((email) => email.endsWith('@stin.ac.th'), 'Email must be a valid @stin.ac.th account'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
