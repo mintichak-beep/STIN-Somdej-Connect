@@ -1,92 +1,98 @@
-import { UserProfile } from '../types/auth';
-import { getAuthInstance, getDb } from '../firebase/firebase';
 import { 
-  signInWithEmailAndPassword, 
-  signOut, 
+  GoogleAuthProvider, 
   signInWithPopup, 
-  GoogleAuthProvider,
-  sendPasswordResetEmail
-} from 'firebase/auth';
-import { doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+  signInWithEmailAndPassword, 
+  sendPasswordResetEmail, 
+  signOut as firebaseSignOut
+} from "firebase/auth";
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  serverTimestamp 
+} from "firebase/firestore";
+import { getAuthInstance, getDb } from '../firebase/firebase';
+import { UserProfile } from '../types/auth';
 
-export const AuthService = {
-  login: async (email: string, password: string, _rememberMe: boolean): Promise<UserProfile> => {
+const STIN_DOMAIN = "@stin.ac.th";
+
+export const authService = {
+  // 1. Continue with Google
+  signInWithGoogle: async (): Promise<UserProfile> => {
     const auth = getAuthInstance();
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('User logged in:', userCredential.user.uid);
-    const userDoc = await getDoc(doc(getDb(), 'users', userCredential.user.uid));
-    
-    if (!userDoc.exists()) {
-      console.log('User doc not found:', userCredential.user.uid);
-      throw new Error('User profile not found.');
+    const googleProvider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      if (!user.email?.endsWith(STIN_DOMAIN)) {
+        await firebaseSignOut(auth);
+        throw new Error("Please use your @stin.ac.th email address.");
+      }
+
+      return await syncUserProfile(user);
+    } catch (error) {
+      throw error;
     }
+  },
 
-    const userData = userDoc.data() as UserProfile;
-    
-    if (userData.status === 'inactive') {
-      await signOut(auth);
-      throw new Error('Your account has been deactivated. Contact administration.');
+  // 2. STIN Email Login
+  signInWithEmail: async (email: string, password: string): Promise<UserProfile> => {
+    const auth = getAuthInstance();
+    if (!email.endsWith(STIN_DOMAIN)) {
+      throw new Error("Only @stin.ac.th email addresses are permitted.");
     }
-
-    await updateDoc(doc(getDb(), 'users', userCredential.user.uid), {
-      lastLogin: serverTimestamp()
-    });
-
-    return userData;
-  },
-
-  googleLogin: async (): Promise<UserProfile> => {
-    const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(getAuthInstance(), provider);
-    const db = getDb();
-    const userDocRef = doc(db, 'users', userCredential.user.uid);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      const newUser: UserProfile = {
-        uid: userCredential.user.uid,
-        email: userCredential.user.email!,
-        displayName: userCredential.user.displayName || 'New User',
-        photoURL: userCredential.user.photoURL || '',
-        role: 'student',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString()
-      };
-      await setDoc(userDocRef, newUser);
-      return newUser;
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      return await syncUserProfile(result.user);
+    } catch (error) {
+      throw error;
     }
-
-    const userData = userDoc.data() as UserProfile;
-    
-    await updateDoc(userDocRef, {
-      lastLogin: serverTimestamp()
-    });
-
-    return userData;
   },
 
-  logout: async (): Promise<void> => {
-    await signOut(getAuthInstance());
+  // 3. Reset Password
+  resetPassword: async (email: string): Promise<void> => {
+    const auth = getAuthInstance();
+    if (!email.endsWith(STIN_DOMAIN)) {
+      throw new Error("Please enter a valid @stin.ac.th email.");
+    }
+    await sendPasswordResetEmail(auth, email);
   },
 
-  forgotPassword: async (email: string): Promise<string> => {
-    await sendPasswordResetEmail(getAuthInstance(), email);
-    return `Reset link successfully sent to ${email}`;
-  },
-
-  resetPassword: async (_email: string, _password: string): Promise<void> => {
-    // Note: Firebase Auth handles password resets differently.
-    throw new Error('Please use the password reset email link.');
-  },
+  signOut: () => firebaseSignOut(getAuthInstance()),
 
   getCurrentUser: async (): Promise<UserProfile | null> => {
     const auth = getAuthInstance();
     const user = auth.currentUser;
     if (!user) return null;
-
-    const userDoc = await getDoc(doc(getDb(), 'users', user.uid));
+    const userDoc = await getDoc(doc(getDb(), "users", user.uid));
     return userDoc.exists() ? (userDoc.data() as UserProfile) : null;
-  }
+  },
 };
+
+// Helper: Sync Firestore Profile
+async function syncUserProfile(user: any): Promise<UserProfile> {
+  const db = getDb();
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    const newUser: UserProfile = {
+      uid: user.uid,
+      email: user.email!,
+      displayName: user.displayName || "STIN User",
+      photoURL: user.photoURL || "",
+      role: "student", // Default role
+      status: "active", 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    };
+    await setDoc(userRef, newUser);
+    return newUser;
+  } else {
+    await updateDoc(userRef, { lastLogin: serverTimestamp() });
+    return userSnap.data() as UserProfile;
+  }
+}

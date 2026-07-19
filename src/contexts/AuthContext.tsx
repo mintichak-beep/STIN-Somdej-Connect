@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import { UserProfile, AuthState } from '../types/auth';
-import { AuthService } from '../services/auth.service';
+import { authService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 
 interface AuthContextType extends AuthState {
@@ -8,8 +8,8 @@ interface AuthContextType extends AuthState {
   googleLogin: () => Promise<UserProfile>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<UserProfile>;
-  forgotPassword: (email: string) => Promise<string>;
-  resetPassword: (email: string, password: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function initAuth() {
       try {
-        const user = await AuthService.getCurrentUser();
+        const user = await authService.getCurrentUser();
         setState({
           user,
           loading: false,
@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string, rememberMe: boolean): Promise<UserProfile> => {
+  const login = async (email: string, password: string, _rememberMe: boolean): Promise<UserProfile> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const user = await AuthService.login(email, password, rememberMe);
+      const user = await authService.signInWithEmail(email, password);
       setState({
         user,
         loading: false,
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const googleLogin = async (): Promise<UserProfile> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const user = await AuthService.googleLogin();
+      const user = await authService.signInWithGoogle();
       setState({
         user,
         loading: false,
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async (): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      await AuthService.logout();
+      await authService.signOut();
       setState({
         user: null,
         loading: false,
@@ -123,12 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const forgotPassword = async (email: string): Promise<string> => {
+  const forgotPassword = async (email: string): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const response = await AuthService.forgotPassword(email);
+      await authService.resetPassword(email);
       setState(prev => ({ ...prev, loading: false }));
-      return response;
     } catch (err: any) {
       setState(prev => ({
         ...prev,
@@ -139,10 +138,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const resetPassword = async (email: string, password: string): Promise<void> => {
+  const resetPassword = async (email: string): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      await AuthService.resetPassword(email, password);
+      await authService.resetPassword(email);
       setState(prev => ({ ...prev, loading: false }));
     } catch (err: any) {
       setState(prev => ({
@@ -175,3 +174,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+

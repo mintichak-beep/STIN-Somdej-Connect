@@ -18,9 +18,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isTeacher());
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     match /students/{studentId} {
