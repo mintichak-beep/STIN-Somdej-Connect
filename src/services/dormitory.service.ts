@@ -3,7 +3,20 @@ import { Dormitory } from '../types/db';
 
 export const dormitoryService = {
   getAll: async (): Promise<Dormitory[]> => {
-    return mockDB.getBuildings().filter(b => b.buildingType === 'Dormitory');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const buildings = mockDB.getBuildings();
+    return buildings.filter(b => b.buildingType === 'Dormitory').map(b => ({
+      ...b,
+      name: b.name,
+      contactPerson: 'Staff',
+      phone: '02-xxx-xxxx',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: 'admin',
+      updatedBy: 'admin',
+      mapLink: '#'
+    }));
   },
   create: async (data: Omit<Dormitory, 'id' | 'createdAt'>): Promise<string> => {
     const list = mockDB.getBuildings();

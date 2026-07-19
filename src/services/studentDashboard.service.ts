@@ -18,9 +18,11 @@ import {
   User,
   Vehicle,
   Driver,
+  Student,
 } from "../types/db";
 
 export interface StudentDashboardData {
+  profile?: Student;
   practiceAssignments: (PracticeAssignment & {
     course?: Course;
     trainingSite?: TrainingSite;
@@ -50,6 +52,9 @@ export const studentDashboardService = {
   getDashboardData: async (
     studentId: string,
   ): Promise<StudentDashboardData> => {
+    const students = mockDB.getStudents();
+    const studentProfile = students.find(s => s.id === studentId || s.studentId === studentId || s.email === studentId);
+
     // 1. Practice Assignments
     const allPa = mockDB.getPracticeAssignments();
     // Sometimes studentId might be just part of email, wait, studentId usually is the uid or studentId string.
@@ -174,6 +179,7 @@ export const studentDashboardService = {
       .filter((n) => n.userId === studentId);
 
     return {
+      profile: studentProfile,
       practiceAssignments: enrichedPractice,
       transportation: enrichedTransport,
       dormitory: enrichedDormitory,

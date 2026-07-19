@@ -1,11 +1,14 @@
 import { ReactNode } from 'react';
 import { motion } from 'motion/react';
+import { LucideIcon } from 'lucide-react';
 
 interface DashboardCardProps {
   id?: string;
   title?: string;
   subtitle?: string;
-  children: ReactNode;
+  icon?: LucideIcon;
+  value?: string | number;
+  children?: ReactNode;
   className?: string;
   hoverEffect?: boolean;
   headerActions?: ReactNode;
@@ -15,6 +18,8 @@ export function DashboardCard({
   id,
   title,
   subtitle,
+  icon: Icon,
+  value,
   children,
   className = '',
   hoverEffect = true,
@@ -33,25 +38,38 @@ export function DashboardCard({
       {/* Top Border Accent Decorator */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600/10 via-red-600/40 to-red-600/10" />
 
-      {(title || headerActions) && (
+      {(title || headerActions || Icon) && (
         <div className="mb-4 flex items-start justify-between gap-4">
-          {title && (
-            <div>
-              <h3 className="font-sans text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100 md:text-base">
-                {title}
-              </h3>
-              {subtitle && (
-                <p className="mt-0.5 text-xs text-gray-400 dark:text-zinc-500">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-          )}
+          <div className="flex items-start gap-3">
+            {Icon && (
+              <div className="mt-1 rounded-lg bg-red-50 p-2 dark:bg-red-950/20">
+                <Icon className="h-4 w-4 text-red-600 dark:text-red-500" />
+              </div>
+            )}
+            {title && (
+              <div>
+                <h3 className="font-sans text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100 md:text-base">
+                  {title}
+                </h3>
+                {subtitle && (
+                  <p className="mt-0.5 text-xs text-gray-400 dark:text-zinc-500">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
           {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}
         </div>
       )}
 
-      <div className="relative text-gray-700 dark:text-zinc-300">{children}</div>
+      {value !== undefined && (
+        <div className="mt-2 mb-1">
+          <span className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">{value}</span>
+        </div>
+      )}
+
+      {children && <div className="relative text-gray-700 dark:text-zinc-300">{children}</div>}
     </motion.div>
   );
 }

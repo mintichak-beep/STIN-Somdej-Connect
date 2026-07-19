@@ -1,4 +1,4 @@
-export type UserRole = 'Teacher' | 'Nursing Student';
+export type UserRole = 'Teacher' | 'Nursing Student' | 'teacher' | 'student';
 
 export interface UserProfile {
   uid: string;
@@ -10,7 +10,7 @@ export interface UserProfile {
   phone?: string;
   status: 'active' | 'inactive';
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   lastLogin?: string;
 }
 

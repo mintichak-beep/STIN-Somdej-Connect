@@ -1,6 +1,16 @@
 import * as XLSX from 'xlsx';
 import { mockDB } from './mockData';
 import { Student, User, PracticeAssignment, TrainingSite, Course } from '../types/db';
+import { auditService } from './audit.service';
+
+function getCurrentUserId(): string {
+  try {
+    const user = localStorage.getItem('cpatms_user');
+    return user ? JSON.parse(user).uid : 'system';
+  } catch {
+    return 'system';
+  }
+}
 
 export const studentImportService = {
   validateData: async (file: File): Promise<{
@@ -143,6 +153,7 @@ export const studentImportService = {
           uid: `usr-${record.studentId}`,
           email: record.email,
           name: record.fullName,
+          displayName: record.fullName,
           role: 'student',
           status: 'active',
           createdAt: new Date().toISOString(),
@@ -152,29 +163,52 @@ export const studentImportService = {
         newUsers.push(newUser);
 
         // 3. Connect to Course / Practice Assignment
-        // Try to find course by name
-        let course = courses.find(c => c.name.includes(record.course) || c.code === record.course);
+        // Try to find course by name or code
+        let course = courses.find(c => 
+          (c.courseName && c.courseName.includes(record.course)) || 
+          (c.name && c.name.includes(record.course)) ||
+          (c.courseCode === record.course) ||
+          (c.code === record.course)
+        );
+        
         if (!course) {
           // Auto create course if not found (mock behavior)
           course = {
             id: `course-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            code: `NUR-${Math.floor(Math.random() * 1000)}`,
-            name: record.course,
-            credits: 3,
+            courseCode: `NUR-${Math.floor(Math.random() * 1000)}`,
+            courseName: record.course,
+            code: `NUR-${Math.floor(Math.random() * 1000)}`, // compat
+            name: record.course, // compat
             academicYear: record.academicYear,
             semester: record.semester,
             status: 'active',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            createdBy: teacherId,
-            updatedBy: teacherId
+            createdAt: new Date().toISOString()
           };
           courses.push(course);
         }
 
+        // 4. Handle Practice Group
+        const practiceGroups = mockDB.getPracticeGroups();
+        let group = practiceGroups.find(g => g.name === record.practiceGroup && g.courseId === course!.id);
+        if (!group) {
+          group = {
+            id: `pg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            name: record.practiceGroup,
+            courseId: course!.id,
+            hospitalId: record.hospital || 'h-siriraj',
+            academicYear: record.academicYear,
+            semester: record.semester,
+            capacity: 10,
+            status: 'active',
+            createdAt: new Date().toISOString()
+          };
+          practiceGroups.push(group);
+          mockDB.savePracticeGroups(practiceGroups);
+        }
+
         // Find or create practice assignment for this student/course/group
         let assignment = practiceAssignments.find(pa => 
-          pa.studentId === newStudent.id && pa.courseId === course!.id && pa.practiceGroupId === record.practiceGroup
+          pa.studentId === newStudent.id && pa.courseId === course!.id && pa.practiceGroupId === group!.id
         );
 
         if (!assignment) {
@@ -182,8 +216,8 @@ export const studentImportService = {
             id: `pa-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             studentId: newStudent.id,
             courseId: course!.id,
-            practiceGroupId: record.practiceGroup,
-            trainingSiteId: record.hospital || 'h-siriraj', // Use the imported hospital or siriraj as default
+            practiceGroupId: group!.id,
+            trainingSiteId: group!.hospitalId,
             wardDepartment: 'General Ward',
             teacherId: teacherId,
             startDate: new Date().toISOString().split('T')[0],
@@ -213,6 +247,8 @@ export const studentImportService = {
         importDate: new Date().toISOString()
       });
       if (mockDB.saveImportHistory) mockDB.saveImportHistory(history);
+      
+      await auditService.log(getCurrentUserId(), 'IMPORT', 'Student', 'batch', `Imported ${importedStudents.length} students from ${fileName}`);
 
       return { success: true, count: importedStudents.length };
     } catch (error) {

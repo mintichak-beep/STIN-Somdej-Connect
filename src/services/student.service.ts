@@ -1,5 +1,15 @@
 import { mockDB } from './mockData';
 import { Student } from '../types/db';
+import { auditService } from './audit.service';
+
+function getCurrentUserId(): string {
+  try {
+    const user = localStorage.getItem('cpatms_user');
+    return user ? JSON.parse(user).uid : 'system';
+  } catch {
+    return 'system';
+  }
+}
 
 export const studentService = {
   subscribe: (callback: (students: Student[]) => void) => {
@@ -15,6 +25,37 @@ export const studentService = {
     return () => window.removeEventListener('cpatms_db_update', handleUpdate);
   },
 
+  getStudents: async (): Promise<Student[]> => {
+    return mockDB.getStudents();
+  },
+
+  updateStudent: async (id: string, data: Partial<Student>): Promise<void> => {
+    const list = mockDB.getStudents();
+    const index = list.findIndex(item => item.id === id);
+    if (index === -1) throw new Error('Student not found.');
+    list[index] = { ...list[index], ...data };
+    mockDB.saveStudents(list);
+    await auditService.log(getCurrentUserId(), 'UPDATE', 'Student', id, `Updated student profile`);
+  },
+
+  assignPracticeGroup: async (studentId: string, groupId: string): Promise<void> => {
+    const list = mockDB.getStudents();
+    const index = list.findIndex(item => item.id === studentId);
+    if (index === -1) throw new Error('Student not found.');
+    list[index] = { ...list[index], practiceGroupId: groupId };
+    mockDB.saveStudents(list);
+    await auditService.log(getCurrentUserId(), 'UPDATE', 'Student', studentId, `Assigned to practice group ${groupId}`);
+  },
+
+  assignHospital: async (studentId: string, hospitalId: string): Promise<void> => {
+    const list = mockDB.getStudents();
+    const index = list.findIndex(item => item.id === studentId);
+    if (index === -1) throw new Error('Student not found.');
+    list[index] = { ...list[index], hospitalId: hospitalId };
+    mockDB.saveStudents(list);
+    await auditService.log(getCurrentUserId(), 'UPDATE', 'Student', studentId, `Assigned to hospital ${hospitalId}`);
+  },
+
   getAll: async (): Promise<Student[]> => {
     return mockDB.getStudents();
   },
@@ -24,6 +65,7 @@ export const studentService = {
     const newStudent: Student = { ...data, id: `s-${Date.now()}` } as Student;
     list.push(newStudent);
     mockDB.saveStudents(list);
+    await auditService.log(getCurrentUserId(), 'CREATE', 'Student', newStudent.id, `Created student ${newStudent.studentId}`);
     return newStudent.id;
   },
 
@@ -33,12 +75,14 @@ export const studentService = {
     if (index === -1) throw new Error('Student not found.');
     list[index] = { ...list[index], ...data };
     mockDB.saveStudents(list);
+    await auditService.log(getCurrentUserId(), 'UPDATE', 'Student', id, `Updated student`);
   },
 
   delete: async (id: string): Promise<void> => {
     let list = mockDB.getStudents();
     list = list.filter(item => item.id !== id);
     mockDB.saveStudents(list);
+    await auditService.log(getCurrentUserId(), 'DELETE', 'Student', id, `Deleted student`);
   },
 
   bulkImport: async (students: Omit<Student, 'id' | 'createdAt' | 'status'>[]): Promise<{ successful: number, failed: number, errors: any[] }> => {
@@ -76,6 +120,7 @@ export const studentService = {
     
     if (successful > 0) {
         mockDB.saveStudents(list);
+        await auditService.log(getCurrentUserId(), 'IMPORT', 'Student', 'batch', `Imported ${successful} students`);
     }
     
     return { successful, failed, errors };

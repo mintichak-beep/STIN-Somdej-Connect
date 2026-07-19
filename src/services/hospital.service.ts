@@ -1,5 +1,6 @@
 import { mockDB } from './mockData';
 import { Hospital } from '../types/db';
+import { auditService } from './audit.service';
 
 export interface HospitalFilterOptions {
   search?: string;
@@ -232,6 +233,7 @@ export const hospitalService = {
 
     list[index] = updatedHospital;
     mockDB.saveHospitals(list);
+    await auditService.log(userId, "UPDATE", "Hospital", id, "Updated hospital profile");
 
     return updatedHospital;
   },
@@ -244,6 +246,7 @@ export const hospitalService = {
       throw new Error('Hospital not found.');
     }
     mockDB.saveHospitals(filtered);
+    await auditService.log(userId, "DELETE", "Hospital", id, "Deleted hospital");
   },
 
   archive: async (id: string, userId: string): Promise<Hospital> => {
@@ -252,6 +255,13 @@ export const hospitalService = {
 
   restore: async (id: string, userId: string): Promise<Hospital> => {
     return hospitalService.update(id, { status: 'active' }, userId);
+  },
+
+  toggleStatus: async (id: string, userId: string): Promise<Hospital> => {
+    const hospital = await hospitalService.getById(id);
+    if (!hospital) throw new Error('Hospital not found');
+    const newStatus = hospital.status === 'active' ? 'inactive' : 'active';
+    return hospitalService.update(id, { status: newStatus }, userId);
   },
 
   duplicate: async (id: string, userId: string): Promise<Hospital> => {

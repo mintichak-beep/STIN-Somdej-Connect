@@ -19,12 +19,18 @@ import { DataManagement } from "../DataManagement";
 import { SystemIssues } from "../SystemIssues";
 import { UserFeedbackPage } from "../UserFeedbackPage";
 import { AdminAnalytics } from "../AdminAnalytics";
-import { StudentManagement } from "../StudentManagement";
+import { StudentManagementCenter } from "../StudentManagementCenter";
+import { StudentImportCenter } from "../StudentImportCenter";
 import { PracticeAssignmentCenter } from "../PracticeAssignmentCenter";
 import { PracticeScheduleCenter } from "../PracticeScheduleCenter";
+import { CourseCenter } from "../CourseCenter";
+import { HospitalCenter } from "../HospitalCenter";
+import { PracticeGroupCenter } from "../PracticeGroupCenter";
 import { MyPractice } from "../MyPractice";
 import { TeacherOperationCenter } from "../TeacherOperationCenter";
+import { TeacherOperationDashboard } from "../TeacherOperationDashboard";
 import { ReportsCenter } from "../ReportsCenter";
+import { SystemActivityLog } from "../SystemActivityLog";
 
 export function DashboardHome() {
   const { isTeacher } = useRole();
@@ -35,7 +41,7 @@ export function DashboardHome() {
     <AppLayout activeTab={activeTab} setActiveTab={setActiveTab}>
       {activeTab === "dashboard" ? (
         isTeacher ? (
-          <TeacherDashboard />
+          <TeacherOperationDashboard />
         ) : (
           <StudentDashboard />
         )
@@ -51,6 +57,12 @@ export function DashboardHome() {
         ) : (
           <div>Access Denied</div>
         )
+      ) : activeTab === "courses" ? (
+        isTeacher ? <CourseCenter /> : <div>Access Denied</div>
+      ) : activeTab === "hospitals-master" ? (
+        isTeacher ? <HospitalCenter /> : <div>Access Denied</div>
+      ) : activeTab === "practice-groups-master" ? (
+        isTeacher ? <PracticeGroupCenter /> : <div>Access Denied</div>
       ) : activeTab === "practice-assignments" ? (
         <PracticeAssignmentCenter />
       ) : activeTab === "practice-schedule-center" ? (
@@ -90,9 +102,11 @@ export function DashboardHome() {
       ) : activeTab === "analytics" ? (
         <AdminAnalytics />
       ) : activeTab === "students" ? (
-        <StudentManagement />
+        isTeacher ? <StudentManagementCenter /> : <div>Access Denied</div>
       ) : activeTab === "import-students" ? (
         isTeacher ? <StudentImportCenter /> : <div>Access Denied</div>
+      ) : activeTab === "activity-log" ? (
+        isTeacher ? <SystemActivityLog /> : <div>Access Denied</div>
       ) : isTeacher ? (
         <TeacherTabs activeTab={activeTab} />
       ) : (

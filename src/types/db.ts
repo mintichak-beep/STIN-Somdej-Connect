@@ -13,6 +13,16 @@ export interface AcademicYear {
   updatedBy: string;
 }
 
+export interface AuditLog {
+  id: string;
+  action: string;
+  userId: string;
+  targetType: string;
+  targetId: string;
+  description: string;
+  createdAt: string;
+}
+
 export interface Semester {
   id: string;
   academicYearId: string;
@@ -30,9 +40,28 @@ export interface Semester {
 
 export interface Course {
   id: string;
-  code: string; // e.g., "NS101"
-  name: string; // e.g., "Fundamental Nursing Practice"
+  courseCode: string;
+  courseName: string;
+  academicYear: string;
+  semester: string;
   status: 'active' | 'inactive';
+  createdAt: string;
+
+  // Backward compatibility
+  code?: string;
+  name?: string;
+}
+
+export interface PracticeGroup {
+  id: string;
+  name: string;
+  courseId: string;
+  hospitalId: string;
+  academicYear: string;
+  semester: string;
+  capacity: number;
+  status: 'active' | 'inactive';
+  createdAt: string;
 }
 
 export interface Section {
@@ -44,42 +73,45 @@ export interface Section {
 
 export interface Hospital {
   id: string;
-  hospitalCode: string;
-  hospitalNameTH: string;
-  hospitalNameEN: string;
-  shortName: string;
-  type: 'University Hospital' | 'Regional Hospital' | 'General Hospital' | 'Community Hospital' | 'Private Hospital' | 'Specialized Hospital';
-  affiliation: string;
+  name: string;
   province: string;
-  district: string;
-  subdistrict: string;
-  postalCode: string;
-  address: string;
-  latitude: number | string;
-  longitude: number | string;
-  telephone: string;
-  fax?: string;
-  email?: string;
-  website?: string;
-  directorName?: string;
-  coordinatorName: string;
-  coordinatorPhone: string;
-  coordinatorEmail?: string;
-  logoURL?: string;
-  imageURL?: string;
-  numberOfBuildings: number;
-  numberOfRooms: number;
-  studentCapacity: number;
-  teacherCapacity: number;
+  department: string;
+  contactPerson: string;
+  phone: string;
   status: 'active' | 'inactive' | 'archived';
-  note?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
 
-  // Backward compatibility fields:
-  name?: string;
+  // Additional fields from previous implementation
+  hospitalCode?: string;
+  hospitalNameTH?: string;
+  hospitalNameEN?: string;
+  shortName?: string;
+  type?: 'University Hospital' | 'Regional Hospital' | 'General Hospital' | 'Community Hospital' | 'Private Hospital' | 'Specialized Hospital';
+  affiliation?: string;
+  district?: string;
+  subdistrict?: string;
+  postalCode?: string;
+  address?: string;
+  latitude?: number | string;
+  longitude?: number | string;
+  telephone?: string;
+  fax?: string;
+  email?: string;
+  website?: string;
+  directorName?: string;
+  coordinatorName?: string;
+  coordinatorPhone?: string;
+  coordinatorEmail?: string;
+  logoURL?: string;
+  imageURL?: string;
+  numberOfBuildings?: number;
+  numberOfRooms?: number;
+  studentCapacity?: number;
+  teacherCapacity?: number;
+  note?: string;
   contactName?: string;
   contactPhone?: string;
   capacity?: number;
@@ -130,21 +162,25 @@ export interface Room {
   roomNumber: string;
   buildingId: string;
   floorId?: string;
+  dormitoryId?: string; // unified
   gender?: 'Female' | 'Male' | 'Mixed';
   capacity: number;
   occupiedCount: number;
-  status: 'active' | 'maintenance' | 'full';
+  status: 'active' | 'maintenance' | 'full' | 'available' | 'almost_full';
+  createdAt?: string;
 }
 
 export interface RoomAssignment {
   id: string;
   roomId: string;
   studentId: string;
-  academicYearId: string;
-  semester: string;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'completed' | 'cancelled';
+  studentIds?: string[]; // compatibility
+  academicYearId?: string;
+  semester?: string;
+  startDate?: string;
+  endDate?: string;
+  assignedDate?: string;
+  status: 'active' | 'completed' | 'cancelled' | 'inactive';
 }
 
 export interface Vehicle {
@@ -155,6 +191,16 @@ export interface Vehicle {
   status: 'active' | 'maintenance' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface Van {
+  id: string;
+  vanCode: string;
+  plateNumber: string;
+  model: string;
+  capacity: number;
+  status: 'active' | 'maintenance' | 'inactive';
+  createdAt: string;
 }
 
 export interface Driver {
@@ -175,6 +221,7 @@ export interface TransportSchedule {
   departureTime: string; // ISO string or e.g., "07:30"
   status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
   pickupLocation?: string;
+  dropoffLocation?: string; // Added
 }
 
 export interface TransportAssignment {
@@ -223,6 +270,7 @@ export interface Student {
   courseId?: string;
   sectionId?: string;
   hospitalId?: string;
+  practiceGroupId?: string;
 }
 
 export interface Teacher {
@@ -315,30 +363,12 @@ export interface Payment {
 export interface Dormitory {
   id: string;
   name: string;
-  address: string;
-  contactPerson: string;
-  phone: string;
-  mapLink: string;
-  description: string;
+  address?: string;
+  contactPerson?: string;
+  phone?: string;
+  mapLink?: string;
+  description?: string;
   createdAt: string;
-}
-
-export interface Room {
-  id: string;
-  dormitoryId: string;
-  roomNumber: string;
-  capacity: number;
-  occupiedCount: number;
-  status: 'available' | 'almost_full' | 'full';
-  createdAt: string;
-}
-
-export interface RoomAssignment {
-  id: string;
-  roomId: string;
-  studentId: string;
-  assignedDate?: string;
-  status: 'active' | 'inactive';
 }
 
 export interface RoomAssignmentHistory {
@@ -360,6 +390,7 @@ export interface UtilityRecord {
   electricityAmount: number;
   otherAmount: number;
   totalAmount: number;
+  status?: 'pending' | 'billed' | 'paid' | 'unpaid'; // Added unpaid
   createdBy: string;
   createdAt: string;
 }
@@ -406,7 +437,7 @@ export interface DocumentSubmission {
   studentId: string;
   fileUrl: string;
   fileType: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected';
+  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'pending'; // Added pending
   teacherComment?: string;
   submittedAt: string;
   checkedAt?: string;
@@ -436,13 +467,16 @@ export interface Notification {
 export interface Trip {
   id: string;
   vanId: string;
+  vehicleId: string; // Made required for consistency
   trainingSiteId: string;
   date: string;
   departureTime: string;
   pickupLocation: string;
   destination: string;
+  dropoffLocation?: string; // Added
   notes: string;
   status: 'scheduled' | 'departed' | 'completed' | 'cancelled';
+  assignedStudents?: string[]; // Added
   createdAt: string;
 }
 
@@ -549,25 +583,21 @@ export interface CommunicationLog {
 }
 
 export interface User {
+  id?: string; // added for compatibility
   uid: string;
   name: string;
   email: string;
-  role: 'teacher' | 'student';
+  role: 'teacher' | 'student' | 'Teacher' | 'Nursing Student'; // compatibility
+  displayName: string; // Made required
   studentId?: string;
   studentYear?: string;
   phone?: string;
   status: 'active' | 'inactive';
   createdAt: string;
+  updatedAt?: string; // Added
+  lastLogin?: string;
 }
 
-export interface AuditLog {
-  id: string;
-  userId: string;
-  action: string;
-  collectionName: string;
-  documentId: string;
-  timestamp: string;
-}
 
 export interface PracticeAssignment {
   id: string;

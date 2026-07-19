@@ -3,7 +3,8 @@ import {
   Building, Floor, Room, RoomAssignment, Vehicle, Driver, 
   TransportSchedule, TransportAssignment, RecentActivity, ClinicalWardSchedule,
   Bill, Payment, UtilityRecord, UtilityShare, PaymentProof, Document, DocumentSubmission, Announcement, Notification, 
-  SupervisionSchedule, SupervisionRecord, EvaluationForm, Evaluation, TrainingSite, HospitalCourse, Placement, CommunicationLog, AuditLog, User, SystemIssue, UserFeedback, PracticeAssignment, PracticeAssignmentHistory, PracticeSchedule, PracticeScheduleAssignment
+  SupervisionSchedule, SupervisionRecord, EvaluationForm, Evaluation, TrainingSite, HospitalCourse, Placement, CommunicationLog, AuditLog, User, SystemIssue, UserFeedback, PracticeAssignment, PracticeAssignmentHistory, PracticeSchedule, PracticeScheduleAssignment,
+  PracticeGroup, Van, Trip, TripAssignment, Dormitory
 } from '../types/db';
 
 const STORAGE_KEYS = {
@@ -27,12 +28,16 @@ const STORAGE_KEYS = {
   BILLS: 'cpatms_bills',
   PAYMENTS: 'cpatms_payments',
   TRAINING_GROUPS: 'cpatms_training_groups',
+  PRACTICE_GROUPS: 'cpatms_practice_groups',
   PRACTICE_ASSIGNMENTS: 'cpatms_practice_assignments',
   PRACTICE_SCHEDULES: 'cpatms_practice_schedules',
   PRACTICE_SCHEDULE_ASSIGNMENTS: 'cpatms_practice_schedule_assignments',
   PRACTICE_ASSIGNMENT_HISTORY: 'cpatms_practice_assignment_history',
   IMPORT_HISTORY: 'cpatms_import_history',
   USERS: 'cpatms_users',
+  VANS: 'cpatms_vans',
+  TRIPS: 'cpatms_trips',
+  TRIP_ASSIGNMENTS: 'cpatms_trip_assignments',
 };
 
 // Initial realistic data
@@ -127,10 +132,10 @@ const INITIAL_SEMESTERS: Semester[] = [
 ];
 
 const INITIAL_COURSES: Course[] = [
-  { id: 'c-maternal1', code: 'NS321', name: 'ปฏิบัติการพยาบาลมารดาฯ 1', status: 'active' },
-  { id: 'c-maternal2', code: 'NS322', name: 'ปฏิบัติการพยาบาลมารดาฯ 2', status: 'active' },
-  { id: 'c-pmc', code: 'NS421', name: 'ปฏิบัติการรักษาโรคเบื้องต้น', status: 'active' },
-  { id: 'c-psy', code: 'NS422', name: 'ปฏิบัติการพยาบาลสุขภาพจิตและจิตเวช', status: 'active' }
+  { id: 'c-maternal1', courseCode: 'NS321', courseName: 'ปฏิบัติการพยาบาลมารดาฯ 1', academicYear: '2569', semester: '1', status: 'active', createdAt: new Date().toISOString(), code: 'NS321', name: 'ปฏิบัติการพยาบาลมารดาฯ 1' },
+  { id: 'c-maternal2', courseCode: 'NS322', courseName: 'ปฏิบัติการพยาบาลมารดาฯ 2', academicYear: '2569', semester: '2', status: 'active', createdAt: new Date().toISOString(), code: 'NS322', name: 'ปฏิบัติการพยาบาลมารดาฯ 2' },
+  { id: 'c-pmc', courseCode: 'NS421', courseName: 'ปฏิบัติการรักษาโรคเบื้องต้น', academicYear: '2569', semester: '2', status: 'active', createdAt: new Date().toISOString(), code: 'NS421', name: 'ปฏิบัติการรักษาโรคเบื้องต้น' },
+  { id: 'c-psy', courseCode: 'NS422', courseName: 'ปฏิบัติการพยาบาลสุขภาพจิตและจิตเวช', academicYear: '2569', semester: '1', status: 'active', createdAt: new Date().toISOString(), code: 'NS422', name: 'ปฏิบัติการพยาบาลสุขภาพจิตและจิตเวช' }
 ];
 
 const INITIAL_SECTIONS: Section[] = [
@@ -218,6 +223,9 @@ const INITIAL_HOSPITALS: Hospital[] = [
     createdBy: 'admin-123',
     updatedBy: 'admin-123',
     name: 'Siriraj Hospital',
+    department: 'Nursing',
+    contactPerson: 'Dr. Sompong',
+    phone: '02-419-7000',
     contactName: 'Dr. Sompong (Nurse Coordinator)',
     contactPhone: '081-111-2222',
     capacity: 40
@@ -258,6 +266,9 @@ const INITIAL_HOSPITALS: Hospital[] = [
     createdBy: 'admin-123',
     updatedBy: 'admin-123',
     name: 'King Chulalongkorn Memorial Hospital',
+    department: 'Nursing',
+    contactPerson: 'Ajarn Darane',
+    phone: '02-256-4000',
     contactName: 'Ajarn Darane (Head Unit)',
     contactPhone: '082-222-3333',
     capacity: 30
@@ -298,6 +309,9 @@ const INITIAL_HOSPITALS: Hospital[] = [
     createdBy: 'admin-123',
     updatedBy: 'admin-123',
     name: 'Ramathibodi Hospital',
+    department: 'Nursing',
+    contactPerson: 'Ms. Yupin Saelim',
+    phone: '02-201-1000',
     contactName: 'Ms. Yupin Saelim',
     contactPhone: '083-333-4444',
     capacity: 25
@@ -338,6 +352,9 @@ const INITIAL_HOSPITALS: Hospital[] = [
     createdBy: 'admin-123',
     updatedBy: 'admin-123',
     name: 'Sawanpracharak Hospital',
+    department: 'Nursing',
+    contactPerson: 'Mrs. Rattana Sangkaew',
+    phone: '056-219-888',
     contactName: 'Mrs. Rattana Sangkaew',
     contactPhone: '056-219-888',
     capacity: 20
@@ -378,6 +395,9 @@ const INITIAL_HOSPITALS: Hospital[] = [
     createdBy: 'admin-123',
     updatedBy: 'admin-123',
     name: 'Ratchaburi Hospital',
+    department: 'Nursing',
+    contactPerson: 'Mr. Pongsakorn',
+    phone: '032-719-500',
     contactName: 'Mr. Pongsakorn',
     contactPhone: '032-719-500',
     capacity: 15
@@ -868,12 +888,12 @@ export const mockDB = {
   getCommunicationLogs: (): CommunicationLog[] => loadData('cpatms_communication_logs', []),
   saveCommunicationLogs: (data: CommunicationLog[]) => saveData('cpatms_communication_logs', data),
 
-  getAuditLogs: (): AuditLog[] => loadData('cpatms_audit_logs', []),
-  saveAuditLogs: (data: AuditLog[]) => saveData('cpatms_audit_logs', data),
+  getUsers: (): User[] => loadData(STORAGE_KEYS.USERS, []),
+  saveUsers: (data: User[]) => saveData(STORAGE_KEYS.USERS, data),
   
-  getUsers: (): User[] => loadData('cpatms_users', []),
-  saveUsers: (data: User[]) => saveData('cpatms_users', data),
-  
+  getPracticeGroups: (): PracticeGroup[] => loadData(STORAGE_KEYS.PRACTICE_GROUPS, []),
+  savePracticeGroups: (data: PracticeGroup[]) => saveData(STORAGE_KEYS.PRACTICE_GROUPS, data),
+
   getSystemIssues: (): SystemIssue[] => loadData('cpatms_system_issues', []),
   saveSystemIssues: (data: SystemIssue[]) => saveData('cpatms_system_issues', data),
   
@@ -894,9 +914,22 @@ export const mockDB = {
   getImportHistory: (): any[] => loadData(STORAGE_KEYS.IMPORT_HISTORY, []),
   saveImportHistory: (data: any[]) => saveData(STORAGE_KEYS.IMPORT_HISTORY, data),
   
-  getUsers: (): User[] => loadData(STORAGE_KEYS.USERS, []),
-  saveUsers: (data: User[]) => saveData(STORAGE_KEYS.USERS, data),
   savePracticeAssignmentHistory: (data: PracticeAssignmentHistory[]) => saveData(STORAGE_KEYS.PRACTICE_ASSIGNMENT_HISTORY, data),
+
+  getVans: (): Van[] => loadData(STORAGE_KEYS.VANS, []),
+  saveVans: (data: Van[]) => saveData(STORAGE_KEYS.VANS, data),
+
+  getTrips: (): Trip[] => loadData(STORAGE_KEYS.TRIPS, []),
+  saveTrips: (data: Trip[]) => saveData(STORAGE_KEYS.TRIPS, data),
+
+  getTripAssignments: (): TripAssignment[] => loadData(STORAGE_KEYS.TRIP_ASSIGNMENTS, []),
+  saveTripAssignments: (data: TripAssignment[]) => saveData(STORAGE_KEYS.TRIP_ASSIGNMENTS, data),
+
+  getAuditLogs: (): AuditLog[] => loadData('cpatms_audit_logs', []),
+  saveAuditLogs: (data: AuditLog[]) => saveData('cpatms_audit_logs', data),
+
+  getDormitories: (): Dormitory[] => loadData('cpatms_dormitories', []),
+  saveDormitories: (data: Dormitory[]) => saveData('cpatms_dormitories', data),
 
   addActivity: (activity: Omit<RecentActivity, 'id' | 'timestamp'>) => {
     const list = loadData(STORAGE_KEYS.ACTIVITIES, INITIAL_ACTIVITIES);

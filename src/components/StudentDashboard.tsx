@@ -12,6 +12,7 @@ import {
   Check,
   MapPin,
   Loader2,
+  Activity,
 } from "lucide-react";
 import { DashboardCard } from "./DashboardCard";
 import { useAuth } from "../hooks/useAuth";
@@ -102,14 +103,75 @@ export function StudentDashboard() {
     <div className="space-y-6 pb-20 md:pb-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
-          Student Operation Dashboard
+          Student Dashboard
         </h2>
         {unreadNotifications > 0 && (
           <div className="flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold dark:bg-red-900/30 dark:text-red-400">
             <Bell className="w-4 h-4" />
-            {unreadNotifications} New Notifications
+            {unreadNotifications} New
           </div>
         )}
+      </div>
+
+      {/* Profile & Practice Info Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Profile Card */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 dark:bg-zinc-900 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center text-red-600 dark:bg-red-900/30 dark:text-red-400">
+              <User className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">
+                Profile Information
+              </h3>
+              <p className="text-xs text-zinc-500 font-medium uppercase">Personal Records</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-2 border-b border-slate-50 dark:border-zinc-800/50">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Student ID</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{data.profile?.studentId || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-slate-50 dark:border-zinc-800/50">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Full Name</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{data.profile?.fullName || data.profile?.studentName || user?.displayName || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Email</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{data.profile?.email || user?.email || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Practice Information Card */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 dark:bg-zinc-900 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+              <Activity className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">
+                Practice Information
+              </h3>
+              <p className="text-xs text-zinc-500 font-medium uppercase">Current Placement</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-2 border-b border-slate-50 dark:border-zinc-800/50">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Course</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{currentPractice?.course?.name || 'Pending Assignment'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-slate-50 dark:border-zinc-800/50">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Practice Group</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{currentPractice?.trainingGroup?.name || 'Unassigned'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Hospital</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{currentPractice?.trainingSite?.name || 'Unassigned'}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 1. Summary Cards */}

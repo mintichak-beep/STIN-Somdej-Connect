@@ -17,5 +17,12 @@ export const assignmentService = {
     list.push(newAssignment);
     mockDB.saveRoomAssignments(list);
     return newAssignment.id;
+  },
+  subscribe: (callback: (data: any[]) => void) => {
+    const interval = setInterval(async () => {
+      const data = mockDB.getRoomAssignments();
+      callback(data);
+    }, 1000);
+    return () => clearInterval(interval);
   }
 };
