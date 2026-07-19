@@ -1,140 +1,76 @@
 import { UserProfile } from '../types/auth';
-import { firebaseSim } from '../firebase/firebase';
-
-const DELAY_MS = 800; // Simulated network delay for polished loaders
+import { getAuthInstance, getDb } from '../firebase/firebase';
+import { 
+  signInWithEmailAndPassword, 
+  signOut, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  sendPasswordResetEmail
+} from 'firebase/auth';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 export const AuthService = {
-  login: async (email: string, password: string, rememberMe: boolean): Promise<UserProfile> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simple network error simulator for test
-        if (email.toLowerCase().includes('network-error')) {
-          return reject(new Error('Network connection error. Please try again.'));
-        }
+  login: async (email: string, password: string, _rememberMe: boolean): Promise<UserProfile> => {
+    const auth = getAuthInstance();
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userDoc = await getDoc(doc(getDb(), 'users', userCredential.user.uid));
+    
+    if (!userDoc.exists()) {
+      throw new Error('User profile not found.');
+    }
 
-        const users = firebaseSim.getUsers();
-        const passwords = firebaseSim.getPasswords();
+    const userData = userDoc.data() as UserProfile;
+    
+    if (userData.status === 'inactive') {
+      await signOut(auth);
+      throw new Error('Your account has been deactivated. Contact administration.');
+    }
 
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
-
-        if (!user) {
-          return reject(new Error('User not found. Check your email address.'));
-        }
-
-        if (user.status === 'inactive') {
-          return reject(new Error('Your account has been deactivated. Contact administration.'));
-        }
-
-        const storedPassword = passwords[normalizedEmail];
-        if (!storedPassword || storedPassword !== password) {
-          return reject(new Error('Invalid password. Please try again.'));
-        }
-
-        // Update last login
-        const updatedUsers = users.map(u => {
-          if (u.uid === user.uid) {
-            return {
-              ...u,
-              lastLogin: new Date().toISOString()
-            };
-          }
-          return u;
-        });
-        firebaseSim.saveUsers(updatedUsers);
-
-        const authenticatedUser = updatedUsers.find(u => u.uid === user.uid)!;
-
-        // Store session in localStorage or sessionStorage depending on rememberMe
-        const storage = rememberMe ? localStorage : sessionStorage;
-        storage.setItem('cpatms_current_user_uid', authenticatedUser.uid);
-
-        resolve(authenticatedUser);
-      }, DELAY_MS);
+    await updateDoc(doc(getDb(), 'users', userCredential.user.uid), {
+      lastLogin: serverTimestamp()
     });
+
+    return userData;
   },
 
   googleLogin: async (): Promise<UserProfile> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simulate logging in with admin via Google
-        const users = firebaseSim.getUsers();
-        const adminUser = users.find(u => u.role === 'Teacher') || users[0];
-        
-        // Update last login
-        const updatedUsers = users.map(u => {
-          if (u.uid === adminUser.uid) {
-            return {
-              ...u,
-              lastLogin: new Date().toISOString()
-            };
-          }
-          return u;
-        });
-        firebaseSim.saveUsers(updatedUsers);
-        
-        const authenticatedUser = updatedUsers.find(u => u.uid === adminUser.uid)!;
-        
-        localStorage.setItem('cpatms_current_user_uid', authenticatedUser.uid);
-        resolve(authenticatedUser);
-      }, DELAY_MS);
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(getAuthInstance(), provider);
+    const userDoc = await getDoc(doc(getDb(), 'users', userCredential.user.uid));
+    
+    if (!userDoc.exists()) {
+      throw new Error('User profile not found.');
+    }
+
+    const userData = userDoc.data() as UserProfile;
+    
+    await updateDoc(doc(getDb(), 'users', userCredential.user.uid), {
+      lastLogin: serverTimestamp()
     });
+
+    return userData;
   },
 
   logout: async (): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        localStorage.removeItem('cpatms_current_user_uid');
-        sessionStorage.removeItem('cpatms_current_user_uid');
-        resolve();
-      }, DELAY_MS / 2);
-    });
+    await signOut(getAuthInstance());
   },
 
   forgotPassword: async (email: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const users = firebaseSim.getUsers();
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
-
-        if (!user) {
-          return reject(new Error('Email address not registered in STIN-Somdej Connect.'));
-        }
-
-        resolve(`Reset link successfully simulated and sent to ${email}`);
-      }, DELAY_MS);
-    });
+    await sendPasswordResetEmail(getAuthInstance(), email);
+    return `Reset link successfully sent to ${email}`;
   },
 
-  resetPassword: async (email: string, password: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const normalizedEmail = email.toLowerCase().trim();
-        const passwords = firebaseSim.getPasswords();
-
-        if (!passwords[normalizedEmail]) {
-          return reject(new Error('User not found.'));
-        }
-
-        passwords[normalizedEmail] = password;
-        firebaseSim.savePasswords(passwords);
-        resolve();
-      }, DELAY_MS);
-    });
+  resetPassword: async (_email: string, _password: string): Promise<void> => {
+    // Note: Firebase Auth handles password resets differently.
+    throw new Error('Please use the password reset email link.');
   },
 
   getCurrentUser: async (): Promise<UserProfile | null> => {
-    return new Promise((resolve) => {
-      // Fast resolve for initial mount session restored
-      const storedUid = localStorage.getItem('cpatms_current_user_uid') || sessionStorage.getItem('cpatms_current_user_uid');
-      if (!storedUid) {
-        return resolve(null);
-      }
+    const auth = getAuthInstance();
+    const user = auth.currentUser;
+    if (!user) return null;
 
-      const users = firebaseSim.getUsers();
-      const user = users.find(u => u.uid === storedUid) || null;
-      resolve(user);
-    });
+    const userDoc = await getDoc(doc(getDb(), 'users', user.uid));
+    return userDoc.exists() ? (userDoc.data() as UserProfile) : null;
   }
 };
