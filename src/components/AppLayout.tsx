@@ -26,6 +26,7 @@ import {
   Calendar,
   Bug,
   MessageSquare,
+  Shield,
 } from "lucide-react";
 
 interface AppLayoutProps {
