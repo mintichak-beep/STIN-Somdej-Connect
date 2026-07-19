@@ -29,17 +29,30 @@ import { motion } from 'motion/react';
 
 const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
 
+const DEFAULT_STATS = {
+  totalStudents: 0,
+  totalCourses: 0,
+  totalHospitals: 0,
+  totalGroups: 0,
+  studentsByCourse: [],
+  studentsByHospital: [],
+  studentsByGroup: [],
+  recentStudents: [],
+  recentUpdates: []
+};
+
 export const TeacherOperationDashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any>(DEFAULT_STATS);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const stats = await operationAnalyticsService.getStats();
-        setData(stats);
+        setData(stats || DEFAULT_STATS);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        setData(DEFAULT_STATS);
       } finally {
         setLoading(false);
       }

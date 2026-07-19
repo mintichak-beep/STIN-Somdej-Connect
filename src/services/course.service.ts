@@ -1,5 +1,5 @@
-import { mockDB } from './mockData';
 import { Course } from '../types/db';
+import { storage } from '../lib/storage';
 import { auditService } from './audit.service';
 
 function getCurrentUserId(): string {
@@ -13,29 +13,22 @@ function getCurrentUserId(): string {
 
 export const courseService = {
   subscribe: (callback: () => void) => {
-    const handleUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail?.key === 'cpatms_courses') {
-        callback();
-      }
-    };
-    window.addEventListener('cpatms_db_update', handleUpdate);
-    return () => window.removeEventListener('cpatms_db_update', handleUpdate);
+    callback();
+    return () => {};
   },
 
   getAll: async (search: string = '', status: string = 'all'): Promise<Course[]> => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    let list = mockDB.getCourses();
+    let list = storage.get<Course[]>('courses') || [];
 
     if (status !== 'all') {
       list = list.filter(item => item.status === status);
     }
 
     if (search.trim()) {
-      const query = search.toLowerCase();
+      const queryStr = search.toLowerCase();
       list = list.filter(item => 
-        item.courseCode.toLowerCase().includes(query) ||
-        item.courseName.toLowerCase().includes(query)
+        item.courseCode.toLowerCase().includes(queryStr) ||
+        item.courseName.toLowerCase().includes(queryStr)
       );
     }
 
@@ -43,47 +36,41 @@ export const courseService = {
   },
 
   getById: async (id: string): Promise<Course | null> => {
-    const list = mockDB.getCourses();
-    return list.find(item => item.id === id) || null;
+    const list = storage.get<Course[]>('courses') || [];
+    return list.find(c => c.id === id) || null;
   },
 
   create: async (data: Omit<Course, 'id' | 'createdAt'>): Promise<Course> => {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    const list = mockDB.getCourses();
-    
+    const list = storage.get<Course[]>('courses') || [];
     const newCourse: Course = {
       ...data,
-      id: `course-${Date.now()}`,
+      id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
-      // Backward compatibility
       code: data.courseCode,
       name: data.courseName
     };
-
     list.push(newCourse);
-    mockDB.saveCourses(list);
-    await auditService.log(getCurrentUserId(), "CREATE", "Course", newCourse.id, "Created course");
+    storage.set('courses', list);
+    await auditService.log(getCurrentUserId(), "CREATE", "Course", newCourse.id!, "Created course");
     return newCourse;
   },
 
   update: async (id: string, data: Partial<Omit<Course, 'id' | 'createdAt'>>): Promise<Course> => {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    const list = mockDB.getCourses();
-    const index = list.findIndex(item => item.id === id);
+    const list = storage.get<Course[]>('courses') || [];
+    const index = list.findIndex(c => c.id === id);
     if (index === -1) throw new Error('Course not found');
 
-    const updated: Course = {
+    const updatedCourse: Course = {
       ...list[index],
       ...data,
-      // Backward compatibility updates
       code: data.courseCode || list[index].courseCode,
       name: data.courseName || list[index].courseName
-    };
+    } as Course;
 
-    list[index] = updated;
-    mockDB.saveCourses(list);
+    list[index] = updatedCourse;
+    storage.set('courses', list);
     await auditService.log(getCurrentUserId(), "UPDATE", "Course", id, "Updated course");
-    return updated;
+    return updatedCourse;
   },
 
   toggleStatus: async (id: string): Promise<Course> => {
@@ -93,3 +80,4 @@ export const courseService = {
     return courseService.update(id, { status: newStatus });
   }
 };
+

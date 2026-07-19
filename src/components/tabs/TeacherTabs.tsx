@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+const mockDB = {} as any;
 import {
   Users,
   MapPin,
@@ -26,14 +27,6 @@ import {
   Eye,
   Home,
 } from "lucide-react";
-import {
-  getDoc,
-  getDocs,
-  collection,
-  addDoc,
-  updateDoc,
-} from "firebase/firestore";
-import { mockDB } from "../../services/mockData";
 import { useTrainingGroups } from "../../hooks/useTrainingGroups";
 import {
   Building,
@@ -63,195 +56,32 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
 
   const [sites, setSites] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_training_sites");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "1",
-            name: "Somdej Hospital",
-            location: "Chonburi",
-            capacity: 45,
-            occupied: 27,
-            status: "Active",
-          },
-          {
-            id: "2",
-            name: "Siriraj Hospital",
-            location: "Bangkok",
-            capacity: 30,
-            occupied: 8,
-            status: "Active",
-          },
-          {
-            id: "3",
-            name: "Queen Savang Vadhana Memorial",
-            location: "Chonburi",
-            capacity: 25,
-            occupied: 0,
-            status: "Maintenance",
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [dorms, setDorms] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_dorm_rooms");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "1",
-            building: "Building A (Female)",
-            room: "101",
-            capacity: 4,
-            occupied: 3,
-            beds: ["Available", "Occupied", "Occupied", "Occupied"],
-          },
-          {
-            id: "2",
-            building: "Building A (Female)",
-            room: "102",
-            capacity: 4,
-            occupied: 4,
-            beds: ["Occupied", "Occupied", "Occupied", "Occupied"],
-          },
-          {
-            id: "3",
-            building: "Building B (Male)",
-            room: "201",
-            capacity: 4,
-            occupied: 1,
-            beds: ["Occupied", "Available", "Available", "Available"],
-          },
-          {
-            id: "4",
-            building: "Building B (Male)",
-            room: "202",
-            capacity: 4,
-            occupied: 0,
-            beds: ["Available", "Available", "Available", "Available"],
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [vehicles, setVehicles] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_vehicles");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "1",
-            plate: "กข-1234 ชลบุรี",
-            model: "Toyota Commuter Van",
-            capacity: 12,
-            driver: "Sompon Deeprasert",
-            phone: "081-555-1234",
-            route: "Campus -> Somdej Hospital",
-          },
-          {
-            id: "2",
-            plate: "มง-5678 กรุงเทพ",
-            model: "Isuzu Minibus",
-            capacity: 24,
-            driver: "Prasert Ngamdee",
-            phone: "082-444-5678",
-            route: "Campus -> Siriraj Hospital",
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [bills, setBills] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_utility_bills");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "101",
-            room: "101",
-            month: "June",
-            year: "2026",
-            waterUnit: 14,
-            electricUnit: 156,
-            total: 642,
-            status: "Pending",
-            slip: "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?auto=format&fit=crop&q=80&w=300",
-          },
-          {
-            id: "102",
-            room: "102",
-            month: "June",
-            year: "2026",
-            waterUnit: 22,
-            electricUnit: 240,
-            total: 980,
-            status: "Paid",
-            slip: "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?auto=format&fit=crop&q=80&w=300",
-          },
-          {
-            id: "201",
-            room: "201",
-            month: "June",
-            year: "2026",
-            waterUnit: 8,
-            electricUnit: 98,
-            total: 420,
-            status: "Unpaid",
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [documents, setDocuments] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_documents");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "1",
-            name: "Clinical Placement Handbook 2026.pdf",
-            size: "2.4 MB",
-            date: "12 July 2026",
-            category: "Handbooks",
-          },
-          {
-            id: "2",
-            name: "Water & Electricity Rate Regulations.pdf",
-            size: "1.1 MB",
-            date: "01 June 2026",
-            category: "Lodging Rules",
-          },
-          {
-            id: "3",
-            name: "Dormitory Check-out Form.docx",
-            size: "420 KB",
-            date: "05 July 2026",
-            category: "Forms",
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [announcements, setAnnouncements] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_announcements");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "1",
-            title: "Urgent: Water system maintenance in Building A",
-            content:
-              "There will be a scheduled water shutdown for maintenance in Building A on July 20th from 09:00 to 12:00. Please prepare accordingly.",
-            date: "18 July 2026",
-            priority: "Urgent",
-            author: "Ajarn Somsri",
-          },
-          {
-            id: "2",
-            title: "Clinical Placement guidelines for Semester 1/2026",
-            content:
-              "All nursing students enrolled in Semester 1 placements are requested to download the updated evaluation logbook from the documents tab.",
-            date: "15 July 2026",
-            priority: "General",
-            author: "Ajarn Somchai",
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [toast, setToast] = useState<{
@@ -297,44 +127,44 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
 
   // ---- Real-time Database States ----
   const [dbBuildings, setDbBuildings] = useState<Building[]>(() =>
-    mockDB.getBuildings(),
+    [],
   );
-  const [dbRooms, setDbRooms] = useState<Room[]>(() => mockDB.getRooms());
+  const [dbRooms, setDbRooms] = useState<Room[]>(() => []);
   const [dbAssignments, setDbAssignments] = useState<RoomAssignment[]>(() =>
-    mockDB.getRoomAssignments(),
+    [],
   );
   const [dbStudents, setDbStudents] = useState<Student[]>(() =>
-    mockDB.getStudents(),
+    [],
   );
   const [dbVehicles, setDbVehicles] = useState<Vehicle[]>(() =>
-    mockDB.getVehicles(),
+    [],
   );
   const [dbDrivers, setDbDrivers] = useState<Driver[]>(() =>
-    mockDB.getDrivers(),
+    [],
   );
   const [dbTransportSchedules, setDbTransportSchedules] = useState<
     TransportSchedule[]
-  >(() => mockDB.getTransportSchedules());
+  >(() => []);
   const [dbTransportAssignments, setDbTransportAssignments] = useState<
     TransportAssignment[]
-  >(() => mockDB.getTransportAssignments());
-  const [dbBills, setDbBills] = useState<Bill[]>(() => mockDB.getBills());
+  >(() => []);
+  const [dbBills, setDbBills] = useState<Bill[]>(() => []);
   const [dbPayments, setDbPayments] = useState<Payment[]>(() =>
-    mockDB.getPayments(),
+    [],
   );
 
   useEffect(() => {
     const handleUpdate = () => {
-      setDbBuildings(mockDB.getBuildings());
-      setDbRooms(mockDB.getRooms());
-      setDbAssignments(mockDB.getRoomAssignments());
-      setDbStudents(mockDB.getStudents());
-      setDbVehicles(mockDB.getVehicles());
-      setDbDrivers(mockDB.getDrivers());
-      setDbTransportSchedules(mockDB.getTransportSchedules());
-      setDbTransportAssignments(mockDB.getTransportAssignments());
-      setDbBills(mockDB.getBills());
-      setDbPayments(mockDB.getPayments());
+      setDbBuildings([]);
+      setDbRooms([]);
+      setDbAssignments([]);
+      setDbStudents([]);
+      setDbVehicles([]);
+      setDbDrivers([]);
+      setDbTransportSchedules([]);
+      setDbTransportAssignments([]);
+      setDbBills([]);
+      setDbPayments([]);
     };
     window.addEventListener("cpatms_db_update", handleUpdate);
     return () => window.removeEventListener("cpatms_db_update", handleUpdate);
@@ -391,160 +221,17 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
   // Simple Room Assignment Handlers
   const handleAssignRoom = (studentId: string, roomId: string) => {
     if (!studentId || !roomId) return;
-    const students = mockDB.getStudents();
+    const students = [];
     const student = students.find((s) => s.id === studentId);
     if (student) {
       student.roomId = roomId;
-      mockDB.saveStudents(students);
+      void 0;
 
-      const rooms = mockDB.getRooms();
-      const rIndex = rooms.findIndex((r) => r.id === roomId);
-      if (rIndex !== -1) {
-        rooms[rIndex].occupiedCount = (rooms[rIndex].occupiedCount || 0) + 1;
-        mockDB.saveRooms(rooms);
-      }
-
-      mockDB.addActivity({
-        type: "room_assign",
-        title: "จัดสรรห้องพัก",
-        description: `จัดสรรห้อง ${rooms[rIndex]?.roomNumber || roomId} ให้กับ ${student.studentName}`,
-        userId: "admin-123",
-        userDisplayName: "STIN Lead Teacher",
-      });
-
-      window.dispatchEvent(
-        new CustomEvent("cpatms_db_update", {
-          detail: { key: "cpatms_students" },
-        }),
-      );
-      triggerToast("จัดสรรห้องพักสำเร็จ");
     }
   };
 
-  const handleUnassignRoom = (studentId: string) => {
-    const students = mockDB.getStudents();
-    const student = students.find((s) => s.id === studentId);
-    if (student) {
-      const oldRoomId = student.roomId;
-      student.roomId = undefined;
-      student.bedId = undefined;
-      mockDB.saveStudents(students);
-
-      if (oldRoomId) {
-        const rooms = mockDB.getRooms();
-        const rIndex = rooms.findIndex((r) => r.id === oldRoomId);
-        if (rIndex !== -1) {
-          rooms[rIndex].occupiedCount = Math.max(
-            0,
-            (rooms[rIndex].occupiedCount || 1) - 1,
-          );
-          mockDB.saveRooms(rooms);
-        }
-      }
-
-      mockDB.addActivity({
-        type: "room_assign",
-        title: "ยกเลิกการจัดสรรห้องพัก",
-        description: `ยกเลิกการจัดสรรห้องพักของ ${student.studentName}`,
-        userId: "admin-123",
-        userDisplayName: "STIN Lead Teacher",
-      });
-
-      window.dispatchEvent(
-        new CustomEvent("cpatms_db_update", {
-          detail: { key: "cpatms_students" },
-        }),
-      );
-      triggerToast("ยกเลิกจัดสรรห้องสำเร็จ");
-    }
-  };
-
-  const handleGenerateBills = (e: React.FormEvent) => {
+  const handleGenerateBills = (e: any) => {
     e.preventDefault();
-    if (!selectedRoomId) {
-      triggerToast("กรุณาเลือกห้องพัก", "error");
-      return;
-    }
-
-    const roomOccupants = dbStudents.filter((s) => s.roomId === selectedRoomId);
-    if (roomOccupants.length === 0) {
-      triggerToast("ห้องพักนี้ไม่มีผู้เข้าพัก ไม่สามารถคำนวณบิลได้", "error");
-      return;
-    }
-
-    // Calculations
-    const calcWaterUnits = Math.max(0, currWaterMeter - prevWaterMeter);
-    const calculatedWaterCost = waterAmountOverride
-      ? parseFloat(waterAmountOverride) || 0
-      : calcWaterUnits * waterRate;
-
-    const calcElectricUnits = Math.max(
-      0,
-      currElectricMeter - prevElectricMeter,
-    );
-    const calculatedElectricCost = electricAmountOverride
-      ? parseFloat(electricAmountOverride) || 0
-      : calcElectricUnits * electricRate;
-
-    const totalRoomBill =
-      calculatedWaterCost + calculatedElectricCost + otherCharges;
-
-    // Split automatically
-    const baseSplitTotal = totalRoomBill / roomOccupants.length;
-    const baseSplitWater = calculatedWaterCost / roomOccupants.length;
-    const baseSplitElectric = calculatedElectricCost / roomOccupants.length;
-
-    // Create a bill for each occupant
-    const currentBills = mockDB.getBills();
-
-    roomOccupants.forEach((student) => {
-      const studentAdj = adjustments[student.id] || { adjustment: 0, note: "" };
-      const finalAmount = Math.max(0, baseSplitTotal + studentAdj.adjustment);
-
-      const newBill: Bill = {
-        billId: `bill-${selectedRoomId}-${student.id}-${Date.now()}`,
-        roomId: selectedRoomId,
-        tenantId: student.id,
-        month: selectedMonth,
-        year: selectedYear,
-        waterUnit: parseFloat(
-          (calcWaterUnits / roomOccupants.length).toFixed(1),
-        ),
-        electricUnit: parseFloat(
-          (calcElectricUnits / roomOccupants.length).toFixed(1),
-        ),
-        waterAmount: parseFloat(baseSplitWater.toFixed(2)),
-        electricAmount: parseFloat(baseSplitElectric.toFixed(2)),
-        totalAmount: parseFloat(finalAmount.toFixed(2)),
-        dueDate: `${selectedYear === "2569" ? "2026" : "2027"}-${selectedMonth === "สิงหาคม" ? "09" : "10"}-05`,
-        status: "Unpaid",
-        prevWaterMeter,
-        currWaterMeter,
-        waterRate,
-        prevElectricMeter,
-        currElectricMeter,
-        electricRate,
-        otherCharges:
-          studentAdj.adjustment + otherCharges / roomOccupants.length,
-        notes: studentAdj.note
-          ? `${studentAdj.note}. ${roomBillNotes}`
-          : roomBillNotes,
-      };
-
-      currentBills.push(newBill);
-    });
-
-    mockDB.saveBills(currentBills);
-
-    // Save recent activity
-    mockDB.addActivity({
-      type: "room_assign",
-      title: "บันทึกและเฉลี่ยค่าน้ำ/ค่าไฟ",
-      description: `บันทึกค่าน้ำ/ค่าไฟห้อง ${selectedRoomId} ประจำเดือน ${selectedMonth} ${selectedYear} จำนวนผู้เข้าพัก ${roomOccupants.length} คน รวมเป็นยอดทั้งสิ้น ฿${totalRoomBill.toFixed(2)}`,
-      userId: "admin-123",
-      userDisplayName: "STIN Lead Teacher",
-    });
-
     // Reset Form
     setPrevWaterMeter(0);
     setCurrWaterMeter(0);
@@ -564,8 +251,8 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
   };
 
   const handleApproveSlip = (paymentId: string) => {
-    const payments = mockDB.getPayments();
-    const billsList = mockDB.getBills();
+    const payments = [];
+    const billsList = [];
 
     const paymentIndex = payments.findIndex((p) => p.paymentId === paymentId);
     if (paymentIndex === -1) {
@@ -577,21 +264,15 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     payment.status = "Approved";
     payment.approvedBy = "admin-123";
     payment.approvedAt = new Date().toISOString();
-    mockDB.savePayments(payments);
+    void 0;
 
     const billIndex = billsList.findIndex((b) => b.billId === payment.billId);
     if (billIndex !== -1) {
       billsList[billIndex].status = "Paid";
-      mockDB.saveBills(billsList);
+      void 0;
     }
 
-    mockDB.addActivity({
-      type: "room_assign",
-      title: "อนุมัติการชำระเงิน",
-      description: `อนุมัติการชำระค่าน้ำ/ค่าไฟห้อง ${payment.roomId} ยอดเงิน ฿${payment.amount} เรียบร้อยแล้ว`,
-      userId: "admin-123",
-      userDisplayName: "STIN Lead Teacher",
-    });
+    void 0;
 
     setVerifyingPayment(null);
     window.dispatchEvent(
@@ -608,8 +289,8 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const payments = mockDB.getPayments();
-    const billsList = mockDB.getBills();
+    const payments = [];
+    const billsList = [];
 
     const paymentIndex = payments.findIndex((p) => p.paymentId === paymentId);
     if (paymentIndex === -1) {
@@ -620,21 +301,15 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     const payment = payments[paymentIndex];
     payment.status = "Rejected";
     payment.remark = rejectionRemark;
-    mockDB.savePayments(payments);
+    void 0;
 
     const billIndex = billsList.findIndex((b) => b.billId === payment.billId);
     if (billIndex !== -1) {
       billsList[billIndex].status = "Rejected";
-      mockDB.saveBills(billsList);
+      void 0;
     }
 
-    mockDB.addActivity({
-      type: "room_assign",
-      title: "ปฏิเสธการชำระเงิน",
-      description: `ปฏิเสธสลิปห้อง ${payment.roomId} ยอดเงิน ฿${payment.amount} เนื่องจาก: ${rejectionRemark}`,
-      userId: "admin-123",
-      userDisplayName: "STIN Lead Teacher",
-    });
+    void 0;
 
     setVerifyingPayment(null);
     setRejectionRemark("");
@@ -647,7 +322,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
   };
 
   const handleDeleteTeacherBill = (billId: string) => {
-    const list = mockDB.getBills();
+    const list = [];
     const bill = list.find((b) => b.billId === billId);
     if (!bill) {
       triggerToast("ไม่พบข้อมูลบิล", "error");
@@ -655,19 +330,13 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     }
 
     const newList = list.filter((b) => b.billId !== billId);
-    mockDB.saveBills(newList);
+    void 0;
 
-    const payments = mockDB.getPayments();
+    const payments = [];
     const newPayments = payments.filter((p) => p.billId !== billId);
-    mockDB.savePayments(newPayments);
+    void 0;
 
-    mockDB.addActivity({
-      type: "deleted_bill",
-      title: "ลบบิลเรียกเก็บเงิน",
-      description: `ลบบิลค่าน้ำ/ค่าไฟห้อง ${bill.roomId} รอบเดือน ${bill.month} ${bill.year}`,
-      userId: "admin-123",
-      userDisplayName: "STIN Lead Teacher",
-    });
+    void 0;
 
     window.dispatchEvent(
       new CustomEvent("cpatms_db_update", { detail: { key: "cpatms_bills" } }),
@@ -751,7 +420,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       triggerToast("Dormitory Name and Code are required.", "error");
       return;
     }
-    const list = mockDB.getBuildings();
+    const list = [];
     const newDorm: Building = {
       id: `b-dorm-${Date.now()}`,
       hospitalId: "h-siriraj",
@@ -771,7 +440,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       updatedBy: "teacher",
     };
     list.unshift(newDorm);
-    mockDB.saveBuildings(list);
+    void 0;
 
     triggerToast("Dormitory created successfully!");
     setShowCreateDormForm(false);
@@ -801,14 +470,14 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     }
 
     // Delete rooms in dorm
-    const allRooms = mockDB.getRooms();
+    const allRooms = [];
     const updatedRooms = allRooms.filter((r) => r.buildingId !== dormId);
-    mockDB.saveRooms(updatedRooms);
+    void 0;
 
     // Delete building
-    const allBuildings = mockDB.getBuildings();
+    const allBuildings = [];
     const updatedBuildings = allBuildings.filter((b) => b.id !== dormId);
-    mockDB.saveBuildings(updatedBuildings);
+    void 0;
 
     triggerToast("Dormitory and associated empty rooms deleted successfully.");
   };
@@ -831,7 +500,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const roomsList = mockDB.getRooms();
+    const roomsList = [];
     const isDuplicate = roomsList.some(
       (r) => r.buildingId === newRoomDormId && r.roomNumber === newRoomNumber,
     );
@@ -850,10 +519,10 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       status: "active",
     };
     roomsList.push(newRoom);
-    mockDB.saveRooms(roomsList);
+    void 0;
 
     // Update associated building stats
-    const buildingsList = mockDB.getBuildings();
+    const buildingsList = [];
     const bIndex = buildingsList.findIndex((b) => b.id === newRoomDormId);
     if (bIndex !== -1) {
       buildingsList[bIndex] = {
@@ -861,7 +530,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
         totalRooms: (buildingsList[bIndex].totalRooms || 0) + 1,
         totalBeds: (buildingsList[bIndex].totalBeds || 0) + capVal,
       };
-      mockDB.saveBuildings(buildingsList);
+      void 0;
     }
 
     triggerToast(
@@ -889,12 +558,12 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     );
     if (!confirmDelete) return;
 
-    const allRooms = mockDB.getRooms();
+    const allRooms = [];
     const updatedRooms = allRooms.filter((r) => r.id !== roomId);
-    mockDB.saveRooms(updatedRooms);
+    void 0;
 
     // Update building stats
-    const buildingsList = mockDB.getBuildings();
+    const buildingsList = [];
     const bIndex = buildingsList.findIndex(
       (b) => b.id === targetRoom.buildingId,
     );
@@ -908,7 +577,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
             targetRoom.capacity,
         ),
       };
-      mockDB.saveBuildings(buildingsList);
+      void 0;
     }
 
     triggerToast(`Room ${targetRoom.roomNumber} deleted successfully.`);
@@ -923,7 +592,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const roomsList = mockDB.getRooms();
+    const roomsList = [];
     const rIndex = roomsList.findIndex((r) => r.id === roomId);
     if (rIndex === -1) return;
 
@@ -943,9 +612,9 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     } else {
       currentRoom.status = "active";
     }
-    mockDB.saveRooms(roomsList);
+    void 0;
 
-    const buildingsList = mockDB.getBuildings();
+    const buildingsList = [];
     const bIndex = buildingsList.findIndex(
       (b) => b.id === currentRoom.buildingId,
     );
@@ -954,7 +623,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
         ...buildingsList[bIndex],
         totalBeds: (buildingsList[bIndex].totalBeds || 0) - oldCap + newCap,
       };
-      mockDB.saveBuildings(buildingsList);
+      void 0;
     }
 
     triggerToast(
@@ -969,7 +638,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const roomsList = mockDB.getRooms();
+    const roomsList = [];
     const rIndex = roomsList.findIndex(
       (r) => r.id === selectedRoomForAssign.id,
     );
@@ -981,22 +650,22 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const studentsList = mockDB.getStudents();
+    const studentsList = [];
     const sIndex = studentsList.findIndex((s) => s.id === assignStudentId);
     if (sIndex === -1) return;
 
     const student = studentsList[sIndex];
     student.roomId = room.id;
     student.updatedAt = new Date().toISOString();
-    mockDB.saveStudents(studentsList);
+    void 0;
 
     room.occupiedCount = (room.occupiedCount || 0) + 1;
     if (room.occupiedCount >= room.capacity) {
       room.status = "full";
     }
-    mockDB.saveRooms(roomsList);
+    void 0;
 
-    const assignmentList = mockDB.getRoomAssignments();
+    const assignmentList = [];
     const newAssignment: RoomAssignment = {
       id: `ra-${Date.now()}`,
       roomId: room.id,
@@ -1008,7 +677,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       status: "active",
     };
     assignmentList.push(newAssignment);
-    mockDB.saveRoomAssignments(assignmentList);
+    void 0;
 
     triggerToast(`Assigned ${student.studentName} to Room ${room.roomNumber}!`);
     setShowAssignModal(false);
@@ -1022,7 +691,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const roomsList = mockDB.getRooms();
+    const roomsList = [];
     const oldRoomIndex = roomsList.findIndex(
       (r) => r.id === studentToMove.roomId,
     );
@@ -1036,14 +705,14 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const studentsList = mockDB.getStudents();
+    const studentsList = [];
     const sIndex = studentsList.findIndex((s) => s.id === studentToMove.id);
     if (sIndex === -1) return;
 
     const student = studentsList[sIndex];
     student.roomId = newRoom.id;
     student.updatedAt = new Date().toISOString();
-    mockDB.saveStudents(studentsList);
+    void 0;
 
     if (oldRoomIndex !== -1) {
       const oldRoom = roomsList[oldRoomIndex];
@@ -1056,9 +725,9 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       newRoom.status = "full";
     }
 
-    mockDB.saveRooms(roomsList);
+    void 0;
 
-    const assignmentList = mockDB.getRoomAssignments();
+    const assignmentList = [];
     assignmentList.forEach((a) => {
       if (a.studentId === student.id && a.status === "active") {
         a.status = "completed";
@@ -1076,7 +745,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       status: "active",
     };
     assignmentList.push(newAssignment);
-    mockDB.saveRoomAssignments(assignmentList);
+    void 0;
 
     triggerToast(
       `Successfully moved ${student.studentName} to Room ${newRoom.roomNumber}!`,
@@ -1088,7 +757,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
   };
 
   const handleRemoveStudentFromRoom = (studentId: string, roomId: string) => {
-    const studentsList = mockDB.getStudents();
+    const studentsList = [];
     const sIndex = studentsList.findIndex((s) => s.id === studentId);
     if (sIndex === -1) return;
 
@@ -1096,18 +765,18 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     student.roomId = undefined;
     student.bedId = undefined;
     student.updatedAt = new Date().toISOString();
-    mockDB.saveStudents(studentsList);
+    void 0;
 
-    const roomsList = mockDB.getRooms();
+    const roomsList = [];
     const rIndex = roomsList.findIndex((r) => r.id === roomId);
     if (rIndex !== -1) {
       const room = roomsList[rIndex];
       room.occupiedCount = Math.max(0, (room.occupiedCount || 1) - 1);
       room.status = "active";
-      mockDB.saveRooms(roomsList);
+      void 0;
     }
 
-    const assignmentList = mockDB.getRoomAssignments();
+    const assignmentList = [];
     assignmentList.forEach((a) => {
       if (
         a.studentId === studentId &&
@@ -1117,9 +786,16 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
         a.status = "completed";
       }
     });
-    mockDB.saveRoomAssignments(assignmentList);
+    void 0;
 
     triggerToast(`Checked out student from Room.`);
+  };
+
+  const handleUnassignRoom = (studentId: string) => {
+    const student = dbStudents.find((s) => s.id === studentId);
+    if (student && student.roomId) {
+      handleRemoveStudentFromRoom(studentId, student.roomId);
+    }
   };
 
   // ---- Transportation Management Handlers ----
@@ -1129,7 +805,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       triggerToast("Plate number and Model are required.", "error");
       return;
     }
-    const currentVans = mockDB.getVehicles();
+    const currentVans = [];
     const newVan: Vehicle = {
       id: `v-${Date.now()}`,
       plateNumber: newVanPlate,
@@ -1140,7 +816,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       updatedAt: new Date().toISOString(),
     };
     currentVans.push(newVan);
-    mockDB.saveVehicles(currentVans);
+    void 0;
 
     triggerToast(`Van ${newVanPlate} created successfully!`);
     setShowCreateVanForm(false);
@@ -1165,7 +841,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    const currentTrips = mockDB.getTransportSchedules();
+    const currentTrips = [];
     const newTrip: TransportSchedule = {
       id: `ts-${Date.now()}`,
       vehicleId: newTripVehicleId,
@@ -1178,7 +854,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     (newTrip as any).pickupLocation = newTripPickup;
 
     currentTrips.push(newTrip);
-    mockDB.saveTransportSchedules(currentTrips);
+    void 0;
 
     triggerToast(`Trip to ${newTripRoute} created successfully!`);
     setShowCreateTripForm(false);
@@ -1230,7 +906,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
       return;
     }
 
-    let currentBookings = mockDB.getTransportAssignments();
+    let currentBookings = [];
 
     currentBookings = currentBookings.filter(
       (b) =>
@@ -1251,7 +927,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     (newBooking as any).seatNumber = assigningSeatNumber;
 
     currentBookings.push(newBooking);
-    mockDB.saveTransportAssignments(currentBookings);
+    void 0;
 
     const studentObj = dbStudents.find((s) => s.id === selectedStudentForSeat);
     triggerToast(
@@ -1264,9 +940,9 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
   };
 
   const handleUnassignSeat = (bookingId: string) => {
-    let currentBookings = mockDB.getTransportAssignments();
+    let currentBookings = [];
     currentBookings = currentBookings.filter((b) => b.id !== bookingId);
-    mockDB.saveTransportAssignments(currentBookings);
+    void 0;
     triggerToast("Passenger removed from trip.");
   };
 
@@ -1748,7 +1424,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       required
                     >
                       <option value="">-- Choose Hospital Partner --</option>
-                      {mockDB.getHospitals().map((h) => (
+                      {[].map((h) => (
                         <option key={h.id} value={h.id}>
                           {h.hospitalNameTH} ({h.hospitalNameEN})
                         </option>
@@ -1768,7 +1444,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       required
                     >
                       <option value="">-- Assign Teacher/Supervisor --</option>
-                      {mockDB.getTeachers().map((t) => (
+                      {[].map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.name} - {t.department}
                         </option>
@@ -1820,7 +1496,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       <option value="">
                         -- No Transportation (Self Travel) --
                       </option>
-                      {mockDB.getTransportSchedules().map((ts) => {
+                      {[].map((ts) => {
                         const vehicle = mockDB
                           .getVehicles()
                           .find((v) => v.id === ts.vehicleId);
@@ -1846,7 +1522,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       Dormitory Room Allocation (Multiple Select)
                     </label>
                     <div className="max-h-48 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                      {mockDB.getRooms().map((room) => {
+                      {[].map((room) => {
                         const bldg = mockDB
                           .getBuildings()
                           .find((b) => b.id === room.buildingId);
@@ -1896,7 +1572,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       Nursing Students Enrollment (Multiple Select)
                     </label>
                     <div className="max-h-48 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                      {mockDB.getStudents().map((stud) => {
+                      {[].map((stud) => {
                         const isSelected = tgStudentIds.includes(stud.id);
                         return (
                           <label
@@ -1983,7 +1659,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                   className="rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs outline-hidden focus:ring-1 focus:ring-red-600 dark:border-zinc-800 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100"
                 >
                   <option value="">All Hospitals</option>
-                  {mockDB.getHospitals().map((h) => (
+                  {[].map((h) => (
                     <option key={h.id} value={h.id}>
                       {h.shortName || h.hospitalNameEN}
                     </option>
@@ -2248,36 +1924,42 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
               </div>
             </form>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {sites.map((s) => (
-                <div
-                  key={s.id}
-                  className="rounded-xl border border-slate-100 p-4 dark:border-zinc-800 bg-slate-50/30 dark:bg-zinc-900/10 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase text-red-600">
-                        {s.location}
-                      </span>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${s.status === "Active" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20" : "bg-amber-50 text-amber-700 dark:bg-amber-950/20"}`}
-                      >
-                        {s.status}
+            {sites.length === 0 ? (
+              <div className="text-center py-8 text-zinc-400 dark:text-zinc-500 text-xs bg-slate-50/50 dark:bg-zinc-950/20 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800">
+                ยังไม่มีข้อมูล - เริ่มสร้างรายการแรก
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {sites.map((s) => (
+                  <div
+                    key={s.id}
+                    className="rounded-xl border border-slate-100 p-4 dark:border-zinc-800 bg-slate-50/30 dark:bg-zinc-900/10 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-red-600">
+                          {s.location}
+                        </span>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${s.status === "Active" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20" : "bg-amber-50 text-amber-700 dark:bg-amber-950/20"}`}
+                        >
+                          {s.status}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-black text-zinc-900 dark:text-white mt-2">
+                        {s.name}
+                      </h4>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100/50 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                      <span className="text-zinc-400">Total Placements</span>
+                      <span className="text-zinc-900 dark:text-zinc-200">
+                        {s.occupied} / {s.capacity} Students
                       </span>
                     </div>
-                    <h4 className="text-sm font-black text-zinc-900 dark:text-white mt-2">
-                      {s.name}
-                    </h4>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100/50 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
-                    <span className="text-zinc-400">Total Placements</span>
-                    <span className="text-zinc-900 dark:text-zinc-200">
-                      {s.occupied} / {s.capacity} Students
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -5058,22 +4740,30 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50/50 dark:divide-zinc-800/40">
-                  {documents.map((d) => (
-                    <tr
-                      key={d.id}
-                      className="hover:bg-slate-50/30 dark:hover:bg-zinc-900/30"
-                    >
-                      <td className="py-3 pl-3 font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                        <FileText className="h-4 w-4 text-red-600" />
-                        {d.name}
-                      </td>
-                      <td className="py-3 text-zinc-500">{d.category}</td>
-                      <td className="py-3 text-zinc-400 font-bold">{d.size}</td>
-                      <td className="py-3 pr-3 text-right text-zinc-400">
-                        {d.date}
+                  {documents.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-zinc-400 dark:text-zinc-500 text-xs font-sans">
+                        ยังไม่มีข้อมูล - เริ่มสร้างรายการแรก
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    documents.map((d) => (
+                      <tr
+                        key={d.id}
+                        className="hover:bg-slate-50/30 dark:hover:bg-zinc-900/30"
+                      >
+                        <td className="py-3 pl-3 font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                          <FileText className="h-4 w-4 text-red-600" />
+                          {d.name}
+                        </td>
+                        <td className="py-3 text-zinc-500">{d.category}</td>
+                        <td className="py-3 text-zinc-400 font-bold">{d.size}</td>
+                        <td className="py-3 pr-3 text-right text-zinc-400">
+                          {d.date}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -5180,39 +4870,45 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
             </form>
 
             <div className="space-y-4">
-              {announcements.map((a) => (
-                <div
-                  key={a.id}
-                  className="rounded-xl border border-slate-100 p-5 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${a.priority === "Urgent" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300"}`}
-                      >
-                        {a.priority}
-                      </span>
-                      {a.targetType && a.targetType !== "all" && (
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-                          To: {a.targetType} {a.targetId}
+              {announcements.length === 0 ? (
+                <div className="text-center py-8 text-zinc-400 dark:text-zinc-500 text-xs bg-slate-50/50 dark:bg-zinc-950/20 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 font-sans">
+                  ยังไม่มีข้อมูล - เริ่มสร้างรายการแรก
+                </div>
+              ) : (
+                announcements.map((a) => (
+                  <div
+                    key={a.id}
+                    className="rounded-xl border border-slate-100 p-5 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${a.priority === "Urgent" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300"}`}
+                        >
+                          {a.priority}
                         </span>
-                      )}
-                      <span className="text-[11px] text-zinc-400 font-bold">
-                        Posted by {a.author}
+                        {a.targetType && a.targetType !== "all" && (
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                            To: {a.targetType} {a.targetId}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-zinc-400 font-bold">
+                          Posted by {a.author}
+                        </span>
+                      </div>
+                      <span className="text-xs text-zinc-400 font-bold">
+                        {a.date}
                       </span>
                     </div>
-                    <span className="text-xs text-zinc-400 font-bold">
-                      {a.date}
-                    </span>
+                    <h4 className="text-sm font-black text-zinc-900 dark:text-white mt-3">
+                      {a.title}
+                    </h4>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">
+                      {a.content}
+                    </p>
                   </div>
-                  <h4 className="text-sm font-black text-zinc-900 dark:text-white mt-3">
-                    {a.title}
-                  </h4>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">
-                    {a.content}
-                  </p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -5324,3 +5020,4 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
     </div>
   );
 }
+

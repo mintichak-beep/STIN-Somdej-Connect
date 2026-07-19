@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { Driver } from '../types/transportation';
 
 export const driverService = {
@@ -6,18 +5,18 @@ export const driverService = {
     const handleUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail?.key === 'cpatms_drivers') {
-        callback(mockDB.getDrivers());
+        callback([]);
       }
     };
     window.addEventListener('cpatms_db_update', handleUpdate);
-    callback(mockDB.getDrivers());
+    callback([]);
     return () => window.removeEventListener('cpatms_db_update', handleUpdate);
   },
 
-  getAll: async (): Promise<Driver[]> => mockDB.getDrivers(),
+  getAll: async (): Promise<Driver[]> => [],
 
   create: async (data: Omit<Driver, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
-    const list = mockDB.getDrivers();
+    const list = [];
     const newDriver: Driver = { 
       ...data, 
       id: `d-${Date.now()}`,
@@ -25,21 +24,21 @@ export const driverService = {
       updatedAt: new Date().toISOString()
     };
     list.push(newDriver);
-    mockDB.saveDrivers(list);
+    void 0;
     return newDriver.id;
   },
 
   update: async (id: string, data: Partial<Driver>): Promise<void> => {
-    const list = mockDB.getDrivers();
+    const list = [];
     const index = list.findIndex(item => item.id === id);
     if (index === -1) throw new Error('Driver not found.');
     list[index] = { ...list[index], ...data, updatedAt: new Date().toISOString() };
-    mockDB.saveDrivers(list);
+    void 0;
   },
 
   delete: async (id: string): Promise<void> => {
-    let list = mockDB.getDrivers();
+    let list = [];
     list = list.filter(item => item.id !== id);
-    mockDB.saveDrivers(list);
+    void 0;
   }
 };

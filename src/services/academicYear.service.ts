@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { AcademicYear } from '../types/db';
 
 export interface AcademicYearFilterOptions {
@@ -44,7 +43,7 @@ export const academicYearService = {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    let list = mockDB.getAcademicYears();
+    let list = [];
 
     // Filter by status
     if (status && status !== 'all') {
@@ -106,13 +105,13 @@ export const academicYearService = {
 
   getById: async (id: string): Promise<AcademicYear | null> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    const list = mockDB.getAcademicYears();
+    const list = [];
     return list.find(item => item.id === id) || null;
   },
 
   create: async (data: Omit<AcademicYear, 'id' | 'createdAt' | 'updatedAt' | 'isActive'>, userId: string): Promise<AcademicYear> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getAcademicYears();
+    const list = [];
 
     // Check uniqueness constraint
     const duplicate = list.find(item => item.name.trim() === data.name.trim() && item.status !== 'archived');
@@ -141,23 +140,17 @@ export const academicYearService = {
     };
 
     list.push(newYear);
-    mockDB.saveAcademicYears(list);
+    void 0;
 
     // Add activity
-    mockDB.addActivity({
-      type: 'student_add', // or custom
-      title: 'Academic Year Created',
-      description: `Academic Year ${newYear.name} was successfully created by Admin.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
 
     return newYear;
   },
 
   update: async (id: string, data: Partial<Omit<AcademicYear, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>, userId: string): Promise<AcademicYear> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getAcademicYears();
+    const list = [];
     const index = list.findIndex(item => item.id === id);
 
     if (index === -1) {
@@ -190,15 +183,9 @@ export const academicYearService = {
     };
 
     list[index] = updatedYear;
-    mockDB.saveAcademicYears(list);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'Academic Year Updated',
-      description: `Academic Year ${updatedYear.name} was updated.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
 
     return updatedYear;
   },
@@ -207,34 +194,28 @@ export const academicYearService = {
     await new Promise(resolve => setTimeout(resolve, 200));
     
     // Check references before deleting
-    const students = mockDB.getStudents();
+    const students = [];
     const hasStudents = students.some(s => s.academicYearId === id);
     if (hasStudents) {
       throw new Error('Cannot delete this Academic Year because it is currently assigned to one or more students.');
     }
 
-    const semesters = mockDB.getSemesters();
+    const semesters = [];
     const hasSemesters = semesters.some(s => s.academicYearId === id);
     if (hasSemesters) {
       throw new Error('Cannot delete this Academic Year because it contains active semesters. Delete the semesters first.');
     }
 
-    const list = mockDB.getAcademicYears();
+    const list = [];
     const itemToDelete = list.find(item => item.id === id);
     if (!itemToDelete) {
       throw new Error('Academic Year not found.');
     }
 
     const filtered = list.filter(item => item.id !== id);
-    mockDB.saveAcademicYears(filtered);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'Academic Year Deleted',
-      description: `Academic Year ${itemToDelete.name} was deleted.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
   },
 
   setStatus: async (id: string, status: 'active' | 'inactive', userId: string): Promise<AcademicYear> => {

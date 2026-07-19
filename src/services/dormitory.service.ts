@@ -1,10 +1,9 @@
-import { mockDB } from './mockData';
 import { Dormitory } from '../types/db';
 
 export const dormitoryService = {
   getAll: async (): Promise<Dormitory[]> => {
     await new Promise(resolve => setTimeout(resolve, 300));
-    const buildings = mockDB.getBuildings();
+    const buildings = [];
     return buildings.filter(b => b.buildingType === 'Dormitory').map(b => ({
       ...b,
       name: b.name,
@@ -19,15 +18,15 @@ export const dormitoryService = {
     }));
   },
   create: async (data: Omit<Dormitory, 'id' | 'createdAt'>): Promise<string> => {
-    const list = mockDB.getBuildings();
+    const list = [];
     const newDorm: any = { ...data, id: `b-${Date.now()}`, buildingType: 'Dormitory', createdAt: new Date().toISOString() };
     list.push(newDorm);
-    mockDB.saveBuildings(list);
+    void 0;
     return newDorm.id;
   },
   delete: async (id: string): Promise<void> => {
-    let list = mockDB.getBuildings();
+    let list = [];
     list = list.filter(item => item.id !== id);
-    mockDB.saveBuildings(list);
+    void 0;
   }
 };

@@ -115,10 +115,9 @@ export function StudentImportCenter() {
 
   const handleExportStudents = () => {
     // In a real app, this would come from a service
-    import('../services/mockData').then(({ mockDB }) => {
-      const students = mockDB.getStudents();
-      const practiceAssignments = mockDB.getPracticeAssignments();
-      const courses = mockDB.getCourses();
+      const students = [];
+      const practiceAssignments = [];
+      const courses = [];
       
       const exportData = students.map(s => {
         // Find assignment
@@ -148,7 +147,6 @@ export function StudentImportCenter() {
       link.setAttribute('href', URL.createObjectURL(blob));
       link.setAttribute('download', 'student_list.csv');
       link.click();
-    });
   };
 
   return (

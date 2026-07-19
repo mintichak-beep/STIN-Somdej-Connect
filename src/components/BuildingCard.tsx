@@ -3,7 +3,6 @@ import { Building } from '../types/db';
 import { BuildingStatusChip } from './BuildingStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { MapPin, Layers, DoorOpen, Bed, UserCheck, Eye } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface BuildingCardProps {
   key?: string | number;
@@ -30,7 +29,7 @@ export function BuildingCard({
   onDuplicate,
 }: BuildingCardProps) {
   // Find associated hospital
-  const hospital = mockDB.getHospitals().find((h) => h.id === building.hospitalId);
+  const hospital = [].find((h) => h.id === building.hospitalId);
   const hospitalName = hospital ? hospital.hospitalNameEN : 'Unknown Hospital';
 
   // Action menu options

@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { studentService } from './student.service';
 import { courseService } from './course.service';
 import { hospitalService } from './hospital.service';

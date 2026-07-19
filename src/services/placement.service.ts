@@ -1,13 +1,12 @@
-import { mockDB } from './mockData';
 import { Placement } from '../types/db';
 
 export const placementService = {
-  getAll: async (): Promise<Placement[]> => mockDB.getPlacements(),
+  getAll: async (): Promise<Placement[]> => [],
   create: async (data: Omit<Placement, 'id'>): Promise<string> => {
-    const list = mockDB.getPlacements();
+    const list = [];
     const newPlacement: Placement = { ...data, id: `pl-${Date.now()}` };
     list.push(newPlacement);
-    mockDB.savePlacements(list);
+    void 0;
     return newPlacement.id;
   }
 };

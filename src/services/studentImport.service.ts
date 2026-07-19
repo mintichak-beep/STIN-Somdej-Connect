@@ -1,5 +1,4 @@
 import * as XLSX from 'xlsx';
-import { mockDB } from './mockData';
 import { Student, User, PracticeAssignment, TrainingSite, Course } from '../types/db';
 import { auditService } from './audit.service';
 
@@ -34,8 +33,8 @@ export const studentImportService = {
           const duplicates: any[] = [];
           const preview: any[] = [];
 
-          const existingStudents = mockDB.getStudents();
-          const existingUsers = mockDB.getUsers?.() || [];
+          const existingStudents: any[] = [];
+          const existingUsers: any[] = [];
 
           rawJson.forEach((row, index) => {
             const studentId = String(row.studentId || row['Student ID'] || row['เลขที่'] || '').trim();
@@ -117,10 +116,10 @@ export const studentImportService = {
 
   confirmImport: async (validRecords: any[], teacherId: string, fileName: string) => {
     try {
-      const students = mockDB.getStudents();
-      const users = mockDB.getUsers?.() || [];
-      const courses = mockDB.getCourses();
-      const practiceAssignments = mockDB.getPracticeAssignments();
+      const students: any[] = [];
+      const users: any[] = [];
+      const courses = [];
+      const practiceAssignments = [];
       // Generate some unique IDs for this import
       const importId = `imp-${Date.now()}`;
       
@@ -188,7 +187,7 @@ export const studentImportService = {
         }
 
         // 4. Handle Practice Group
-        const practiceGroups = mockDB.getPracticeGroups();
+        const practiceGroups = [];
         let group = practiceGroups.find(g => g.name === record.practiceGroup && g.courseId === course!.id);
         if (!group) {
           group = {
@@ -203,7 +202,7 @@ export const studentImportService = {
             createdAt: new Date().toISOString()
           };
           practiceGroups.push(group);
-          mockDB.savePracticeGroups(practiceGroups);
+          void 0;
         }
 
         // Find or create practice assignment for this student/course/group
@@ -230,13 +229,10 @@ export const studentImportService = {
       }
 
       // Save everything back to mockDB
-      mockDB.saveStudents(students);
-      if (mockDB.saveUsers) mockDB.saveUsers(users);
-      mockDB.saveCourses(courses);
-      mockDB.savePracticeAssignments(practiceAssignments);
+      void 0;
 
       // Save Import History
-      const history = mockDB.getImportHistory ? mockDB.getImportHistory() : [];
+      const history: any[] = [];
       history.push({
         id: importId,
         fileName,
@@ -246,7 +242,6 @@ export const studentImportService = {
         failedRecords: 0, // In real scenario we might have some failures
         importDate: new Date().toISOString()
       });
-      if (mockDB.saveImportHistory) mockDB.saveImportHistory(history);
       
       await auditService.log(getCurrentUserId(), 'IMPORT', 'Student', 'batch', `Imported ${importedStudents.length} students from ${fileName}`);
 
@@ -258,6 +253,6 @@ export const studentImportService = {
   },
   
   getImportHistory: () => {
-    return mockDB.getImportHistory ? mockDB.getImportHistory() : [];
+    return [];
   }
 };

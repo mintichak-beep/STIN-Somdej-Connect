@@ -1,5 +1,4 @@
 import * as XLSX from 'xlsx';
-import { mockDB } from './mockData';
 import { PracticeSchedule, PracticeScheduleAssignment } from '../types/db';
 
 export const practiceScheduleService = {
@@ -22,9 +21,9 @@ export const practiceScheduleService = {
   },
 
   validateScheduleData: async (records: any[]): Promise<{ valid: any[], invalid: any[] }> => {
-    const students = mockDB.getStudents();
-    const courses = mockDB.getCourses();
-    const hospitals = mockDB.getHospitals();
+    const students = [];
+    const courses = [];
+    const hospitals = [];
 
     const valid: any[] = [];
     const invalid: any[] = [];
@@ -68,15 +67,15 @@ export const practiceScheduleService = {
   },
 
   importSchedules: async (records: any[], teacherId: string) => {
-    const schedules = mockDB.getPracticeSchedules();
-    const assignments = mockDB.getPracticeScheduleAssignments();
-    const courses = mockDB.getCourses();
-    const hospitals = mockDB.getHospitals();
+    const schedules = [];
+    const assignments = [];
+    const courses = [];
+    const hospitals = [];
 
     records.forEach(record => {
       const course = courses.find(c => c.name === record.course);
       const hospital = hospitals.find(h => h.hospitalNameTH === record.hospital);
-      const student = mockDB.getStudents().find(s => s.studentId === String(record.studentId));
+      const student = [].find(s => s.studentId === String(record.studentId));
 
       if (course && hospital && student) {
         const scheduleId = `sched-${Date.now()}-${Math.random()}`;
@@ -110,11 +109,11 @@ export const practiceScheduleService = {
       }
     });
 
-    mockDB.savePracticeSchedules(schedules);
-    mockDB.savePracticeScheduleAssignments(assignments);
+    void 0;
+    void 0;
   },
 
   getSchedules: () => {
-    return mockDB.getPracticeSchedules();
+    return [];
   }
 };

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { AcademicYear, Semester } from '../types/db';
 import { academicYearService } from '../services/academicYear.service';
 import { semesterService } from '../services/semester.service';
-import { mockDB } from '../services/mockData';
 
 export function useAcademicYear(id: string | undefined) {
   const [academicYear, setAcademicYear] = useState<AcademicYear | null>(null);
@@ -39,7 +38,7 @@ export function useAcademicYear(id: string | undefined) {
       setSemesters(semList);
 
       // Dynamic calculations for stats
-      const students = mockDB.getStudents().filter(s => s.academicYearId === id);
+      const students = [].filter(s => s.academicYearId === id);
       const studentsCount = students.length;
 
       const courseIds = new Set(students.map(s => s.courseId).filter(Boolean));
@@ -48,7 +47,7 @@ export function useAcademicYear(id: string | undefined) {
       const sectionIds = new Set(students.map(s => s.sectionId).filter(Boolean));
       const sectionsCount = sectionIds.size;
 
-      const teachersCount = mockDB.getTeachers().filter(t => 
+      const teachersCount = [].filter(t => 
         t.courseIds.some(cid => courseIds.has(cid))
       ).length;
 

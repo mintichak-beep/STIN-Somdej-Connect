@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { TransportSchedule, Vehicle, Driver } from '../types/db';
 import { Car, UserCheck, Clock, MapPin, CheckCircle } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface TransportationSummaryCardProps {
   schedules: TransportSchedule[];
@@ -10,7 +9,7 @@ interface TransportationSummaryCardProps {
 }
 
 export function TransportationSummaryCard({ schedules, vehicles, drivers }: TransportationSummaryCardProps) {
-  const assignments = useMemo(() => mockDB.getTransportAssignments(), []);
+  const assignments = useMemo(() => [], []);
 
   const detailedSchedules = useMemo(() => {
     return schedules.map(sc => {

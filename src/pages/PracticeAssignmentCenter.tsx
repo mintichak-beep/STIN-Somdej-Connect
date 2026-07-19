@@ -188,7 +188,7 @@ export function PracticeAssignmentCenter() {
           ...editingAssignment,
           ...editFormData,
         }),
-        changedBy: "Admin/Teacher", // Mock current user
+        changedBy: "Admin",
         reason: changeReason || "Placement changed by teacher",
       });
 
@@ -384,7 +384,6 @@ export function PracticeAssignmentCenter() {
                         {t.name || t.email}
                       </option>
                     ))}
-                    <option value="อาจารย์สมชาย">อาจารย์สมชาย (Mock)</option>
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

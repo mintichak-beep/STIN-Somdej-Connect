@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { getDb } from '../firebase/firebase';
+import { storage } from '../lib/storage';
 import { Student, Hospital, Room, Announcement, Trip, PracticeSchedule } from '../types/db';
 import { 
   User, BookOpen, Calendar, MapPin, Home, Users, 
@@ -35,112 +34,71 @@ export function StudentProfile() {
     async function loadStudentData() {
       setLoading(true);
       setError(null);
-      const db = getDb();
 
       try {
         // 1. Fetch Student Doc
-        const studentRef = doc(db, 'students', studentDocId);
-        const studentSnap = await getDoc(studentRef);
+        const students = storage.get<Student[]>('students') || [];
+        const studentData = students.find(s => s.id === studentDocId);
 
-        if (!studentSnap.exists()) {
+        if (!studentData) {
           setError('ไม่พบประวัตินักศึกษาในระบบ กรุณาตรวจสอบรหัสนักศึกษาอีกครั้ง');
           setLoading(false);
           return;
         }
 
-        const studentData = { id: studentSnap.id, ...studentSnap.data() } as Student;
         setStudent(studentData);
 
-        // 2. Fetch Hospital Details if hospitalId exists, or fallback to name
+        // 2. Fetch Hospital Details
+        const hospitals = storage.get<Hospital[]>('hospitals') || [];
         if (studentData.hospitalId) {
-          const hospRef = doc(db, 'hospitals', studentData.hospitalId);
-          const hospSnap = await getDoc(hospRef);
-          if (hospSnap.exists()) {
-            setHospital({ id: hospSnap.id, ...hospSnap.data() } as Hospital);
-          }
+          const hosp = hospitals.find(h => h.id === studentData.hospitalId);
+          if (hosp) setHospital(hosp);
         } else if (studentData.hospital) {
-          // Fallback: search hospital by name
-          const hospQuery = query(collection(db, 'hospitals'), where('name', '==', studentData.hospital), limit(1));
-          const hospSnap = await getDocs(hospQuery);
-          if (!hospSnap.empty) {
-            setHospital({ id: hospSnap.docs[0].id, ...hospSnap.docs[0].data() } as Hospital);
-          }
+          const hosp = hospitals.find(h => h.hospitalNameEN === studentData.hospital || h.hospitalNameTH === studentData.hospital);
+          if (hosp) setHospital(hosp);
         }
 
         // 3. Fetch Room & Roommates
         const targetRoomId = studentData.roomId;
         if (targetRoomId) {
-          const roomRef = doc(db, 'rooms', targetRoomId);
-          const roomSnap = await getDoc(roomRef);
-          if (roomSnap.exists()) {
-            setRoom({ id: roomSnap.id, ...roomSnap.data() } as Room);
-          }
+          const rooms = storage.get<Room[]>('rooms') || [];
+          const r = rooms.find(room => room.id === targetRoomId);
+          if (r) setRoom(r);
 
-          // Fetch roommate list sharing same roomId
-          const roommatesQuery = query(
-            collection(db, 'students'),
-            where('roomId', '==', targetRoomId)
-          );
-          const roommatesSnap = await getDocs(roommatesQuery);
-          const list: Student[] = [];
-          roommatesSnap.forEach((d) => {
-            const data = { id: d.id, ...d.data() } as Student;
-            if (data.studentId !== studentData.studentId) {
-              list.push(data);
-            }
-          });
-          setRoommates(list);
+          // Fetch roommate list
+          const roommatesList = students.filter(s => s.roomId === targetRoomId && s.id !== studentData.id);
+          setRoommates(roommatesList);
         }
 
         // 4. Fetch Practice Schedules
-        const scheduleQuery = query(collection(db, 'practiceSchedules'));
-        const scheduleSnap = await getDocs(scheduleQuery);
-        const schedList: PracticeSchedule[] = [];
-        scheduleSnap.forEach((d) => {
-          const data = { id: d.id, ...d.data() } as PracticeSchedule;
-          // Filter dynamically based on course or group or hospital
-          if (
-            (studentData.courseId && data.courseId === studentData.courseId) ||
-            (studentData.practiceGroupId && data.practiceGroupId === studentData.practiceGroupId) ||
-            (studentData.hospitalId && data.hospitalId === studentData.hospitalId)
-          ) {
-            schedList.push(data);
-          }
-        });
+        const allSchedules = storage.get<PracticeSchedule[]>('practiceSchedules') || [];
+        const schedList = allSchedules.filter(data => 
+          (studentData.courseId && data.courseId === studentData.courseId) ||
+          (studentData.practiceGroupId && data.practiceGroupId === studentData.practiceGroupId) ||
+          (studentData.hospitalId && data.hospitalId === studentData.hospitalId)
+        );
         setSchedules(schedList);
 
         // 5. Fetch Transportation Trips
-        const tripQuery = query(collection(db, 'trips'));
-        const tripSnap = await getDocs(tripQuery);
-        const matchedTrips: Trip[] = [];
-        tripSnap.forEach((d) => {
-          const t = { id: d.id, ...d.data() } as Trip;
-          if (t.assignedStudents?.includes(studentData.studentId) || t.assignedStudents?.includes(studentData.id)) {
-            matchedTrips.push(t);
-          }
-        });
+        const allTrips = storage.get<Trip[]>('trips') || [];
+        const matchedTrips = allTrips.filter(t => 
+          t.assignedStudents?.includes(studentData.studentId) || t.assignedStudents?.includes(studentData.id!)
+        );
         setAssignedTrips(matchedTrips);
 
         // 6. Fetch Targeted Announcements
-        const annQuery = query(collection(db, 'announcements'));
-        const annSnap = await getDocs(annQuery);
-        const annList: Announcement[] = [];
-        annSnap.forEach((d) => {
-          const ann = { id: d.id, ...d.data() } as Announcement;
-          if (
-            ann.targetType === 'all' ||
-            (ann.targetType === 'student' && ann.targetId === studentData.studentId) ||
-            (ann.targetType === 'course' && ann.targetId === studentData.courseId) ||
-            (ann.targetType === 'hospital' && ann.targetId === studentData.hospitalId)
-          ) {
-            annList.push(ann);
-          }
-        });
+        const allAnnouncements = storage.get<Announcement[]>('announcements') || [];
+        const annList = allAnnouncements.filter(ann => 
+          ann.targetType === 'all' ||
+          (ann.targetType === 'student' && ann.targetId === studentData.studentId) ||
+          (ann.targetType === 'course' && ann.targetId === studentData.courseId) ||
+          (ann.targetType === 'hospital' && ann.targetId === studentData.hospitalId)
+        );
         setAnnouncements(annList);
 
       } catch (err: any) {
         console.error('Error fetching student details:', err);
-        setError('เกิดข้อผิดพลาดในการโหลดข้อมูลนักศึกษา กรุณาติดต่ออาจารย์ผู้ควบคุมระบบ');
+        setError('เกิดข้อผิดพลาดในการโหลดข้อมูลนักศึกษา กรุณาลองใหม่อีกครั้ง');
       } finally {
         setLoading(false);
       }

@@ -1,11 +1,12 @@
-import { mockDB } from './mockData';
 import { AuditLog } from '../types/db';
+import { storage } from '../lib/storage';
 
 export const auditService = {
   log: async (userId: string, action: string, targetType: string, targetId: string, description: string = ''): Promise<string> => {
-    const list = mockDB.getAuditLogs();
+    const list = storage.get<AuditLog[]>('auditLogs') || [];
+    const id = crypto.randomUUID();
     const newLog: AuditLog = {
-      id: `al-${Date.now()}`,
+      id,
       userId,
       action,
       targetType,
@@ -14,8 +15,12 @@ export const auditService = {
       createdAt: new Date().toISOString()
     };
     list.push(newLog);
-    mockDB.saveAuditLogs(list);
-    return newLog.id;
+    storage.set('auditLogs', list);
+    return id;
   },
-  getAll: async (): Promise<AuditLog[]> => mockDB.getAuditLogs()
+  getAll: async (): Promise<AuditLog[]> => {
+    const list = storage.get<AuditLog[]>('auditLogs') || [];
+    return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
 };
+

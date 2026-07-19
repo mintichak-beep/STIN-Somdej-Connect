@@ -1,15 +1,18 @@
-import { mockDB } from './mockData';
 import { PracticeAssignment } from '../types/db';
+import { storage } from '../lib/storage';
 
 export const practiceAssignmentService = {
-  getAll: async (): Promise<PracticeAssignment[]> => mockDB.getPracticeAssignments(),
+  getAll: async (): Promise<PracticeAssignment[]> => {
+    return storage.get<PracticeAssignment[]>('practiceAssignments') || [];
+  },
   
   getByStudentId: async (studentId: string): Promise<PracticeAssignment[]> => {
-    return mockDB.getPracticeAssignments().filter(p => p.studentId === studentId);
+    const list = storage.get<PracticeAssignment[]>('practiceAssignments') || [];
+    return list.filter(p => p.studentId === studentId);
   },
 
   create: async (data: Omit<PracticeAssignment, 'id' | 'createdAt'>): Promise<string> => {
-    const list = mockDB.getPracticeAssignments();
+    const list = storage.get<PracticeAssignment[]>('practiceAssignments') || [];
     
     // Validation: duplicate assignment
     if (list.some(p => p.studentId === data.studentId && p.courseId === data.courseId)) {
@@ -30,23 +33,29 @@ export const practiceAssignmentService = {
         throw new Error('นักศึกษามีตารางฝึกซ้ำกับช่วงเวลานี้');
     }
 
-    const newAssignment: PracticeAssignment = { ...data, id: `pa-${Date.now()}-${Math.random()}`, createdAt: new Date().toISOString() };
+    const id = crypto.randomUUID();
+    const newAssignment: PracticeAssignment = { 
+      ...data, 
+      id,
+      createdAt: new Date().toISOString() 
+    };
     list.push(newAssignment);
-    mockDB.savePracticeAssignments(list);
-    return newAssignment.id;
+    storage.set('practiceAssignments', list);
+    return id;
   },
 
   update: async (id: string, data: Partial<PracticeAssignment>): Promise<void> => {
-    const list = mockDB.getPracticeAssignments();
-    const index = list.findIndex(item => item.id === id);
-    if (index === -1) throw new Error('Assignment not found');
-    list[index] = { ...list[index], ...data };
-    mockDB.savePracticeAssignments(list);
+    const list = storage.get<PracticeAssignment[]>('practiceAssignments') || [];
+    const index = list.findIndex(p => p.id === id);
+    if (index !== -1) {
+      list[index] = { ...list[index], ...data };
+      storage.set('practiceAssignments', list);
+    }
   },
 
   delete: async (id: string): Promise<void> => {
-    let list = mockDB.getPracticeAssignments();
-    list = list.filter(item => item.id !== id);
-    mockDB.savePracticeAssignments(list);
+    const list = storage.get<PracticeAssignment[]>('practiceAssignments') || [];
+    const newList = list.filter(p => p.id !== id);
+    storage.set('practiceAssignments', newList);
   }
 };

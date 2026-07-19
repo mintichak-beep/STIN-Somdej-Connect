@@ -3,7 +3,6 @@ import { Building } from '../types/db';
 import { BuildingStatusChip } from './BuildingStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { ChevronUp, ChevronDown, Download, Printer, Layers, DoorOpen, Bed, UserCheck } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface BuildingTableProps {
   id?: string;
@@ -37,7 +36,7 @@ export function BuildingTable({
 
   // Resolve Hospital Name
   const getHospitalName = (hId: string) => {
-    const hospital = mockDB.getHospitals().find((h) => h.id === hId);
+    const hospital = [].find((h) => h.id === hId);
     return hospital ? hospital.hospitalNameEN : 'Unknown';
   };
 

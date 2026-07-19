@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useAuth } from './useAuth';
-import { mockDB } from '../services/mockData';
 import { dashboardService } from '../services/dashboard.service';
 import { DashboardFilters } from '../services/statistics.service';
 import { Student, Teacher } from '../types/db';
@@ -26,13 +25,13 @@ export function useDashboard() {
   };
 
   // Lists for drop-downs
-  const academicYears = useMemo(() => mockDB.getAcademicYears(), []);
-  const courses = useMemo(() => mockDB.getCourses(), []);
-  const sections = useMemo(() => mockDB.getSections(), []);
-  const hospitals = useMemo(() => mockDB.getHospitals(), []);
-  const rooms = useMemo(() => mockDB.getRooms(), []);
-  const vehicles = useMemo(() => mockDB.getVehicles(), []);
-  const schedules = useMemo(() => mockDB.getTransportSchedules(), []);
+  const academicYears = useMemo(() => [], []);
+  const courses = useMemo(() => [], []);
+  const sections = useMemo(() => [], []);
+  const hospitals = useMemo(() => [], []);
+  const rooms = useMemo(() => [], []);
+  const vehicles = useMemo(() => [], []);
+  const schedules = useMemo(() => [], []);
 
   // Filter sections dynamically based on selected course
   const filteredSectionsList = useMemo(() => {
@@ -161,7 +160,7 @@ export function useDashboard() {
   const handleExportReport = async (reportType: string) => {
     try {
       // Simulate CSV file download
-      const students = mockDB.getStudents();
+      const students = [];
       const csvHeader = 'StudentID,Name,Email,Phone,CourseID,HospitalID,RoomID\n';
       const csvRows = students.map(s => 
         `"${s.studentId}","${s.name}","${s.email}","${s.phone}","${s.courseId}","${s.hospitalId}","${s.roomId || ''}"`

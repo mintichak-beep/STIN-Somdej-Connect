@@ -1,4 +1,3 @@
-import { mockDB } from "./mockData";
 import { OperationTask } from "../types/db";
 
 const STORAGE_KEY = "cpatms_operation_tasks";

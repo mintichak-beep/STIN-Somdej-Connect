@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { Floor, Room } from '../types/db';
 import { buildingService } from './building.service';
 
@@ -61,7 +60,7 @@ export const floorService = {
 
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    let list = mockDB.getFloors();
+    let list = [];
 
     // Filter by status
     if (status && status !== 'all') {
@@ -83,7 +82,7 @@ export const floorService = {
     // Filter by Search (Floor Name, Building Name)
     if (search.trim()) {
       const query = search.toLowerCase();
-      const buildings = mockDB.getBuildings();
+      const buildings = [];
 
       list = list.filter((item) => {
         const building = buildings.find((b) => b.id === item.buildingId);
@@ -126,13 +125,13 @@ export const floorService = {
 
   getById: async (id: string): Promise<Floor | null> => {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const list = mockDB.getFloors();
+    const list = [];
     return list.find((item) => item.id === id) || null;
   },
 
   getStatistics: async (floorId: string): Promise<FloorStats> => {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const floors = mockDB.getFloors();
+    const floors = [];
     const floor = floors.find((f) => f.id === floorId);
 
     if (!floor) {
@@ -140,7 +139,7 @@ export const floorService = {
     }
 
     // Standard Room logic - Match by floor number prefix in the same building
-    const rooms = mockDB.getRooms().filter((r) => {
+    const rooms = [].filter((r) => {
       if (r.buildingId !== floor.buildingId) return false;
       const rNum = r.roomNumber;
       // If roomNumber is e.g. "101" or "102" and floorNumber is 1
@@ -164,7 +163,7 @@ export const floorService = {
     userId: string
   ): Promise<Floor> => {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = mockDB.getFloors();
+    const list = [];
 
     // Ensure floorNumber cannot be duplicate within the same Building
     const duplicateFloor = list.find(
@@ -191,7 +190,7 @@ export const floorService = {
     };
 
     list.push(newFloor);
-    mockDB.saveFloors(list);
+    void 0;
 
     // Sync stats with the parent Building
     await buildingService.syncStats(newFloor.buildingId);
@@ -205,7 +204,7 @@ export const floorService = {
     userId: string
   ): Promise<Floor> => {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = mockDB.getFloors();
+    const list = [];
     const index = list.findIndex((item) => item.id === id);
 
     if (index === -1) {
@@ -239,7 +238,7 @@ export const floorService = {
     };
 
     list[index] = updatedFloor;
-    mockDB.saveFloors(list);
+    void 0;
 
     // Sync stats with the parent Building
     await buildingService.syncStats(updatedFloor.buildingId);
@@ -252,7 +251,7 @@ export const floorService = {
 
   delete: async (id: string, userId: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = mockDB.getFloors();
+    const list = [];
     const index = list.findIndex((item) => item.id === id);
 
     if (index === -1) {
@@ -261,7 +260,7 @@ export const floorService = {
 
     const floor = list[index];
     const filtered = list.filter((item) => item.id !== id);
-    mockDB.saveFloors(filtered);
+    void 0;
 
     // Sync stats with parent Building
     await buildingService.syncStats(floor.buildingId);
@@ -281,7 +280,7 @@ export const floorService = {
       throw new Error('Original floor not found.');
     }
 
-    const list = mockDB.getFloors();
+    const list = [];
     let newFloorNumber = original.floorNumber + 1;
 
     // Resolve unique floorNumber for duplicated item
@@ -309,7 +308,7 @@ export const floorService = {
     };
 
     list.push(duplicated);
-    mockDB.saveFloors(list);
+    void 0;
 
     // Sync stats with parent Building
     await buildingService.syncStats(original.buildingId);

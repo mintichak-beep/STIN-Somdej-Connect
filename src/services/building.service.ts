@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { Building, Floor, Room } from '../types/db';
 
 export interface BuildingFilterOptions {
@@ -63,7 +62,7 @@ export const buildingService = {
 
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    let list = mockDB.getBuildings();
+    let list = [];
 
     // Filter by status
     if (status && status !== 'all') {
@@ -90,7 +89,7 @@ export const buildingService = {
     // Filter by Search (Building Name, Building Code, Hospital name)
     if (search.trim()) {
       const query = search.toLowerCase();
-      const hospitals = mockDB.getHospitals();
+      const hospitals = [];
 
       list = list.filter((item) => {
         const hospital = hospitals.find((h) => h.id === item.hospitalId);
@@ -137,7 +136,7 @@ export const buildingService = {
 
   getById: async (id: string): Promise<Building | null> => {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const list = mockDB.getBuildings();
+    const list = [];
     return list.find((item) => item.id === id) || null;
   },
 
@@ -145,8 +144,8 @@ export const buildingService = {
     await new Promise((resolve) => setTimeout(resolve, 100));
     
     // Calculate statistics based on current floor, room and assignments
-    const floors = mockDB.getFloors().filter((f) => f.buildingId === buildingId && f.status !== 'archived');
-    const rooms = mockDB.getRooms().filter((r) => r.buildingId === buildingId);
+    const floors = [].filter((f) => f.buildingId === buildingId && f.status !== 'archived');
+    const rooms = [].filter((r) => r.buildingId === buildingId);
     
     const totalBeds = rooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
     const currentOccupancy = rooms.reduce((sum, r) => sum + (r.occupiedCount || 0), 0);
@@ -162,9 +161,9 @@ export const buildingService = {
   },
 
   getGlobalStatistics: async (): Promise<{ totalBuildings: number; totalFloors: number; totalRooms: number; totalBeds: number; occupiedBeds: number; availableBeds: number }> => {
-    const buildings = mockDB.getBuildings().filter((b) => b.status === 'active');
-    const floors = mockDB.getFloors().filter((f) => f.status === 'active');
-    const rooms = mockDB.getRooms().filter((r) => r.status !== 'maintenance');
+    const buildings = [].filter((b) => b.status === 'active');
+    const floors = [].filter((f) => f.status === 'active');
+    const rooms = [].filter((r) => r.status !== 'maintenance');
     
     const totalBeds = rooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
     const occupiedBeds = rooms.reduce((sum, r) => sum + (r.occupiedCount || 0), 0);
@@ -185,7 +184,7 @@ export const buildingService = {
     userId: string
   ): Promise<Building> => {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = mockDB.getBuildings();
+    const list = [];
 
     // Check uniqueness of buildingCode within the same hospital
     const duplicateCode = list.find(
@@ -215,16 +214,10 @@ export const buildingService = {
     };
 
     list.push(newBuilding);
-    mockDB.saveBuildings(list);
+    void 0;
 
     // Track activity
-    mockDB.addActivity({
-      type: 'student_add', // or custom building type if supported
-      title: 'Building Created',
-      description: `Building ${newBuilding.buildingName} (${newBuilding.buildingCode}) was successfully registered.`,
-      userId,
-      userDisplayName: 'Administrator',
-    });
+    void 0;
 
     return newBuilding;
   },
@@ -235,7 +228,7 @@ export const buildingService = {
     userId: string
   ): Promise<Building> => {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = mockDB.getBuildings();
+    const list = [];
     const index = list.findIndex((item) => item.id === id);
 
     if (index === -1) {
@@ -271,14 +264,14 @@ export const buildingService = {
     };
 
     list[index] = updatedBuilding;
-    mockDB.saveBuildings(list);
+    void 0;
 
     return updatedBuilding;
   },
 
   delete: async (id: string, userId: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = mockDB.getBuildings();
+    const list = [];
     const filtered = list.filter((item) => item.id !== id);
 
     if (filtered.length === list.length) {
@@ -286,13 +279,13 @@ export const buildingService = {
     }
 
     // Cascade delete floors and rooms associated with this building
-    const floors = mockDB.getFloors().filter((f) => f.buildingId !== id);
-    mockDB.saveFloors(floors);
+    const floors = [].filter((f) => f.buildingId !== id);
+    void 0;
 
-    const rooms = mockDB.getRooms().filter((r) => r.buildingId !== id);
-    mockDB.saveRooms(rooms);
+    const rooms = [].filter((r) => r.buildingId !== id);
+    void 0;
 
-    mockDB.saveBuildings(filtered);
+    void 0;
   },
 
   archive: async (id: string, userId: string): Promise<Building> => {
@@ -309,7 +302,7 @@ export const buildingService = {
       throw new Error('Original building not found.');
     }
 
-    const list = mockDB.getBuildings();
+    const list = [];
     const suffix = ' (Copy)';
     let newCode = `${original.buildingCode}-COPY`;
     let codeIndex = 1;
@@ -340,11 +333,11 @@ export const buildingService = {
     };
 
     list.push(duplicated);
-    mockDB.saveBuildings(list);
+    void 0;
 
     // Duplicate floors
-    const originalFloors = mockDB.getFloors().filter((f) => f.buildingId === id);
-    const floorsList = mockDB.getFloors();
+    const originalFloors = [].filter((f) => f.buildingId === id);
+    const floorsList = [];
     originalFloors.forEach((floor, idx) => {
       floorsList.push({
         ...floor,
@@ -356,7 +349,7 @@ export const buildingService = {
         updatedBy: userId,
       });
     });
-    mockDB.saveFloors(floorsList);
+    void 0;
 
     return duplicated;
   },

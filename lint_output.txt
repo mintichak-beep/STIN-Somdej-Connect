@@ -1,0 +1,133 @@
+
+> react-example@0.0.0 lint
+> tsc --noEmit
+
+src/components/tabs/TeacherTabs.tsx(2263,22): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2264,19): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2285,21): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2298,21): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2311,17): error TS2657: JSX expressions must have one parent element.
+src/components/tabs/TeacherTabs.tsx(2363,26): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2365,23): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2369,25): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(2371,21): error TS17002: Expected corresponding JSX closing tag for 'form'.
+src/components/tabs/TeacherTabs.tsx(2384,26): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2387,24): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2429,17): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(2429,19): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(2432,15): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(2433,17): error TS2657: JSX expressions must have one parent element.
+src/components/tabs/TeacherTabs.tsx(2498,26): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2500,23): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2504,25): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(2517,26): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2520,24): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2525,21): error TS17002: Expected corresponding JSX closing tag for 'form'.
+src/components/tabs/TeacherTabs.tsx(2541,17): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(2541,19): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(2641,33): error TS2657: JSX expressions must have one parent element.
+src/components/tabs/TeacherTabs.tsx(2655,38): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2657,36): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2666,38): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2668,35): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2670,37): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(2680,33): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(2704,32): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(2726,32): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2727,29): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2762,25): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(2814,40): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2816,37): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(2818,39): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(2820,33): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(2826,30): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(2828,25): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2829,23): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2830,21): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2831,20): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2832,17): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2832,19): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2843,18): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2844,15): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(2882,30): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(2884,28): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(3080,13): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(3081,11): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(3082,9): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(3082,10): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(3082,12): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(3082,13): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(3505,31): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3646,39): error TS2657: JSX expressions must have one parent element.
+src/components/tabs/TeacherTabs.tsx(3655,46): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(3658,43): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(3660,45): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(3674,39): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(3675,39): error TS1005: ';' expected.
+src/components/tabs/TeacherTabs.tsx(3695,38): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(3698,31): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(3700,29): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(3700,33): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(3710,23): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(3761,21): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(3763,17): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(3775,16): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(3779,11): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(3913,9): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(3914,7): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(3976,25): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(4107,30): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4109,28): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4181,30): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4183,28): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4200,26): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4202,24): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4523,25): error TS2657: JSX expressions must have one parent element.
+src/components/tabs/TeacherTabs.tsx(4528,30): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4530,27): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4537,29): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(4557,25): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(4559,21): error TS1005: ',' expected.
+src/components/tabs/TeacherTabs.tsx(4561,17): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(4561,19): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(4563,13): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(4692,36): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4694,34): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4702,34): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4704,31): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4706,33): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(4710,34): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4712,31): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4714,33): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(4718,23): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(4719,21): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(4720,19): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(4721,18): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(4721,20): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(4721,21): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(4863,42): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4866,39): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4868,41): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(4869,38): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(4873,38): error TS1003: Identifier expected.
+src/components/tabs/TeacherTabs.tsx(4876,35): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/tabs/TeacherTabs.tsx(4878,37): error TS17002: Expected corresponding JSX closing tag for 'td'.
+src/components/tabs/TeacherTabs.tsx(4879,35): error TS17002: Expected corresponding JSX closing tag for 'tr'.
+src/components/tabs/TeacherTabs.tsx(4880,31): error TS1005: ')' expected.
+src/components/tabs/TeacherTabs.tsx(4880,33): error TS17002: Expected corresponding JSX closing tag for 'tbody'.
+src/components/tabs/TeacherTabs.tsx(4881,31): error TS17002: Expected corresponding JSX closing tag for 'table'.
+src/components/tabs/TeacherTabs.tsx(4883,25): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(4883,27): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/tabs/TeacherTabs.tsx(4896,23): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(4897,21): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/tabs/TeacherTabs.tsx(4898,17): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(4899,15): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(4900,13): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(4901,11): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(4901,12): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(4902,9): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(4903,7): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(4903,8): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(5207,5): error TS1128: Declaration or statement expected.
+src/components/tabs/TeacherTabs.tsx(5208,3): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(5209,1): error TS1128: Declaration or statement expected.

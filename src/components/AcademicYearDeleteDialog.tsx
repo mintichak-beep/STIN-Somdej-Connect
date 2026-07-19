@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { ConfirmDialog } from './ConfirmDialog';
-import { mockDB } from '../services/mockData';
 
 interface AcademicYearDeleteDialogProps {
   id?: string;
@@ -28,10 +27,10 @@ export function AcademicYearDeleteDialog({
       setErrorMsg(null);
 
       // Perform synchronous checks on our mock DB
-      const students = mockDB.getStudents();
+      const students = [];
       const linkedStudents = students.filter(s => s.academicYearId === academicYearId);
 
-      const semesters = mockDB.getSemesters();
+      const semesters = [];
       const linkedSemesters = semesters.filter(s => s.academicYearId === academicYearId);
 
       if (linkedStudents.length > 0) {

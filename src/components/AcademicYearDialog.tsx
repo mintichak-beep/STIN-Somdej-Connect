@@ -7,17 +7,17 @@ import { X, Calendar, Edit3, HelpCircle } from 'lucide-react';
 import { AcademicYear } from '../types/db';
 
 const academicYearSchema = zod.object({
-  name: zod.string().min(1, 'Academic Year Name is required.').regex(/^\d{4}$/, 'Must be a 4-digit Buddhist/Christian year (e.g. 2569).'),
-  startYear: zod.string().min(1, 'Start Year is required.').regex(/^\d{4}$/, 'Must be a 4-digit year (e.g. 2569).'),
-  endYear: zod.string().min(1, 'End Year is required.').regex(/^\d{4}$/, 'Must be a 4-digit year (e.g. 2570).'),
-  description: zod.string().max(250, 'Description cannot exceed 250 characters.'),
+  name: zod.string().min(1, 'กรุณากรอกชื่อปีการศึกษา').regex(/^\d{4}$/, 'ต้องเป็นปี 4 หลัก (เช่น 2569)'),
+  startYear: zod.string().min(1, 'กรุณากรอกปีที่เริ่มต้น').regex(/^\d{4}$/, 'ต้องเป็นปี 4 หลัก (เช่น 2569)'),
+  endYear: zod.string().min(1, 'กรุณากรอกปีที่สิ้นสุด').regex(/^\d{4}$/, 'ต้องเป็นปี 4 หลัก (เช่น 2570)'),
+  description: zod.string().max(250, 'คำอธิบายต้องไม่เกิน 250 ตัวอักษร'),
   status: zod.enum(['active', 'inactive', 'archived'])
 }).refine((data) => {
   const start = parseInt(data.startYear, 10);
   const end = parseInt(data.endYear, 10);
   return end > start;
 }, {
-  message: 'End Year must be strictly greater than Start Year.',
+  message: 'ปีที่สิ้นสุดต้องมากกว่าปีที่เริ่มต้น',
   path: ['endYear']
 });
 
@@ -111,10 +111,10 @@ export function AcademicYearDialog({
               </div>
               <div>
                 <h3 className="text-sm font-extrabold text-gray-900 dark:text-zinc-50">
-                  {isEdit ? 'Modify Academic Year' : 'Create Academic Year'}
+                  {isEdit ? 'แก้ไขปีการศึกษา' : 'สร้างปีการศึกษา'}
                 </h3>
                 <p className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase">
-                  Master Data registry record
+                  ข้อมูลหลักปีการศึกษา
                 </p>
               </div>
             </div>

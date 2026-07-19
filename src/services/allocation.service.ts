@@ -1,14 +1,13 @@
-import { mockDB } from './mockData';
 import { Student } from '../types/student';
 import { AllocationState } from '../types/allocation';
 
 export const allocationService = {
   getUnassignedStudents: async (): Promise<Student[]> => {
-    return mockDB.getStudents().filter(s => !s.roomId && (s.accommodationPeriod === 'ANCส' || s.accommodationPeriod === 'DRส'));
+    return [].filter(s => !s.roomId && (s.accommodationPeriod === 'ANCส' || s.accommodationPeriod === 'DRส'));
   },
 
   getAvailableRooms: async () => {
-    return mockDB.getRooms().filter(r => r.status === 'active');
+    return [].filter(r => r.status === 'active');
   },
 
   calculateAssignments: (students: Student[], rooms: any[]): AllocationState[] => {
@@ -49,8 +48,8 @@ export const allocationService = {
   },
 
   applyAllocation: async (assignments: AllocationState[]) => {
-    const students = mockDB.getStudents();
-    const rooms = mockDB.getRooms();
+    const students = [];
+    const rooms = [];
 
     assignments.forEach(assignment => {
       const student = students.find(s => s.id === assignment.studentId);
@@ -65,7 +64,7 @@ export const allocationService = {
       }
     });
 
-    mockDB.saveStudents(students);
-    mockDB.saveRooms(rooms);
+    void 0;
+    void 0;
   }
 };

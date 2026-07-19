@@ -1,5 +1,5 @@
-import { mockDB } from './mockData';
 import { PracticeGroup, Student } from '../types/db';
+import { storage } from '../lib/storage';
 import { auditService } from './audit.service';
 
 function getCurrentUserId(): string {
@@ -13,24 +13,17 @@ function getCurrentUserId(): string {
 
 export const practiceGroupService = {
   subscribe: (callback: () => void) => {
-    const handleUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail?.key === 'cpatms_practice_groups') {
-        callback();
-      }
-    };
-    window.addEventListener('cpatms_db_update', handleUpdate);
-    return () => window.removeEventListener('cpatms_db_update', handleUpdate);
+    callback();
+    return () => {};
   },
 
   getAll: async (search: string = ''): Promise<PracticeGroup[]> => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    let list = mockDB.getPracticeGroups();
+    let list = storage.get<PracticeGroup[]>('practiceGroups') || [];
 
     if (search.trim()) {
-      const query = search.toLowerCase();
+      const qStr = search.toLowerCase();
       list = list.filter(item => 
-        item.name.toLowerCase().includes(query)
+        item.name.toLowerCase().includes(qStr)
       );
     }
 
@@ -38,59 +31,55 @@ export const practiceGroupService = {
   },
 
   getById: async (id: string): Promise<PracticeGroup | null> => {
-    const list = mockDB.getPracticeGroups();
-    return list.find(item => item.id === id) || null;
+    const list = storage.get<PracticeGroup[]>('practiceGroups') || [];
+    return list.find(g => g.id === id) || null;
   },
 
   create: async (data: Omit<PracticeGroup, 'id' | 'createdAt'>): Promise<PracticeGroup> => {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    const list = mockDB.getPracticeGroups();
-    
+    const list = storage.get<PracticeGroup[]>('practiceGroups') || [];
     const newGroup: PracticeGroup = {
       ...data,
-      id: `pg-${Date.now()}`,
+      id: crypto.randomUUID(),
       createdAt: new Date().toISOString()
     };
-
     list.push(newGroup);
-    mockDB.savePracticeGroups(list);
-    await auditService.log(getCurrentUserId(), "CREATE", "PracticeGroup", newGroup.id, "Created practice group");
+    storage.set('practiceGroups', list);
+    await auditService.log(getCurrentUserId(), "CREATE", "PracticeGroup", newGroup.id!, "Created practice group");
     return newGroup;
   },
 
   update: async (id: string, data: Partial<Omit<PracticeGroup, 'id' | 'createdAt'>>): Promise<PracticeGroup> => {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    const list = mockDB.getPracticeGroups();
-    const index = list.findIndex(item => item.id === id);
+    const list = storage.get<PracticeGroup[]>('practiceGroups') || [];
+    const index = list.findIndex(g => g.id === id);
     if (index === -1) throw new Error('Practice group not found');
 
-    const updated: PracticeGroup = {
+    const updatedGroup: PracticeGroup = {
       ...list[index],
       ...data
-    };
+    } as PracticeGroup;
 
-    list[index] = updated;
-    mockDB.savePracticeGroups(list);
+    list[index] = updatedGroup;
+    storage.set('practiceGroups', list);
     await auditService.log(getCurrentUserId(), "UPDATE", "PracticeGroup", id, "Updated practice group");
-    return updated;
+    return updatedGroup;
   },
 
   getStudentsInGroup: async (groupId: string): Promise<Student[]> => {
-    const assignments = mockDB.getPracticeAssignments();
-    const students = mockDB.getStudents();
-    
-    const studentIds = assignments
+    const assignments = storage.get<any[]>('practiceAssignments') || [];
+    const studentIdsFromAssignments = assignments
       .filter(a => a.practiceGroupId === groupId)
       .map(a => a.studentId);
-      
-    // Also check practiceScheduleAssignments
-    const scheduleAssignments = mockDB.getPracticeScheduleAssignments();
-    const additionalIds = scheduleAssignments
+
+    const scheduleAssignments = storage.get<any[]>('practiceScheduleAssignments') || [];
+    const studentIdsFromSchedules = scheduleAssignments
       .filter(a => a.practiceGroupId === groupId)
       .map(a => a.studentId);
-      
-    const allIds = Array.from(new Set([...studentIds, ...additionalIds]));
-    
-    return students.filter(s => allIds.includes(s.id));
+
+    const allIds = Array.from(new Set([...studentIdsFromAssignments, ...studentIdsFromSchedules]));
+
+    const students = storage.get<Student[]>('students') || [];
+
+    return students.filter(s => allIds.includes(s.id!) || s.practiceGroupId === groupId);
   }
 };
+

@@ -1,15 +1,14 @@
-import { mockDB } from "./mockData";
 
 export const reportCenterService = {
   getSummaryData: async () => {
-    const students = mockDB.getStudents();
-    const practiceAssignments = mockDB.getPracticeAssignments();
-    const trainingSites = mockDB.getTrainingSites();
-    const trips = mockDB.getTrips();
-    const rooms = mockDB.getRooms();
-    const roomAssignments = mockDB.getRoomAssignments();
-    const utilityRecords = mockDB.getUtilityRecords();
-    const documents = mockDB.getDocuments();
+    const students = [];
+    const practiceAssignments = [];
+    const trainingSites = [];
+    const trips = [];
+    const rooms = [];
+    const roomAssignments = [];
+    const utilityRecords = [];
+    const documents = [];
 
     return {
       totalStudents: students.length,
@@ -28,7 +27,7 @@ export const reportCenterService = {
   },
 
   getPracticeReport: async () => {
-    const practiceAssignments = mockDB.getPracticeAssignments();
+    const practiceAssignments = [];
     const groups: { [key: string]: any } = {};
 
     practiceAssignments.forEach((pa) => {
@@ -51,7 +50,7 @@ export const reportCenterService = {
   },
 
   getStudentDistributionReport: async () => {
-    const practiceAssignments = mockDB.getPracticeAssignments();
+    const practiceAssignments = [];
     const dist = practiceAssignments.reduce((acc: any, pa) => {
       const key = `${pa.courseId}|${pa.trainingSiteId}`;
       if (!acc[key]) {
@@ -71,8 +70,8 @@ export const reportCenterService = {
   },
 
   getHospitalUsageReport: async () => {
-    const trainingSites = mockDB.getTrainingSites();
-    const practiceAssignments = mockDB.getPracticeAssignments();
+    const trainingSites = [];
+    const practiceAssignments = [];
 
     return trainingSites.map((site) => {
       const relatedAssignments = practiceAssignments.filter(
@@ -90,7 +89,7 @@ export const reportCenterService = {
   },
 
   getTransportationReport: async () => {
-    const trips = mockDB.getTrips();
+    const trips = [];
 
     // Group trips by date for a simpler report
     const tripsByDate = trips.reduce((acc: any, trip) => {
@@ -116,9 +115,9 @@ export const reportCenterService = {
   },
 
   getDormitoryReport: async () => {
-    const dorms = mockDB.getDormitories();
-    const rooms = mockDB.getRooms();
-    const roomAssignments = mockDB.getRoomAssignments();
+    const dorms = [];
+    const rooms = [];
+    const roomAssignments = [];
 
     return dorms.map((dorm) => {
       const dormRooms = rooms.filter((r) => r.dormitoryId === dorm.id);
@@ -138,7 +137,7 @@ export const reportCenterService = {
   },
 
   getUtilityReport: async () => {
-    const utilities = mockDB.getUtilityRecords();
+    const utilities = [];
 
     const byMonthDorm = utilities.reduce((acc: any, u) => {
       const key = `${u.month}-${u.year}-${u.dormitoryId}`;
@@ -168,8 +167,8 @@ export const reportCenterService = {
   },
 
   getDocumentStatusReport: async () => {
-    const docs = mockDB.getDocuments();
-    const submissions = mockDB.getDocumentSubmissions();
+    const docs = [];
+    const submissions = [];
 
     return docs.map((doc) => {
       const relatedSubmissions = submissions.filter(

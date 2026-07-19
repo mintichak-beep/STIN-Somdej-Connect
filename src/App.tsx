@@ -1,72 +1,54 @@
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { AuthGuard } from './components/AuthGuard';
 import { PublicRoute } from './components/PublicRoute';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
+import { Login } from './pages/Login';
+import { TeacherLogin } from './pages/TeacherLogin';
 import { StudentSearch } from './pages/StudentSearch';
 import { StudentProfile } from './pages/StudentProfile';
-import { TeacherLogin } from './pages/TeacherLogin';
+import { Dashboard } from './pages/Dashboard';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Unauthorized } from './pages/Unauthorized';
-import { Dashboard } from './pages/Dashboard';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
-          {/* Landing / Welcome Page */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Public Routes - redirected to dashboard since we have no login system */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/teacher/login" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/forgot-password" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/unauthorized" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Student Access Portal (No Auth Required) */}
+          {/* Student Public Search Pathway (Read-only) */}
           <Route path="/student" element={<StudentSearch />} />
           <Route path="/student/profile" element={<StudentProfile />} />
 
-          {/* Teacher Auth Routes */}
-          <Route
-            path="/teacher/login"
+          {/* Protected Routes */}
+          <Route 
+            path="/dashboard" 
             element={
-              <PublicRoute>
-                <TeacherLogin />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={<Navigate to="/teacher/login" replace />}
-          />
-          
-          <Route
-            path="/forgot-password"
-            element={
-              <PublicRoute>
-                <ForgotPassword />
-              </PublicRoute>
-            }
-          />
-
-          {/* Unauthorized page */}
-          <Route path="/unauthorized" element={<Unauthorized />} />
-
-          {/* Secure Teacher Dashboard Routes */}
-          <Route
-            path="/teacher/dashboard"
-            element={
-              <AuthGuard allowedRoles={['teacher', 'Teacher']}>
+              <ProtectedRoute>
                 <Dashboard />
-              </AuthGuard>
-            }
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/teacher/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
           />
 
-          {/* Backwards Compatibility / Fallback redirects */}
-          <Route
-            path="/dashboard"
-            element={<Navigate to="/teacher/dashboard" replace />}
-          />
-
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }

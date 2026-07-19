@@ -11,15 +11,15 @@ import { Link } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address')
-    .refine((email) => email.endsWith('@stin.ac.th'), 'Email must be a valid @stin.ac.th account'),
+    .min(1, 'กรุณากรอกอีเมล')
+    .email('กรุณากรอกรูปแบบอีเมลให้ถูกต้อง')
+    .refine((email) => email.endsWith('@stin.ac.th'), 'อีเมลต้องเป็นบัญชี @stin.ac.th เท่านั้น'),
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+    .min(8, 'รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร')
+    .regex(/[A-Z]/, 'รหัสผ่านต้องมีตัวอักษรพิมพ์ใหญ่หนึ่งตัว')
+    .regex(/[a-z]/, 'รหัสผ่านต้องมีตัวอักษรพิมพ์เล็กหนึ่งตัว')
+    .regex(/[0-9]/, 'รหัสผ่านต้องมีตัวเลขหนึ่งตัว')
+    .regex(/[^A-Za-z0-9]/, 'รหัสผ่านต้องมีอักขระพิเศษหนึ่งตัว'),
   rememberMe: z.boolean(),
 });
 
@@ -51,7 +51,7 @@ export function LoginForm() {
     try {
       await login(data.email, data.password, data.rememberMe);
     } catch (err: any) {
-      setErrorMessage(err.message || 'An error occurred during login. Please try again.');
+      setErrorMessage(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +63,7 @@ export function LoginForm() {
     try {
       await googleLogin();
     } catch (err: any) {
-      setErrorMessage(err.message || 'An error occurred during Google sign-in.');
+      setErrorMessage(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google');
     } finally {
       setIsGoogleSubmitting(false);
     }

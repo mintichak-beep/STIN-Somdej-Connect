@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { getDb } from '../firebase/firebase';
+import { storage } from '../lib/storage';
+import { Student } from '../types/db';
 import { Search, AlertTriangle, ArrowRight, BookOpen } from 'lucide-react';
 
 export function StudentSearch() {
@@ -12,7 +12,8 @@ export function StudentSearch() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentId.trim()) {
+    const id = studentId.trim();
+    if (!id) {
       setError('กรุณากรอกรหัสนักศึกษา (Please enter your Student ID)');
       return;
     }
@@ -21,23 +22,13 @@ export function StudentSearch() {
     setError(null);
 
     try {
-      const db = getDb();
-      // First, try querying by studentId field
-      const q = query(collection(db, 'students'), where('studentId', '==', studentId.trim()));
-      const snap = await getDocs(q);
+      const students = storage.get<Student[]>('students') || [];
+      
+      // Search by studentId field
+      const student = students.find(s => s.studentId === id || (s as any).studentNumber === id);
 
-      if (!snap.empty) {
-        // Found matching student
-        const studentDoc = snap.docs[0];
-        navigate(`/student/profile?id=${studentDoc.id}`);
-        return;
-      }
-
-      // If not found by query, let's try direct document ID lookup as a fallback
-      const qAlt = query(collection(db, 'students'), where('studentNumber', '==', studentId.trim()));
-      const snapAlt = await getDocs(qAlt);
-      if (!snapAlt.empty) {
-        navigate(`/student/profile?id=${snapAlt.docs[0].id}`);
+      if (student) {
+        navigate(`/student/profile?id=${student.id}`);
         return;
       }
 

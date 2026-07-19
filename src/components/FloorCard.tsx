@@ -3,7 +3,6 @@ import { Floor } from '../types/db';
 import { FloorStatusChip } from './FloorStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { Layers, DoorOpen, Bed, UserCheck, Eye } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface FloorCardProps {
   key?: string | number;
@@ -30,11 +29,11 @@ export function FloorCard({
   onDuplicate,
 }: FloorCardProps) {
   // Find associated building
-  const building = mockDB.getBuildings().find((b) => b.id === floor.buildingId);
+  const building = [].find((b) => b.id === floor.buildingId);
   const buildingName = building ? building.buildingName : 'Unknown Building';
 
   // Find associated hospital
-  const hospital = mockDB.getHospitals().find((h) => h.id === floor.hospitalId);
+  const hospital = [].find((h) => h.id === floor.hospitalId);
   const hospitalName = hospital ? hospital.hospitalNameEN : 'Unknown Hospital';
 
   // Action Menu List

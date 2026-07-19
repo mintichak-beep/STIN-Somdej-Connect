@@ -1,0 +1,23 @@
+
+> react-example@0.0.0 lint
+> tsc --noEmit
+
+src/pages/dashboard/DashboardHome.tsx(136,10): error TS2786: 'TeacherTabs' cannot be used as a JSX component.
+  Its type '({ activeTab }: TeacherTabsProps) => void' is not a valid JSX element type.
+    Type '({ activeTab }: TeacherTabsProps) => void' is not assignable to type '(props: any) => ReactNode | Promise<ReactNode>'.
+      Type 'void' is not assignable to type 'ReactNode | Promise<ReactNode>'.
+src/services/dashboard.service.ts(166,27): error TS2532: Object is possibly 'undefined'.
+src/services/dashboard.service.ts(168,29): error TS2532: Object is possibly 'undefined'.
+src/services/studentDashboard.service.ts(82,9): error TS2322: Type '{ course: Course; trainingSite: any; trainingGroup: PracticeGroup; teacher: User; id: string; studentId: string; courseId: string; practiceGroupId: string; trainingSiteId: string; ... 5 more ...; createdAt: string; }[]' is not assignable to type '(PracticeAssignment & { course?: Course; trainingSite?: TrainingSite; trainingGroup?: TrainingGroup; teacher?: User; })[]'.
+  Type '{ course: Course; trainingSite: any; trainingGroup: PracticeGroup; teacher: User; id: string; studentId: string; courseId: string; practiceGroupId: string; ... 6 more ...; createdAt: string; }' is not assignable to type 'PracticeAssignment & { course?: Course; trainingSite?: TrainingSite; trainingGroup?: TrainingGroup; teacher?: User; }'.
+    Type '{ course: Course; trainingSite: any; trainingGroup: PracticeGroup; teacher: User; id: string; studentId: string; courseId: string; practiceGroupId: string; ... 6 more ...; createdAt: string; }' is not assignable to type '{ course?: Course; trainingSite?: TrainingSite; trainingGroup?: TrainingGroup; teacher?: User; }'.
+      Types of property 'trainingGroup' are incompatible.
+        Type 'PracticeGroup' is missing the following properties from type 'TrainingGroup': teacherId, hospital, studentIds, startDate, and 3 more.
+src/services/studentImport.service.ts(37,33): error TS2349: This expression is not callable.
+  Type 'undefined[]' has no call signatures.
+src/services/studentImport.service.ts(120,21): error TS2349: This expression is not callable.
+  Type 'undefined[]' has no call signatures.
+src/services/studentImport.service.ts(233,11): error TS2872: This kind of expression is always truthy.
+src/services/studentImport.service.ts(238,23): error TS2872: This kind of expression is always truthy.
+src/services/studentImport.service.ts(248,11): error TS2872: This kind of expression is always truthy.
+src/services/studentImport.service.ts(260,12): error TS2872: This kind of expression is always truthy.

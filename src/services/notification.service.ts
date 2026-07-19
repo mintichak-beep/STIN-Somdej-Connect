@@ -1,17 +1,16 @@
-import { mockDB } from './mockData';
 import { Notification } from '../types/db';
 
 export const notificationService = {
   getUserNotifications: async (userId: string): Promise<Notification[]> => {
-    return mockDB.getNotifications().filter(n => n.userId === userId);
+    return [].filter(n => n.userId === userId);
   },
   markAsRead: async (notificationId: string): Promise<void> => {
-    let list = mockDB.getNotifications();
+    let list = [];
     list = list.map(n => n.id === notificationId ? {...n, isRead: true} : n);
-    mockDB.saveNotifications(list);
+    void 0;
   },
   create: async (data: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Promise<string> => {
-    const list = mockDB.getNotifications();
+    const list = [];
     const newNot: Notification = { 
         ...data, 
         id: `n-${Date.now()}`,
@@ -19,7 +18,7 @@ export const notificationService = {
         createdAt: new Date().toISOString() 
     };
     list.push(newNot);
-    mockDB.saveNotifications(list);
+    void 0;
     return newNot.id;
   }
 };

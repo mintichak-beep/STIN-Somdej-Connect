@@ -1,4 +1,9 @@
-import { mockDB } from "./mockData";
+import { studentService } from "./student.service";
+import { practiceAssignmentService } from "./practiceAssignment.service";
+import { courseService } from "./course.service";
+import { hospitalService } from "./hospital.service";
+import { practiceGroupService } from "./practiceGroup.service";
+import { UserService } from "./user.service";
 import {
   PracticeAssignment,
   TransportAssignment,
@@ -52,40 +57,50 @@ export const studentDashboardService = {
   getDashboardData: async (
     studentId: string,
   ): Promise<StudentDashboardData> => {
-    const students = mockDB.getStudents();
-    const studentProfile = students.find(s => s.id === studentId || s.studentId === studentId || s.email === studentId);
+    try {
+      const students = await studentService.getStudents();
+      const studentProfile = students.find(s => s.id === studentId || s.studentId === studentId || s.email === studentId);
 
-    // 1. Practice Assignments
-    const allPa = mockDB.getPracticeAssignments();
-    const practiceAssignments = allPa.filter(
-      (pa) => pa.studentId === studentId,
-    );
+      // 1. Practice Assignments
+      const practiceAssignments = await practiceAssignmentService.getByStudentId(studentId);
 
-    const courses = mockDB.getCourses();
-    const sites = mockDB.getTrainingSites();
-    const groups = mockDB.getTrainingGroups();
-    const users = mockDB.getUsers();
+      const courses = await courseService.getAll();
+      const sites = await hospitalService.getAll();
+      const groups = await practiceGroupService.getAll();
+      const users = await UserService.getAll();
 
-    const enrichedPractice = practiceAssignments.map((pa) => ({
-      ...pa,
-      course: courses.find((c) => c.id === pa.courseId),
-      trainingSite: sites.find((s) => s.id === pa.trainingSiteId),
-      trainingGroup: groups.find((g) => g.id === pa.practiceGroupId),
-      teacher: users.find((u) => u.uid === pa.teacherId),
-    }));
+      const enrichedPractice = practiceAssignments.map((pa) => ({
+        ...pa,
+        course: courses.find((c) => c.id === pa.courseId),
+        trainingSite: sites.data.find((s) => s.id === pa.trainingSiteId) as any,
+        trainingGroup: groups.find((g) => g.id === pa.practiceGroupId) as any,
+        teacher: users.find((u) => u.uid === pa.teacherId) as any,
+      }));
 
-    return {
-      profile: studentProfile,
-      practiceAssignments: enrichedPractice,
-      transportation: [],
-      dormitory: [],
-      utilities: [],
-      announcements: [],
-      documents: {
-        required: [],
-        submissions: [],
-      },
-      notifications: [],
-    };
+      return {
+        profile: studentProfile,
+        practiceAssignments: enrichedPractice as any,
+        transportation: [],
+        dormitory: [],
+        utilities: [],
+        announcements: [],
+        documents: {
+          required: [],
+          submissions: [],
+        },
+        notifications: [],
+      };
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      return {
+        practiceAssignments: [],
+        transportation: [],
+        dormitory: [],
+        utilities: [],
+        announcements: [],
+        documents: { required: [], submissions: [] },
+        notifications: [],
+      };
+    }
   },
 };

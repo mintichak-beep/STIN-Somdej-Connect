@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { TransportSchedule } from '../types/transportation';
 
 export const transportService = {
@@ -6,35 +5,35 @@ export const transportService = {
     const handleUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail?.key === 'cpatms_transport_schedules') {
-        callback(mockDB.getTransportSchedules());
+        callback([]);
       }
     };
     window.addEventListener('cpatms_db_update', handleUpdate);
-    callback(mockDB.getTransportSchedules());
+    callback([]);
     return () => window.removeEventListener('cpatms_db_update', handleUpdate);
   },
 
-  getAll: async (): Promise<TransportSchedule[]> => mockDB.getTransportSchedules(),
+  getAll: async (): Promise<TransportSchedule[]> => [],
 
   create: async (data: Omit<TransportSchedule, 'id'>): Promise<string> => {
-    const list = mockDB.getTransportSchedules();
+    const list = [];
     const newSchedule: TransportSchedule = { ...data, id: `ts-${Date.now()}` };
     list.push(newSchedule);
-    mockDB.saveTransportSchedules(list);
+    void 0;
     return newSchedule.id;
   },
 
   update: async (id: string, data: Partial<TransportSchedule>): Promise<void> => {
-    const list = mockDB.getTransportSchedules();
+    const list = [];
     const index = list.findIndex(item => item.id === id);
     if (index === -1) throw new Error('Schedule not found.');
     list[index] = { ...list[index], ...data };
-    mockDB.saveTransportSchedules(list);
+    void 0;
   },
 
   delete: async (id: string): Promise<void> => {
-    let list = mockDB.getTransportSchedules();
+    let list = [];
     list = list.filter(item => item.id !== id);
-    mockDB.saveTransportSchedules(list);
+    void 0;
   }
 };

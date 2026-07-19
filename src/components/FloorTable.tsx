@@ -3,7 +3,6 @@ import { Floor } from '../types/db';
 import { FloorStatusChip } from './FloorStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { ChevronUp, ChevronDown, Download, Printer, Layers, DoorOpen, Bed } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface FloorTableProps {
   id?: string;
@@ -37,12 +36,12 @@ export function FloorTable({
 
   // Resolve Building and Hospital Name
   const getBuildingName = (bId: string) => {
-    const building = mockDB.getBuildings().find((b) => b.id === bId);
+    const building = [].find((b) => b.id === bId);
     return building ? building.buildingName : 'Unknown';
   };
 
   const getHospitalName = (hId: string) => {
-    const hospital = mockDB.getHospitals().find((h) => h.id === hId);
+    const hospital = [].find((h) => h.id === hId);
     return hospital ? hospital.hospitalNameEN : 'Unknown';
   };
 

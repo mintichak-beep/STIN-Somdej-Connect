@@ -1,6 +1,5 @@
 import React from 'react';
 import { Filter, RotateCcw } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface BuildingFilterProps {
   id?: string;
@@ -49,7 +48,7 @@ export function BuildingFilter({
   onStatusChange,
   onClearFilters,
 }: BuildingFilterProps) {
-  const hospitals = mockDB.getHospitals();
+  const hospitals = [];
   const isFiltered =
     hospitalValue !== 'all' ||
     typeValue !== 'all' ||

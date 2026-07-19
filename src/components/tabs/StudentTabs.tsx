@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+const mockDB = {} as any;
 import {
   Users,
   MapPin,
@@ -23,7 +24,6 @@ import {
   Home,
 } from "lucide-react";
 import { Bill, Payment, PracticeAssignment } from "../../types/db";
-import { mockDB } from "../../services/mockData";
 import { useTrainingGroups } from "../../hooks/useTrainingGroups";
 import { useAuth } from "../../hooks/useAuth";
 import { practiceAssignmentService } from "../../services/practiceAssignment.service";
@@ -56,35 +56,35 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
   // ---- Local Persistence States ----
   const { trainingGroups: groups } = useTrainingGroups();
 
-  const [dbStudents, setDbStudents] = useState(() => mockDB.getStudents());
-  const [dbRooms, setDbRooms] = useState(() => mockDB.getRooms());
-  const [dbBuildings, setDbBuildings] = useState(() => mockDB.getBuildings());
+  const [dbStudents, setDbStudents] = useState(() => []);
+  const [dbRooms, setDbRooms] = useState(() => []);
+  const [dbBuildings, setDbBuildings] = useState(() => []);
   const [dbAssignments, setDbAssignments] = useState(() =>
-    mockDB.getRoomAssignments(),
+    [],
   );
-  const [dbVehicles, setDbVehicles] = useState(() => mockDB.getVehicles());
+  const [dbVehicles, setDbVehicles] = useState(() => []);
   const [dbTransportSchedules, setDbTransportSchedules] = useState(() =>
-    mockDB.getTransportSchedules(),
+    [],
   );
   const [dbTransportAssignments, setDbTransportAssignments] = useState(() =>
-    mockDB.getTransportAssignments(),
+    [],
   );
-  const [dbBills, setDbBills] = useState<Bill[]>(() => mockDB.getBills());
+  const [dbBills, setDbBills] = useState<Bill[]>(() => []);
   const [dbPayments, setDbPayments] = useState<Payment[]>(() =>
-    mockDB.getPayments(),
+    [],
   );
 
   useEffect(() => {
     const handleUpdate = () => {
-      setDbStudents(mockDB.getStudents());
-      setDbRooms(mockDB.getRooms());
-      setDbBuildings(mockDB.getBuildings());
-      setDbAssignments(mockDB.getRoomAssignments());
-      setDbVehicles(mockDB.getVehicles());
-      setDbTransportSchedules(mockDB.getTransportSchedules());
-      setDbTransportAssignments(mockDB.getTransportAssignments());
-      setDbBills(mockDB.getBills());
-      setDbPayments(mockDB.getPayments());
+      setDbStudents([]);
+      setDbRooms([]);
+      setDbBuildings([]);
+      setDbAssignments([]);
+      setDbVehicles([]);
+      setDbTransportSchedules([]);
+      setDbTransportAssignments([]);
+      setDbBills([]);
+      setDbPayments([]);
     };
     window.addEventListener("cpatms_db_update", handleUpdate);
     return () => window.removeEventListener("cpatms_db_update", handleUpdate);
@@ -113,7 +113,7 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
 
   // Resolve objects for active group
   const teacher = myGroup
-    ? mockDB.getTeachers().find((t) => t.id === myGroup.teacherId)
+    ? [].find((t) => t.id === myGroup.teacherId)
     : null;
   const hospital = myGroup
     ? mockDB
@@ -131,55 +131,22 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
         .find((ts) => ts.id === myGroup.transportationId)
     : null;
   const vehicle = transit
-    ? mockDB.getVehicles().find((v) => v.id === transit.vehicleId)
+    ? [].find((v) => v.id === transit.vehicleId)
     : null;
   const driver = transit
-    ? mockDB.getDrivers().find((d) => d.id === transit.driverId)
+    ? [].find((d) => d.id === transit.driverId)
     : null;
 
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
 
   const [bill, setBill] = useState(() => {
     const saved = localStorage.getItem("stin_student_bill");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          id: "101",
-          room: "101",
-          month: "June",
-          year: "2026",
-          waterUnit: 14,
-          electricUnit: 156,
-          total: 642,
-          status: "Unpaid",
-          slip: null as string | null,
-        };
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [announcements, setAnnouncements] = useState<any[]>(() => {
     const saved = localStorage.getItem("stin_announcements");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: "1",
-            title: "Urgent: Water system maintenance in Building A",
-            content:
-              "There will be a scheduled water shutdown for maintenance in Building A on July 20th from 09:00 to 12:00. Please prepare accordingly.",
-            date: "18 July 2026",
-            priority: "Urgent",
-            author: "Ajarn Somsri",
-          },
-          {
-            id: "2",
-            title: "Clinical Placement guidelines for Semester 1/2026",
-            content:
-              "All nursing students enrolled in Semester 1 placements are requested to download the updated evaluation logbook from the documents tab.",
-            date: "15 July 2026",
-            priority: "General",
-            author: "Ajarn Somchai",
-          },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [studentDocs, setStudentDocs] = useState<any[]>(() => {
@@ -275,7 +242,7 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
       return;
     }
 
-    const payments = mockDB.getPayments();
+    const payments = [];
     const paymentId = `pay-${Date.now()}`;
     const newPayment: Payment = {
       paymentId,
@@ -290,23 +257,17 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
     };
 
     payments.push(newPayment);
-    mockDB.savePayments(payments);
+    void 0;
 
     // Update bill status to Pending
-    const billsList = mockDB.getBills();
+    const billsList = [];
     const billIdx = billsList.findIndex((b) => b.billId === currentBill.billId);
     if (billIdx !== -1) {
       billsList[billIdx].status = "Pending";
-      mockDB.saveBills(billsList);
+      void 0;
     }
 
-    mockDB.addActivity({
-      type: "room_assign",
-      title: "Submitted Payment Slip",
-      description: `Student ${currentStudent.studentName} uploaded a slip for Room ${currentBill.roomId} totaling ฿${currentBill.totalAmount}`,
-      userId: currentStudent.id,
-      userDisplayName: currentStudent.studentName,
-    });
+    void 0;
 
     setSlipPreview(null);
     window.dispatchEvent(
@@ -1007,7 +968,7 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
               ? dbVehicles.find((v) => v.id === trip.vehicleId)
               : null;
             const driverObj = trip
-              ? mockDB.getDrivers().find((d) => d.id === trip.driverId)
+              ? [].find((d) => d.id === trip.driverId)
               : null;
 
             return (
@@ -1678,8 +1639,8 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
             </p>
 
             <div className="space-y-4">
-              {announcements
-                .filter((a: any) => {
+              {(() => {
+                const filtered = announcements.filter((a: any) => {
                   if (!a.targetType || a.targetType === "all") return true;
                   if (!practiceAssignments || practiceAssignments.length === 0)
                     return false;
@@ -1692,8 +1653,17 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
                       return pa.trainingSiteId === a.targetId;
                     return false;
                   });
-                })
-                .map((a) => (
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-zinc-400 dark:text-zinc-500 text-xs bg-slate-50/50 dark:bg-zinc-950/20 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 font-sans">
+                      ยังไม่มีข้อมูล - เริ่มสร้างรายการแรก
+                    </div>
+                  );
+                }
+
+                return filtered.map((a) => (
                   <div
                     key={a.id}
                     className="rounded-xl border border-slate-100 p-5 dark:border-zinc-800 bg-slate-50/20 dark:bg-zinc-900/10"
@@ -1720,7 +1690,8 @@ export function StudentTabs({ activeTab }: StudentTabsProps) {
                       {a.content}
                     </p>
                   </div>
-                ))}
+                ));
+              })()}
             </div>
           </div>
         </div>

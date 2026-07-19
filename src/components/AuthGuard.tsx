@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { authService } from '../services/auth.service';
+import { UserProfile } from '../types/auth';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -9,33 +9,22 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard = ({ children, allowedRoles = [] }: AuthGuardProps) => {
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
-    const auth = getAuth();
-    const db = getFirestore();
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUser(firebaseUser);
-          setRole(userDoc.data().role);
-        } else {
-          setUser(null);
-          setRole(null);
-        }
-      } else {
+    async function checkAuth() {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
         setUser(null);
-        setRole(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
+    checkAuth();
   }, []);
 
   if (loading) {
@@ -55,7 +44,7 @@ export const AuthGuard = ({ children, allowedRoles = [] }: AuthGuardProps) => {
 
   // Double check if role is allowed
   if (allowedRoles.length > 0) {
-    const currentRole = role || '';
+    const currentRole = user.role || '';
     const hasAccess = allowedRoles.some(
       (r) => r.toLowerCase() === currentRole.toLowerCase()
     );

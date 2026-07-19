@@ -249,6 +249,40 @@ export function AppLayout({
 
           {/* User actions / Control Panel */}
           <div className="flex items-center gap-3">
+            {/* Role Perspective Switcher */}
+            <div className="flex items-center gap-1 bg-slate-100/90 dark:bg-zinc-900 rounded-xl p-1 border border-slate-200/50 dark:border-zinc-800">
+              <button
+                onClick={() => {
+                  const authCtx = useAuth() as any;
+                  if (authCtx.switchRole) authCtx.switchRole('Teacher');
+                  setActiveTab('dashboard');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all duration-200 cursor-pointer ${
+                  isTeacher
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                }`}
+                title="Switch to Teacher View"
+              >
+                Teacher (Admin)
+              </button>
+              <button
+                onClick={() => {
+                  const authCtx = useAuth() as any;
+                  if (authCtx.switchRole) authCtx.switchRole('Nursing Student');
+                  setActiveTab('dashboard');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all duration-200 cursor-pointer ${
+                  isStudent
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+                }`}
+                title="Switch to Student View"
+              >
+                Student
+              </button>
+            </div>
+
             {/* Dark Mode Toggle */}
             <button
               onClick={() => setIsDark(!isDark)}
@@ -283,11 +317,14 @@ export function AppLayout({
               </div>
             </div>
 
-            {/* Logout button */}
+            {/* Reset simulated session button */}
             <button
-              onClick={logout}
+              onClick={() => {
+                localStorage.removeItem('stin_simulated_user');
+                window.location.reload();
+              }}
               className="rounded-xl border border-slate-100 dark:border-zinc-900 p-2 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 dark:hover:text-red-400 transition-colors cursor-pointer"
-              title="Sign Out"
+              title="Reset Settings & Cache"
             >
               <LogOut className="h-4.5 w-4.5" />
             </button>

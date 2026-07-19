@@ -1,20 +1,26 @@
-import { mockDB } from './mockData';
 import { Room } from '../types/db';
+import { storage } from '../lib/storage';
 
 export const roomService = {
+  getById: async (id: string): Promise<Room | null> => {
+    const list = storage.get<Room[]>('rooms') || [];
+    return list.find(r => r.id === id) || null;
+  },
   getByDormitory: async (dormitoryId: string): Promise<Room[]> => {
-    return mockDB.getRooms().filter(r => r.buildingId === dormitoryId);
+    const list = storage.get<Room[]>('rooms') || [];
+    return list.filter(r => r.buildingId === dormitoryId);
   },
   create: async (data: Omit<Room, 'id'>): Promise<string> => {
-    const list = mockDB.getRooms();
-    const newRoom: Room = { ...data, id: `r-${Date.now()}` } as Room;
+    const list = storage.get<Room[]>('rooms') || [];
+    const id = `r-${Date.now()}`;
+    const newRoom: Room = { ...data, id } as Room;
     list.push(newRoom);
-    mockDB.saveRooms(list);
+    storage.set('rooms', list);
     return newRoom.id;
   },
   delete: async (id: string): Promise<void> => {
-    let list = mockDB.getRooms();
+    let list = storage.get<Room[]>('rooms') || [];
     list = list.filter(item => item.id !== id);
-    mockDB.saveRooms(list);
+    storage.set('rooms', list);
   }
 };

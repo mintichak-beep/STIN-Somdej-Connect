@@ -1,6 +1,5 @@
 import React from 'react';
 import { Filter, RotateCcw } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 interface FloorFilterProps {
   id?: string;
@@ -19,7 +18,7 @@ export function FloorFilter({
   onStatusChange,
   onClearFilters,
 }: FloorFilterProps) {
-  const buildings = mockDB.getBuildings();
+  const buildings = [];
 
   return (
     <div

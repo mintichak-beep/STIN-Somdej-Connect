@@ -1,11 +1,10 @@
-import { mockDB } from './mockData';
 import { Student, Room, TransportSchedule, TransportAssignment, Hospital } from '../types/db';
 
 export const reportService = {
   getAccommodationReport: async () => {
-    const students = mockDB.getStudents();
-    const rooms = mockDB.getRooms();
-    const buildings = mockDB.getBuildings();
+    const students = [];
+    const rooms = [];
+    const buildings = [];
 
     // 1. Student List by Room
     const studentsByRoom = students.filter(s => s.roomId).map(s => {
@@ -53,11 +52,11 @@ export const reportService = {
   },
 
   getTransportationReport: async () => {
-    const schedules = mockDB.getTransportSchedules();
-    const vehicles = mockDB.getVehicles();
-    const drivers = mockDB.getDrivers();
-    const students = mockDB.getStudents();
-    const assignments = mockDB.getTransportAssignments();
+    const schedules = [];
+    const vehicles = [];
+    const drivers = [];
+    const students = [];
+    const assignments = [];
 
     // Generate detailed transportation list
     const scheduleSummary = schedules.map(s => {
@@ -100,10 +99,10 @@ export const reportService = {
   },
 
   getHospitalReport: async () => {
-    const students = mockDB.getStudents();
-    const hospitals = mockDB.getHospitals();
-    const rooms = mockDB.getRooms();
-    const buildings = mockDB.getBuildings();
+    const students = [];
+    const hospitals = [];
+    const rooms = [];
+    const buildings = [];
 
     const hospitalStats = hospitals.map(h => {
       const hospStudents = students.filter(s => s.hospital === h.hospitalNameEN || s.hospital === h.shortName);
@@ -137,8 +136,8 @@ export const reportService = {
   },
 
   getStudentReport: async () => {
-    const students = mockDB.getStudents();
-    const rooms = mockDB.getRooms();
+    const students = [];
+    const rooms = [];
 
     const studentSummary = students.map(s => {
       const room = rooms.find(r => r.id === s.roomId);

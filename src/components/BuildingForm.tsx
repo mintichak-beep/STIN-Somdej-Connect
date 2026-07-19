@@ -5,7 +5,6 @@ import * as z from 'zod';
 import { Building } from '../types/db';
 import { BuildingImageUploader } from './BuildingImageUploader';
 import { Info, Home, MapPin, AlignLeft, AlertCircle } from 'lucide-react';
-import { mockDB } from '../services/mockData';
 
 const buildingFormSchema = z.object({
   hospitalId: z.string().min(1, 'Please select a clinical hospital site.'),
@@ -30,7 +29,7 @@ interface BuildingFormProps {
 }
 
 export function BuildingForm({ id, initialData, onSubmit, onCancel, loading }: BuildingFormProps) {
-  const hospitals = mockDB.getHospitals();
+  const hospitals = [];
 
   const {
     register,

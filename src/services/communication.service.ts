@@ -1,13 +1,12 @@
-import { mockDB } from './mockData';
 import { CommunicationLog } from '../types/db';
 
 export const communicationService = {
-  getAll: async (): Promise<CommunicationLog[]> => mockDB.getCommunicationLogs(),
+  getAll: async (): Promise<CommunicationLog[]> => [],
   create: async (data: Omit<CommunicationLog, 'id' | 'createdAt'>): Promise<string> => {
-    const list = mockDB.getCommunicationLogs();
+    const list = [];
     const newLog: CommunicationLog = { ...data, id: `cl-${Date.now()}`, createdAt: new Date().toISOString() };
     list.push(newLog);
-    mockDB.saveCommunicationLogs(list);
+    void 0;
     return newLog.id;
   }
 };

@@ -36,32 +36,10 @@ export function ForgotPassword() {
     setErrorMsg(null);
     setSuccessMsg(null);
     try {
-      const msg = await forgotPassword(data.email);
-      setSuccessMsg(msg);
-      setResetEmail(data.email);
-      setShowDirectReset(true);
+      await forgotPassword(data.email);
+      setSuccessMsg('อีเมลสําหรับรีเซ็ตรหัสผ่านได้ถูกส่งไปยังกล่องข้อความของคุณแล้ว (Password reset link has been successfully sent to your email! Please check your inbox.)');
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to request password reset.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handlePasswordUpdate = async (e: FormEvent) => {
-
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-    try {
-      if (newPassword.length < 8) {
-        throw new Error('New password must be at least 8 characters long.');
-      }
-      await resetPassword(resetEmail, newPassword);
-      setSuccessMsg(`Password successfully updated for ${resetEmail}! You can now log in.`);
-      setShowDirectReset(false);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to update password.');
     } finally {
       setIsSubmitting(false);
     }
@@ -75,12 +53,10 @@ export function ForgotPassword() {
             <Mail className="h-6 w-6" />
           </div>
           <h2 className="mt-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {showDirectReset ? 'Set New Password' : 'Reset Password'}
+            Reset Password
           </h2>
           <p className="mt-1.5 text-sm font-semibold text-gray-500 dark:text-zinc-400">
-            {showDirectReset 
-              ? `Enter your new secure password for ${resetEmail}`
-              : 'Enter your email to receive simulated password recovery link'}
+            Enter your email to receive standard password recovery link
           </p>
         </div>
 
@@ -98,81 +74,43 @@ export function ForgotPassword() {
           </div>
         )}
 
-        {!showDirectReset ? (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-zinc-300">
-                Registered Email Address
-              </label>
-              <div className="relative rounded-xl shadow-xs">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Mail className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
-                </div>
-                <input
-                  {...register('email')}
-                  type="text"
-                  placeholder="e.g. admin@stin.ac.th"
-                  className={`block w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-hidden transition-all duration-200 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500 dark:focus:border-red-500 dark:focus:ring-red-500/10 ${
-                    errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10 dark:border-red-500' : ''
-                  }`}
-                />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-zinc-300">
+              Registered Email Address
+            </label>
+            <div className="relative rounded-xl shadow-xs">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Mail className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
               </div>
-              {errors.email && (
-                <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-red-700 focus:outline-hidden active:bg-red-800 disabled:opacity-55 cursor-pointer dark:bg-red-600 dark:hover:bg-red-700"
-            >
-              {isSubmitting ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              ) : (
-                'Send Recovery Link'
-              )}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handlePasswordUpdate} className="space-y-6">
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-zinc-300">
-                New Secure Password
-              </label>
               <input
-                type="password"
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="block w-full rounded-xl border border-gray-300 bg-white py-2.5 px-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-hidden transition-all duration-200 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-red-500 dark:focus:ring-red-500/10"
-                required
+                {...register('email')}
+                type="text"
+                placeholder="e.g. admin@stin.ac.th"
+                className={`block w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-hidden transition-all duration-200 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500 dark:focus:border-red-500 dark:focus:ring-red-500/10 ${
+                  errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10 dark:border-red-500' : ''
+                }`}
               />
-              <p className="mt-2 text-xs text-gray-400">
-                Ensure it contains upper, lower, numbers, and symbols.
+            </div>
+            {errors.email && (
+              <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                {errors.email.message}
               </p>
-            </div>
+            )}
+          </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 flex items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-55 transition cursor-pointer"
-              >
-                {isSubmitting ? 'Updating...' : 'Update Password'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowDirectReset(false)}
-                className="rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 transition"
-              >
-                Back
-              </button>
-            </div>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-red-700 focus:outline-hidden active:bg-red-800 disabled:opacity-55 cursor-pointer dark:bg-red-600 dark:hover:bg-red-700"
+          >
+            {isSubmitting ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            ) : (
+              'Send Recovery Link'
+            )}
+          </button>
+        </form>
 
         <div className="border-t border-gray-100 dark:border-zinc-800 pt-6 text-center">
           <Link

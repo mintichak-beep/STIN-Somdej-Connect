@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { Student, Teacher, Room, Hospital } from '../types/db';
 
 export interface DashboardFilters {
@@ -45,7 +44,7 @@ export interface DashboardChartData {
 
 export const statisticsService = {
   getFilteredStudents: (filters: DashboardFilters): Student[] => {
-    let students = mockDB.getStudents();
+    let students = [];
 
     if (filters.academicYearId) {
       students = students.filter(s => s.academicYearId === filters.academicYearId);
@@ -82,16 +81,16 @@ export const statisticsService = {
 
   getStats: (filters: DashboardFilters): DashboardStats => {
     const students = statisticsService.getFilteredStudents(filters);
-    const allTeachers = mockDB.getTeachers();
-    const allHospitals = mockDB.getHospitals();
-    const allBuildings = mockDB.getBuildings();
-    const allRooms = mockDB.getRooms();
-    const allVehicles = mockDB.getVehicles();
-    const allDrivers = mockDB.getDrivers();
-    const allSchedules = mockDB.getTransportSchedules();
-    const academicYears = mockDB.getAcademicYears();
-    const courses = mockDB.getCourses();
-    const sections = mockDB.getSections();
+    const allTeachers = [];
+    const allHospitals = [];
+    const allBuildings = [];
+    const allRooms = [];
+    const allVehicles = [];
+    const allDrivers = [];
+    const allSchedules = [];
+    const academicYears = [];
+    const courses = [];
+    const sections = [];
 
     // Filter teachers based on course filters if selected
     let teachers = allTeachers;
@@ -161,13 +160,13 @@ export const statisticsService = {
 
   getChartData: (filters: DashboardFilters): DashboardChartData => {
     const students = statisticsService.getFilteredStudents(filters);
-    const teachers = mockDB.getTeachers();
-    const rooms = mockDB.getRooms();
-    const hospitals = mockDB.getHospitals();
-    const courses = mockDB.getCourses();
-    const sections = mockDB.getSections();
-    const schedules = mockDB.getTransportSchedules();
-    const assignments = mockDB.getTransportAssignments();
+    const teachers = [];
+    const rooms = [];
+    const hospitals = [];
+    const courses = [];
+    const sections = [];
+    const schedules = [];
+    const assignments = [];
 
     // 1. Student Distribution by Hospital
     const hospMap: Record<string, number> = {};

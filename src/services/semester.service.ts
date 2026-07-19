@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { Semester } from '../types/db';
 
 export interface SemesterFilterOptions {
@@ -46,7 +45,7 @@ export const semesterService = {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    let list = mockDB.getSemesters();
+    let list = [];
 
     // Filter by academic year
     if (academicYearId) {
@@ -99,13 +98,13 @@ export const semesterService = {
 
   getById: async (id: string): Promise<Semester | null> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    const list = mockDB.getSemesters();
+    const list = [];
     return list.find(item => item.id === id) || null;
   },
 
   getByAcademicYear: async (academicYearId: string): Promise<Semester[]> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    const list = mockDB.getSemesters();
+    const list = [];
     return list.filter(item => item.academicYearId === academicYearId);
   },
 
@@ -145,7 +144,7 @@ export const semesterService = {
 
   create: async (data: Omit<Semester, 'id' | 'createdAt' | 'updatedAt' | 'isCurrent'>, userId: string): Promise<Semester> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getSemesters();
+    const list = [];
 
     // Check unique within Academic Year
     const duplicate = list.find(item => 
@@ -169,22 +168,16 @@ export const semesterService = {
     };
 
     list.push(newSemester);
-    mockDB.saveSemesters(list);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'Semester Created',
-      description: `Semester '${newSemester.semesterName}' was created under Academic Year.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
 
     return newSemester;
   },
 
   update: async (id: string, data: Partial<Omit<Semester, 'id' | 'createdAt' | 'updatedAt'>>, userId: string): Promise<Semester> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getSemesters();
+    const list = [];
     const index = list.findIndex(item => item.id === id);
 
     if (index === -1) {
@@ -228,15 +221,9 @@ export const semesterService = {
     };
 
     list[index] = updatedSemester;
-    mockDB.saveSemesters(list);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'Semester Updated',
-      description: `Semester '${updatedSemester.semesterName}' was updated.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
 
     return updatedSemester;
   },
@@ -245,29 +232,23 @@ export const semesterService = {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Check reference validation: check if assigned to students or room assignments
-    const students = mockDB.getStudents();
+    const students = [];
     const hasStudents = students.some(s => s.semester === id || (s.academicYearId && s.semester === '1' && id.endsWith('-1'))); 
     // Wait, let's keep it safe: if students list refers to semester id or number, do a comprehensive check
     if (hasStudents) {
       throw new Error('Cannot delete this Semester because it is currently assigned to one or more student profiles.');
     }
 
-    const list = mockDB.getSemesters();
+    const list = [];
     const itemToDelete = list.find(item => item.id === id);
     if (!itemToDelete) {
       throw new Error('Semester not found.');
     }
 
     const filtered = list.filter(item => item.id !== id);
-    mockDB.saveSemesters(filtered);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'Semester Deleted',
-      description: `Semester '${itemToDelete.semesterName}' was deleted.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
   },
 
   setStatus: async (id: string, status: 'active' | 'inactive', userId: string): Promise<Semester> => {
@@ -276,7 +257,7 @@ export const semesterService = {
 
   setCurrent: async (id: string, userId: string): Promise<Semester> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getSemesters();
+    const list = [];
     const index = list.findIndex(item => item.id === id);
 
     if (index === -1) {
@@ -294,15 +275,9 @@ export const semesterService = {
       updatedAt: new Date().toISOString()
     }));
 
-    mockDB.saveSemesters(updatedList);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'Current Semester Toggled',
-      description: `Semester '${selected.semesterName}' is now set as the active current semester.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    void 0;
 
     return updatedList[index];
   },

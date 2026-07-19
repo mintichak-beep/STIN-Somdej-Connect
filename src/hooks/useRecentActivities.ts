@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { mockDB } from '../services/mockData';
 import { RecentActivity } from '../types/db';
 
 export function useRecentActivities() {
@@ -10,7 +9,7 @@ export function useRecentActivities() {
   useEffect(() => {
     const fetchActivities = () => {
       try {
-        const list = mockDB.getActivities();
+        const list = [];
         setActivities(list);
         setError(null);
       } catch (err: any) {

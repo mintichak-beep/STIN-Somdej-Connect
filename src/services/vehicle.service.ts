@@ -1,4 +1,3 @@
-import { mockDB } from './mockData';
 import { Vehicle } from '../types/transportation';
 
 export const vehicleService = {
@@ -6,18 +5,18 @@ export const vehicleService = {
     const handleUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail?.key === 'cpatms_vehicles') {
-        callback(mockDB.getVehicles());
+        callback([]);
       }
     };
     window.addEventListener('cpatms_db_update', handleUpdate);
-    callback(mockDB.getVehicles());
+    callback([]);
     return () => window.removeEventListener('cpatms_db_update', handleUpdate);
   },
 
-  getAll: async (): Promise<Vehicle[]> => mockDB.getVehicles(),
+  getAll: async (): Promise<Vehicle[]> => [],
 
   create: async (data: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
-    const list = mockDB.getVehicles();
+    const list = [];
     const newVehicle: Vehicle = { 
       ...data, 
       id: `v-${Date.now()}`,
@@ -25,21 +24,21 @@ export const vehicleService = {
       updatedAt: new Date().toISOString()
     };
     list.push(newVehicle);
-    mockDB.saveVehicles(list);
+    void 0;
     return newVehicle.id;
   },
 
   update: async (id: string, data: Partial<Vehicle>): Promise<void> => {
-    const list = mockDB.getVehicles();
+    const list = [];
     const index = list.findIndex(item => item.id === id);
     if (index === -1) throw new Error('Vehicle not found.');
     list[index] = { ...list[index], ...data, updatedAt: new Date().toISOString() };
-    mockDB.saveVehicles(list);
+    void 0;
   },
 
   delete: async (id: string): Promise<void> => {
-    let list = mockDB.getVehicles();
+    let list = [];
     list = list.filter(item => item.id !== id);
-    mockDB.saveVehicles(list);
+    void 0;
   }
 };

@@ -1,5 +1,5 @@
-import { mockDB } from './mockData';
 import { Hospital } from '../types/db';
+import { storage } from '../lib/storage';
 import { auditService } from './audit.service';
 
 export interface HospitalFilterOptions {
@@ -33,16 +33,10 @@ export interface HospitalStats {
 }
 
 export const hospitalService = {
-  // Realtime subscriber simulator using localStorage custom events
   subscribe: (callback: () => void) => {
-    const handleUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail?.key === 'cpatms_hospitals') {
-        callback();
-      }
-    };
-    window.addEventListener('cpatms_db_update', handleUpdate);
-    return () => window.removeEventListener('cpatms_db_update', handleUpdate);
+    // LocalStorage doesn't support subscribe.
+    callback();
+    return () => {};
   },
 
   getAll: async (options: HospitalFilterOptions = {}): Promise<HospitalListResponse> => {
@@ -57,16 +51,12 @@ export const hospitalService = {
       limit = 10
     } = options;
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    let list = mockDB.getHospitals();
+    let list = storage.get<Hospital[]>('hospitals') || [];
 
     // Filter by status
     if (status && status !== 'all') {
       list = list.filter(item => item.status === status);
     } else {
-      // In 'all' view, don't show archived unless specifically requested
       list = list.filter(item => item.status !== 'archived');
     }
 
@@ -80,21 +70,21 @@ export const hospitalService = {
       list = list.filter(item => item.type?.toLowerCase() === type.toLowerCase());
     }
 
-    // Filter by search query (Hospital Name, Code, Province, Coordinator)
+    // Filter by search query
     if (search.trim()) {
-      const query = search.toLowerCase();
+      const qStr = search.toLowerCase();
       list = list.filter(item => 
-        item.hospitalCode.toLowerCase().includes(query) ||
-        item.hospitalNameTH.toLowerCase().includes(query) ||
-        item.hospitalNameEN.toLowerCase().includes(query) ||
-        (item.shortName && item.shortName.toLowerCase().includes(query)) ||
-        (item.province && item.province.toLowerCase().includes(query)) ||
-        (item.coordinatorName && item.coordinatorName.toLowerCase().includes(query))
+        item.hospitalCode.toLowerCase().includes(qStr) ||
+        item.hospitalNameTH.toLowerCase().includes(qStr) ||
+        item.hospitalNameEN.toLowerCase().includes(qStr) ||
+        (item.shortName && item.shortName.toLowerCase().includes(qStr)) ||
+        (item.province && item.province.toLowerCase().includes(qStr)) ||
+        (item.coordinatorName && item.coordinatorName.toLowerCase().includes(qStr))
       );
     }
 
     // Sorting
-    list.sort((a, b) => {
+    list.sort((a: any, b: any) => {
       let valA: any = a[sortBy] || '';
       let valB: any = b[sortBy] || '';
 
@@ -129,14 +119,12 @@ export const hospitalService = {
   },
 
   getById: async (id: string): Promise<Hospital | null> => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    const list = mockDB.getHospitals();
-    return list.find(item => item.id === id) || null;
+    const list = storage.get<Hospital[]>('hospitals') || [];
+    return list.find(h => h.id === id) || null;
   },
 
   create: async (data: Omit<Hospital, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<Hospital> => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getHospitals();
+    const list = storage.get<Hospital[]>('hospitals') || [];
 
     // Check unique hospitalCode
     const duplicateCode = list.find(item => item.hospitalCode.trim().toLowerCase() === data.hospitalCode.trim().toLowerCase() && item.status !== 'archived');
@@ -158,7 +146,7 @@ export const hospitalService = {
 
     const newHospital: Hospital = {
       ...data,
-      id: `h-${Date.now()}`,
+      id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       createdBy: userId,
@@ -171,28 +159,19 @@ export const hospitalService = {
     };
 
     list.push(newHospital);
-    mockDB.saveHospitals(list);
+    storage.set('hospitals', list);
 
-    // Track activity
-    mockDB.addActivity({
-      type: 'student_add', // or generic custom category
-      title: 'Hospital Profile Registered',
-      description: `${data.hospitalNameEN} (${data.hospitalCode}) has been successfully added.`,
-      userId,
-      userDisplayName: 'Administrator'
-    });
+    await auditService.log(userId, "CREATE", "Hospital", newHospital.id!, `Created hospital ${data.hospitalNameEN} (${data.hospitalCode})`);
 
     return newHospital;
   },
 
   update: async (id: string, data: Partial<Omit<Hospital, 'id' | 'createdAt' | 'updatedAt'>>, userId: string): Promise<Hospital> => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const list = mockDB.getHospitals();
+    const list = storage.get<Hospital[]>('hospitals') || [];
     const index = list.findIndex(item => item.id === id);
     if (index === -1) {
       throw new Error('Hospital profile not found.');
     }
-
     const existing = list[index];
 
     // Check uniqueness if updating hospitalCode
@@ -223,29 +202,26 @@ export const hospitalService = {
       ...existing,
       ...data,
       updatedAt: new Date().toISOString(),
-      updatedBy: userId,
-      // Compatibility updates
-      name: data.hospitalNameEN || existing.name || existing.hospitalNameEN,
-      contactName: data.coordinatorName || existing.contactName || existing.coordinatorName,
-      contactPhone: data.coordinatorPhone || existing.contactPhone || existing.coordinatorPhone,
-      capacity: data.studentCapacity || existing.capacity || existing.studentCapacity
-    };
+      updatedBy: userId
+    } as Hospital;
+
+    if (data.hospitalNameEN) updatedHospital.name = data.hospitalNameEN;
+    if (data.coordinatorName) updatedHospital.contactName = data.coordinatorName;
+    if (data.coordinatorPhone) updatedHospital.contactPhone = data.coordinatorPhone;
+    if (data.studentCapacity !== undefined) updatedHospital.capacity = data.studentCapacity;
 
     list[index] = updatedHospital;
-    mockDB.saveHospitals(list);
-    await auditService.log(userId, "UPDATE", "Hospital", id, "Updated hospital profile");
+    storage.set('hospitals', list);
+
+    await auditService.log(userId, "UPDATE", "Hospital", id, `Updated hospital profile ${updatedHospital.hospitalNameEN}`);
 
     return updatedHospital;
   },
 
   delete: async (id: string, userId: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    const list = mockDB.getHospitals();
-    const filtered = list.filter(item => item.id !== id);
-    if (filtered.length === list.length) {
-      throw new Error('Hospital not found.');
-    }
-    mockDB.saveHospitals(filtered);
+    const list = storage.get<Hospital[]>('hospitals') || [];
+    const newList = list.filter(h => h.id !== id);
+    storage.set('hospitals', newList);
     await auditService.log(userId, "DELETE", "Hospital", id, "Deleted hospital");
   },
 
@@ -270,7 +246,6 @@ export const hospitalService = {
       throw new Error('Original hospital profile not found.');
     }
 
-    const list = mockDB.getHospitals();
     const codeSuffix = `_COPY_${Math.floor(Math.random() * 1000)}`;
     const duplicateCode = `${original.hospitalCode}${codeSuffix}`.substring(0, 10);
     
@@ -288,31 +263,27 @@ export const hospitalService = {
     return hospitalService.create(duplicateData, userId);
   },
 
-  // Calculate statistics for a single hospital
   getHospitalStats: async (hospitalId: string): Promise<HospitalStats> => {
     const hospital = await hospitalService.getById(hospitalId);
     if (!hospital) {
       throw new Error('Hospital not found.');
     }
 
-    const buildings = mockDB.getBuildings().filter(b => b.hospitalId === hospitalId);
+    const buildings = (storage.get<any[]>('buildings') || []).filter(b => b.hospitalId === hospitalId);
     const buildingIds = buildings.map(b => b.id);
-    const rooms = mockDB.getRooms().filter(r => buildingIds.includes(r.buildingId));
-    
-    const currentStudents = mockDB.getStudents().filter(s => s.hospitalId === hospitalId && s.status === 'active');
+    const rooms = (storage.get<any[]>('rooms') || []).filter(r => buildingIds.includes(r.buildingId));
+    const currentStudents = (storage.get<any[]>('students') || []).filter(s => s.hospitalId === hospitalId && s.status === 'active');
     const studentCount = currentStudents.length;
 
-    // Relate teachers via courses studied by active students placed at this hospital
+    const teachers = storage.get<any[]>('teachers') || [];
     const studentCourseIds = Array.from(new Set(currentStudents.map(s => s.courseId).filter(Boolean)));
-    const allTeachers = mockDB.getTeachers();
-    const placedTeachers = allTeachers.filter(t => 
+    const placedTeachers = teachers.filter(t => 
       t.status === 'active' && 
       t.courseIds && 
-      t.courseIds.some(cId => studentCourseIds.includes(cId))
+      t.courseIds.some((cId: any) => studentCourseIds.includes(cId))
     );
     const teacherCount = placedTeachers.length;
 
-    // Calculate room occupancy sum
     const totalOccupied = rooms.reduce((sum, r) => sum + (r.occupiedCount || 0), 0);
 
     return {
@@ -321,25 +292,27 @@ export const hospitalService = {
       studentCapacity: hospital.studentCapacity || 0,
       teacherCapacity: hospital.teacherCapacity || 0,
       currentStudents: studentCount,
-      currentTeachers: teacherCount || Math.ceil(studentCount / 6), // realistic fallback ratio
-      currentOccupancy: totalOccupied || studentCount, // usually assigned students occupy dorms
+      currentTeachers: teacherCount || Math.ceil(studentCount / 6),
+      currentOccupancy: totalOccupied || studentCount,
       occupancyRate: hospital.studentCapacity > 0 
         ? Math.round((studentCount / hospital.studentCapacity) * 100) 
         : 0
     };
   },
 
-  // Calculate summary statistics across all active hospitals
   getGlobalStats: async () => {
-    const list = mockDB.getHospitals().filter(h => h.status === 'active');
+    const listRes = await hospitalService.getAll({ status: 'active', limit: 10000 });
+    const list = listRes.data;
     const totalHospitals = list.length;
     
     let totalCapacity = 0;
     let totalStudents = 0;
 
+    const studentsList = storage.get<any[]>('students') || [];
+
     for (const h of list) {
       totalCapacity += h.studentCapacity || 0;
-      const students = mockDB.getStudents().filter(s => s.hospitalId === h.id && s.status === 'active');
+      const students = studentsList.filter(s => s.hospitalId === h.id && s.status === 'active');
       totalStudents += students.length;
     }
 
@@ -353,3 +326,4 @@ export const hospitalService = {
     };
   }
 };
+

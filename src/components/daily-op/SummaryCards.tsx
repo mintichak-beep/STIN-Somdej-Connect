@@ -1,14 +1,13 @@
 import { Users, Building2, Hospital, Bed, Bus, Calendar } from 'lucide-react';
-import { mockDB } from '../../services/mockData';
 import { DashboardCard } from '../DashboardCard';
 
 export function SummaryCards() {
-  const students = mockDB.getStudents();
-  const groups = mockDB.getTrainingGroups();
-  const hospitals = mockDB.getHospitals();
-  const dorms = mockDB.getBuildings().filter(b => b.buildingType === 'Dormitory');
-  const vans = mockDB.getVehicles();
-  const trips = mockDB.getTransportSchedules();
+  const students = [];
+  const groups = [];
+  const hospitals = [];
+  const dorms = [].filter(b => b.buildingType === 'Dormitory');
+  const vans = [];
+  const trips = [];
 
   const cards = [
     { title: 'Nursing Students', value: students.length, icon: Users, color: 'text-blue-600' },

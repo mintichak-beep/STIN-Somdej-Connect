@@ -1,10 +1,9 @@
-import { mockDB } from './mockData';
 import { TripAssignment } from '../types/db';
 
 export const tripAssignmentService = {
-  getByTrip: async (tripId: string): Promise<TripAssignment[]> => mockDB.getTripAssignments().filter(a => a.tripId === tripId),
+  getByTrip: async (tripId: string): Promise<TripAssignment[]> => [].filter(a => a.tripId === tripId),
   assign: async (tripId: string, studentId: string): Promise<string> => {
-    const list = mockDB.getTripAssignments();
+    const list = [];
     const newAssignment: TripAssignment = { 
         id: `ta-${Date.now()}`, 
         tripId, 
@@ -13,7 +12,7 @@ export const tripAssignmentService = {
         status: 'active' 
     };
     list.push(newAssignment);
-    mockDB.saveTripAssignments(list);
+    void 0;
     return newAssignment.id;
   }
 };

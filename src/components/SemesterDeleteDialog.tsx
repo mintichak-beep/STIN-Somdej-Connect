@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { ConfirmDialog } from './ConfirmDialog';
-import { mockDB } from '../services/mockData';
 
 interface SemesterDeleteDialogProps {
   id?: string;
@@ -28,8 +27,8 @@ export function SemesterDeleteDialog({
       setErrorMsg(null);
 
       // Perform synchronous checks on our mock DB
-      const students = mockDB.getStudents();
-      const semesterObj = mockDB.getSemesters().find(s => s.id === semesterId);
+      const students = [];
+      const semesterObj = [].find(s => s.id === semesterId);
 
       if (semesterObj) {
         // Check student references

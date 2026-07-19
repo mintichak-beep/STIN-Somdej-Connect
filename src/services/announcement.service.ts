@@ -1,17 +1,20 @@
-import { mockDB } from './mockData';
 import { Announcement } from '../types/db';
+import { storage } from '../lib/storage';
 
 export const announcementService = {
-  getAll: async (): Promise<Announcement[]> => mockDB.getAnnouncements(),
+  getAll: async (): Promise<Announcement[]> => {
+    return storage.get<Announcement[]>('announcements') || [];
+  },
   create: async (data: Omit<Announcement, 'id' | 'createdAt'>): Promise<string> => {
-    const list = mockDB.getAnnouncements();
+    const list = storage.get<Announcement[]>('announcements') || [];
+    const id = `a-${Date.now()}`;
     const newAnn: Announcement = { 
         ...data, 
-        id: `a-${Date.now()}`, 
+        id, 
         createdAt: new Date().toISOString() 
     };
     list.push(newAnn);
-    mockDB.saveAnnouncements(list);
-    return newAnn.id;
+    storage.set('announcements', list);
+    return id;
   }
 };

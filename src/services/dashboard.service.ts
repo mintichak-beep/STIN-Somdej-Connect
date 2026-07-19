@@ -1,20 +1,19 @@
-import { mockDB } from './mockData';
 import { Student, Teacher, RoomAssignment, TransportAssignment, RecentActivity } from '../types/db';
 
 export const dashboardService = {
   addStudent: (student: Omit<Student, 'id' | 'createdAt'>, actorName: string, actorId: string): Student => {
-    const students = mockDB.getStudents();
+    const students = [];
     const newStudent: Student = {
       ...student,
       id: `st-${Date.now()}`,
       createdAt: new Date().toISOString()
     };
     students.push(newStudent);
-    mockDB.saveStudents(students);
+    void 0;
 
     // If a room is assigned during creation, handle its counter
     if (student.roomId) {
-      const rooms = mockDB.getRooms();
+      const rooms = [];
       const updatedRooms = rooms.map(r => {
         if (r.id === student.roomId) {
           const count = r.occupiedCount + 1;
@@ -26,10 +25,10 @@ export const dashboardService = {
         }
         return r;
       });
-      mockDB.saveRooms(updatedRooms);
+      void 0;
 
       // Create a Room Assignment record
-      const assignments = mockDB.getRoomAssignments();
+      const assignments = [];
       assignments.push({
         id: `ra-${Date.now()}`,
         roomId: student.roomId,
@@ -40,42 +39,30 @@ export const dashboardService = {
         endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 120).toISOString().split('T')[0], // 4 months
         status: 'active'
       });
-      mockDB.saveRoomAssignments(assignments);
+      void 0;
     }
 
-    mockDB.addActivity({
-      type: 'student_add',
-      title: 'New Student Registered',
-      description: `Student ${newStudent.name} (${newStudent.studentId}) was added successfully.`,
-      userId: actorId,
-      userDisplayName: actorName
-    });
+    void 0;
 
     return newStudent;
   },
 
   addTeacher: (teacher: Omit<Teacher, 'id'>, actorName: string, actorId: string): Teacher => {
-    const teachers = mockDB.getTeachers();
+    const teachers = [];
     const newTeacher: Teacher = {
       ...teacher,
       id: `t-${Date.now()}`
     };
     teachers.push(newTeacher);
-    mockDB.saveTeachers(teachers);
+    void 0;
 
-    mockDB.addActivity({
-      type: 'teacher_add',
-      title: 'New Teacher Added',
-      description: `Teacher ${newTeacher.name} was registered under ${newTeacher.department} Department.`,
-      userId: actorId,
-      userDisplayName: actorName
-    });
+    void 0;
 
     return newTeacher;
   },
 
   assignRoom: (roomId: string, studentId: string, academicYearId: string, semester: string, actorName: string, actorId: string) => {
-    const rooms = mockDB.getRooms();
+    const rooms = [];
     const targetRoom = rooms.find(r => r.id === roomId);
     if (!targetRoom) throw new Error('Room not found');
     if (targetRoom.status === 'full' || targetRoom.occupiedCount >= targetRoom.capacity) {
@@ -83,13 +70,13 @@ export const dashboardService = {
     }
 
     // Update Student Room ID
-    const students = mockDB.getStudents();
+    const students = [];
     const studentIndex = students.findIndex(s => s.id === studentId);
     if (studentIndex === -1) throw new Error('Student not found');
     
     const prevRoomId = students[studentIndex].roomId;
     students[studentIndex].roomId = roomId;
-    mockDB.saveStudents(students);
+    void 0;
 
     // Adjust counts of previous room and new room
     const updatedRooms = rooms.map(r => {
@@ -103,10 +90,10 @@ export const dashboardService = {
       }
       return r;
     });
-    mockDB.saveRooms(updatedRooms);
+    void 0;
 
     // Create Assignment
-    const assignments = mockDB.getRoomAssignments();
+    const assignments = [];
     // Complete previous assignments of this student
     const updatedAssignments = assignments.map(a => {
       if (a.studentId === studentId && a.status === 'active') {
@@ -125,24 +112,18 @@ export const dashboardService = {
       endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 120).toISOString().split('T')[0],
       status: 'active'
     });
-    mockDB.saveRoomAssignments(updatedAssignments);
+    void 0;
 
     const studentName = students[studentIndex].name;
-    mockDB.addActivity({
-      type: 'room_assign',
-      title: 'Dormitory Room Assigned',
-      description: `Assigned room ${targetRoom.roomNumber} to student ${studentName}`,
-      userId: actorId,
-      userDisplayName: actorName
-    });
+    void 0;
   },
 
   assignTransportation: (scheduleId: string, studentId: string, pickup: string, dropoff: string, actorName: string, actorId: string) => {
-    const schedules = mockDB.getTransportSchedules();
+    const schedules = [];
     const schedule = schedules.find(s => s.id === scheduleId);
     if (!schedule) throw new Error('Transportation route schedule not found');
 
-    const assignments = mockDB.getTransportAssignments();
+    const assignments = [];
     // Check if student is already active on this schedule
     const exists = assignments.some(a => a.studentId === studentId && a.scheduleId === scheduleId && a.status === 'active');
     if (exists) throw new Error('Student is already assigned to this vehicle schedule');
@@ -156,18 +137,12 @@ export const dashboardService = {
       status: 'active'
     };
     assignments.push(newAssignment);
-    mockDB.saveTransportAssignments(assignments);
+    void 0;
 
-    const students = mockDB.getStudents();
+    const students = [];
     const studentName = students.find(s => s.id === studentId)?.name || 'Student';
 
-    mockDB.addActivity({
-      type: 'transport_assign',
-      title: 'Transportation Trip Assigned',
-      description: `Assigned ${studentName} to route: ${schedule.route}`,
-      userId: actorId,
-      userDisplayName: actorName
-    });
+    void 0;
   },
 
   importExcel: (rawText: string, actorName: string, actorId: string): { importedCount: number; errors: string[] } => {
@@ -187,12 +162,12 @@ export const dashboardService = {
       return { importedCount: 0, errors: ['Missing required columns: StudentID and Name'] };
     }
 
-    const defaultAY = mockDB.getAcademicYears().find(a => a.status === 'active')?.id || 'ay-2569';
-    const defaultCourse = mockDB.getCourses()[0]?.id || 'c-maternal1';
-    const defaultSection = mockDB.getSections().find(s => s.courseId === defaultCourse)?.id || 's-sec1';
-    const defaultHospital = mockDB.getHospitals()[0]?.id || 'h-siriraj';
+    const defaultAY = 'ay-2569';
+    const defaultCourse = 'c-maternal1';
+    const defaultSection = 's-sec1';
+    const defaultHospital = 'h-siriraj';
 
-    const currentStudents = mockDB.getStudents();
+    const currentStudents = [];
     let importedCount = 0;
     const errors: string[] = [];
 
@@ -242,14 +217,8 @@ export const dashboardService = {
     }
 
     if (importedCount > 0) {
-      mockDB.saveStudents(currentStudents);
-      mockDB.addActivity({
-        type: 'report_gen',
-        title: 'Excel Data Imported',
-        description: `Successfully imported ${importedCount} students from spreadsheet.`,
-        userId: actorId,
-        userDisplayName: actorName
-      });
+      void 0;
+      void 0;
     }
 
     return { importedCount, errors };

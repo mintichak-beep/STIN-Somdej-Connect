@@ -1,12 +1,11 @@
-import { mockDB } from './mockData';
 import { RoomAssignment } from '../types/db';
 
 export const assignmentService = {
   getByRoom: async (roomId: string): Promise<RoomAssignment[]> => {
-    return mockDB.getRoomAssignments().filter(a => a.roomId === roomId && a.status === 'active');
+    return [].filter(a => a.roomId === roomId && a.status === 'active');
   },
   assign: async (roomId: string, studentId: string): Promise<string> => {
-    const list = mockDB.getRoomAssignments();
+    const list = [];
     const newAssignment: RoomAssignment = { 
         id: `a-${Date.now()}`, 
         roomId, 
@@ -15,12 +14,12 @@ export const assignmentService = {
         status: 'active' 
     };
     list.push(newAssignment);
-    mockDB.saveRoomAssignments(list);
+    void 0;
     return newAssignment.id;
   },
   subscribe: (callback: (data: any[]) => void) => {
     const interval = setInterval(async () => {
-      const data = mockDB.getRoomAssignments();
+      const data = [];
       callback(data);
     }, 1000);
     return () => clearInterval(interval);

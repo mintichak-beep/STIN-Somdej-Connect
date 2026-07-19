@@ -1,13 +1,12 @@
-import { mockDB } from './mockData';
 
 export const analyticsService = {
   getDashboardAnalytics: async () => {
-    const students = mockDB.getStudents();
-    const rooms = mockDB.getRooms();
-    const schedules = mockDB.getTransportSchedules();
-    const hospitals = mockDB.getHospitals();
-    const vehicles = mockDB.getVehicles();
-    const assignments = mockDB.getTransportAssignments();
+    const students = [];
+    const rooms = [];
+    const schedules = [];
+    const hospitals = [];
+    const vehicles = [];
+    const assignments = [];
 
     // Students requiring accommodation: rotation DRส or ANCส
     const reqAccommodation = students.filter(s => s.accommodationPeriod === 'DRส' || s.accommodationPeriod === 'ANCส');

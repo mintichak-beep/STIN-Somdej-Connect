@@ -1,0 +1,29 @@
+
+> react-example@0.0.0 lint
+> tsc --noEmit
+
+src/components/tabs/TeacherTabs.tsx(2263,22): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2264,19): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2676,37): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2691,37): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2726,32): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2727,29): error TS1109: Expression expected.
+src/components/tabs/TeacherTabs.tsx(2774,33): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2804,39): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2863,25): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2957,25): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(2990,25): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3064,25): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3106,17): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3116,17): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3505,31): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3526,29): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3683,41): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3800,21): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3897,21): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(3976,25): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(4346,43): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(4365,43): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(4553,29): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(4594,29): error TS1005: '}' expected.
+src/components/tabs/TeacherTabs.tsx(5211,1): error TS1005: '}' expected.

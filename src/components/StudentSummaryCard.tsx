@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { mockDB } from '../services/mockData';
 import { 
   Building, MapPin, Car, Phone, User, Calendar, ShieldCheck, 
   HelpCircle, Home, UserCheck, Clock 
@@ -12,7 +11,7 @@ export function StudentSummaryCard() {
   // Find student matching the current user's email
   const studentData = useMemo(() => {
     if (!user) return null;
-    const students = mockDB.getStudents();
+    const students = [];
     return students.find(s => s.email.toLowerCase() === user.email.toLowerCase()) || null;
   }, [user]);
 
@@ -20,14 +19,14 @@ export function StudentSummaryCard() {
   const studentDetails = useMemo(() => {
     if (!studentData) return null;
 
-    const hospitals = mockDB.getHospitals();
-    const courses = mockDB.getCourses();
-    const rooms = mockDB.getRooms();
-    const buildings = mockDB.getBuildings();
-    const schedules = mockDB.getTransportSchedules();
-    const transAssignments = mockDB.getTransportAssignments();
-    const vehicles = mockDB.getVehicles();
-    const drivers = mockDB.getDrivers();
+    const hospitals = [];
+    const courses = [];
+    const rooms = [];
+    const buildings = [];
+    const schedules = [];
+    const transAssignments = [];
+    const vehicles = [];
+    const drivers = [];
 
     const hospital = hospitals.find(h => h.id === studentData.hospitalId) || null;
     const course = courses.find(c => c.id === studentData.courseId) || null;

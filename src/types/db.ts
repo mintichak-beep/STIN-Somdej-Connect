@@ -468,6 +468,7 @@ export interface Trip {
   id: string;
   vanId: string;
   vehicleId: string; // Made required for consistency
+  plateNumber?: string; // Optional license plate number
   trainingSiteId: string;
   date: string;
   departureTime: string;
