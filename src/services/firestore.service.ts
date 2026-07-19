@@ -9,6 +9,8 @@ import {
   query, 
   where, 
   orderBy, 
+  setDoc,
+  onSnapshot,
   Timestamp,
   serverTimestamp,
   QueryConstraint
@@ -48,6 +50,15 @@ export class FirestoreService<T extends { id?: string }> {
     return docRef.id;
   }
 
+  async createWithId(id: string, data: Omit<T, 'id'>): Promise<void> {
+    const docRef = doc(db, this.collectionName, id);
+    await setDoc(docRef, {
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }
+
   async update(id: string, data: Partial<T>): Promise<void> {
     const docRef = doc(db, this.collectionName, id);
     await updateDoc(docRef, {
@@ -59,5 +70,14 @@ export class FirestoreService<T extends { id?: string }> {
   async delete(id: string): Promise<void> {
     const docRef = doc(db, this.collectionName, id);
     await deleteDoc(docRef);
+  }
+
+  onSnapshot(constraints: QueryConstraint[], callback: (data: T[]) => void) {
+    const colRef = collection(db, this.collectionName);
+    const q = query(colRef, ...constraints);
+    return onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+      callback(data);
+    });
   }
 }

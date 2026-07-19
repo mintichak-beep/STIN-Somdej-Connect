@@ -1,6 +1,9 @@
 import { Course } from '../types/db';
-import { storage } from '../lib/storage';
+import { FirestoreService } from './firestore.service';
 import { auditService } from './audit.service';
+import { orderBy, QueryConstraint, where } from 'firebase/firestore';
+
+const courseFS = new FirestoreService<Course>('courses');
 
 function getCurrentUserId(): string {
   try {
@@ -12,17 +15,17 @@ function getCurrentUserId(): string {
 }
 
 export const courseService = {
-  subscribe: (callback: () => void) => {
-    callback();
-    return () => {};
+  subscribe: (callback: (courses: Course[]) => void) => {
+    return courseFS.onSnapshot([orderBy('courseCode', 'asc')], callback);
   },
 
   getAll: async (search: string = '', status: string = 'all'): Promise<Course[]> => {
-    let list = storage.get<Course[]>('courses') || [];
-
+    const constraints: QueryConstraint[] = [];
     if (status !== 'all') {
-      list = list.filter(item => item.status === status);
+      constraints.push(where('status', '==', status));
     }
+    
+    let list = await courseFS.getAll(constraints);
 
     if (search.trim()) {
       const queryStr = search.toLowerCase();
@@ -32,43 +35,39 @@ export const courseService = {
       );
     }
 
-    return list;
+    return list.sort((a, b) => a.courseCode.localeCompare(b.courseCode));
   },
 
   getById: async (id: string): Promise<Course | null> => {
-    const list = storage.get<Course[]>('courses') || [];
-    return list.find(c => c.id === id) || null;
+    return courseFS.getById(id);
   },
 
   create: async (data: Omit<Course, 'id' | 'createdAt'>): Promise<Course> => {
-    const list = storage.get<Course[]>('courses') || [];
-    const newCourse: Course = {
+    const id = await courseFS.create({
       ...data,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
       code: data.courseCode,
       name: data.courseName
-    };
-    list.push(newCourse);
-    storage.set('courses', list);
-    await auditService.log(getCurrentUserId(), "CREATE", "Course", newCourse.id!, "Created course");
+    } as any);
+    
+    const newCourse = await courseFS.getById(id);
+    if (!newCourse) throw new Error('Failed to create course');
+
+    await auditService.log(getCurrentUserId(), "CREATE", "Course", id, "Created course");
     return newCourse;
   },
 
   update: async (id: string, data: Partial<Omit<Course, 'id' | 'createdAt'>>): Promise<Course> => {
-    const list = storage.get<Course[]>('courses') || [];
-    const index = list.findIndex(c => c.id === id);
-    if (index === -1) throw new Error('Course not found');
+    const existing = await courseFS.getById(id);
+    if (!existing) throw new Error('Course not found');
 
-    const updatedCourse: Course = {
-      ...list[index],
-      ...data,
-      code: data.courseCode || list[index].courseCode,
-      name: data.courseName || list[index].courseName
-    } as Course;
+    const updatedData: any = { ...data };
+    if (data.courseCode) updatedData.code = data.courseCode;
+    if (data.courseName) updatedData.name = data.courseName;
 
-    list[index] = updatedCourse;
-    storage.set('courses', list);
+    await courseFS.update(id, updatedData);
+    const updatedCourse = await courseFS.getById(id);
+    if (!updatedCourse) throw new Error('Failed to update course');
+
     await auditService.log(getCurrentUserId(), "UPDATE", "Course", id, "Updated course");
     return updatedCourse;
   },

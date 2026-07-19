@@ -1,6 +1,9 @@
 import { Student } from '../types/db';
-import { storage } from '../lib/storage';
+import { FirestoreService } from './firestore.service';
 import { auditService } from './audit.service';
+import { QueryConstraint, orderBy } from 'firebase/firestore';
+
+const studentFS = new FirestoreService<Student>('students');
 
 function getCurrentUserId(): string {
   return 'system';
@@ -8,14 +11,11 @@ function getCurrentUserId(): string {
 
 export const studentService = {
   subscribe: (callback: (students: Student[]) => void) => {
-    // LocalStorage doesn't support snapshot. Returning current data once.
-    const students = storage.get<Student[]>('students') || [];
-    callback(students);
-    return () => {}; // No-op unsubscribe
+    return studentFS.onSnapshot([orderBy('studentId', 'asc')], callback);
   },
 
   getAll: async (): Promise<Student[]> => {
-    return storage.get<Student[]>('students') || [];
+    return studentFS.getAll([orderBy('studentId', 'asc')]);
   },
 
   getStudents: async (): Promise<Student[]> => {
@@ -23,17 +23,11 @@ export const studentService = {
   },
 
   getById: async (id: string): Promise<Student | null> => {
-    const list = storage.get<Student[]>('students') || [];
-    return list.find(s => s.id === id) || null;
+    return studentFS.getById(id);
   },
 
   update: async (id: string, data: Partial<Student>): Promise<void> => {
-    const list = storage.get<Student[]>('students') || [];
-    const index = list.findIndex(s => s.id === id);
-    if (index !== -1) {
-      list[index] = { ...list[index], ...data };
-      storage.set('students', list);
-    }
+    await studentFS.update(id, data);
     await auditService.log(getCurrentUserId(), 'UPDATE', 'Student', id, `Updated student`);
   },
 
@@ -75,19 +69,13 @@ export const studentService = {
   },
 
   create: async (data: Omit<Student, 'id'>): Promise<string> => {
-    const list = storage.get<Student[]>('students') || [];
-    const id = crypto.randomUUID();
-    const newStudent = { ...data, id };
-    list.push(newStudent);
-    storage.set('students', list);
+    const id = await studentFS.create(data);
     await auditService.log(getCurrentUserId(), 'CREATE', 'Student', id, `Created student`);
     return id;
   },
 
   delete: async (id: string): Promise<void> => {
-    const list = storage.get<Student[]>('students') || [];
-    const newList = list.filter(s => s.id !== id);
-    storage.set('students', newList);
+    await studentFS.delete(id);
     await auditService.log(getCurrentUserId(), 'DELETE', 'Student', id, `Deleted student`);
   }
 };

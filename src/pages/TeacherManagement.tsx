@@ -68,7 +68,22 @@ export function TeacherManagement() {
         data={teachers}
         searchFields={["name", "department"]}
         columns={[
-          { header: "ชื่อ-นามสกุล", accessor: "name" },
+          { 
+            header: "ชื่อ-นามสกุล", 
+            accessor: (teacher) => (
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 overflow-hidden flex items-center justify-center">
+                  <img 
+                    src="/src/assets/images/nursing_instructor_icon_1784479023431.jpg" 
+                    alt={teacher.name}
+                    className="h-full w-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <span>{teacher.name}</span>
+              </div>
+            )
+          },
           { header: "ภาควิชา", accessor: "department" },
           { header: "เบอร์โทรศัพท์", accessor: "phone" },
         ]}
@@ -92,7 +107,7 @@ export function TeacherManagement() {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600/20 transition-all"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
             />
           </div>
           <div className="space-y-1.5">
@@ -101,7 +116,7 @@ export function TeacherManagement() {
               required
               value={formData.department}
               onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600/20 transition-all"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
             />
           </div>
           <div className="space-y-1.5">
@@ -109,7 +124,7 @@ export function TeacherManagement() {
             <input
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600/20 transition-all"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
             />
           </div>
           <div className="flex justify-end gap-3 mt-6">

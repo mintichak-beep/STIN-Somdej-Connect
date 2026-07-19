@@ -1,32 +1,23 @@
 import { Dormitory } from '../types/db';
+import { FirestoreService } from './firestore.service';
+import { orderBy } from 'firebase/firestore';
+
+const dormitoryFS = new FirestoreService<Dormitory>('dormitories');
 
 export const dormitoryService = {
   getAll: async (): Promise<Dormitory[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const buildings = [];
-    return buildings.filter(b => b.buildingType === 'Dormitory').map(b => ({
-      ...b,
-      name: b.name,
-      contactPerson: 'Staff',
-      phone: '02-xxx-xxxx',
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: 'admin',
-      updatedBy: 'admin',
-      mapLink: '#'
-    }));
+    return dormitoryFS.getAll([orderBy('name', 'asc')]);
+  },
+  getById: async (id: string): Promise<Dormitory | null> => {
+    return dormitoryFS.getById(id);
   },
   create: async (data: Omit<Dormitory, 'id' | 'createdAt'>): Promise<string> => {
-    const list = [];
-    const newDorm: any = { ...data, id: `b-${Date.now()}`, buildingType: 'Dormitory', createdAt: new Date().toISOString() };
-    list.push(newDorm);
-    void 0;
-    return newDorm.id;
+    return dormitoryFS.create(data as any);
+  },
+  update: async (id: string, data: Partial<Dormitory>): Promise<void> => {
+    return dormitoryFS.update(id, data);
   },
   delete: async (id: string): Promise<void> => {
-    let list = [];
-    list = list.filter(item => item.id !== id);
-    void 0;
+    return dormitoryFS.delete(id);
   }
 };

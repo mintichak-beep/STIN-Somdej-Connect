@@ -1,26 +1,28 @@
 import { Room } from '../types/db';
-import { storage } from '../lib/storage';
+import { FirestoreService } from './firestore.service';
+import { orderBy } from 'firebase/firestore';
+
+const roomFS = new FirestoreService<Room>('rooms');
 
 export const roomService = {
   getById: async (id: string): Promise<Room | null> => {
-    const list = storage.get<Room[]>('rooms') || [];
-    return list.find(r => r.id === id) || null;
+    return roomFS.getById(id);
   },
   getByDormitory: async (dormitoryId: string): Promise<Room[]> => {
-    const list = storage.get<Room[]>('rooms') || [];
-    return list.filter(r => r.buildingId === dormitoryId);
+    return roomFS.getAll([orderBy('roomNumber', 'asc')]).then(rooms => 
+      rooms.filter(r => r.dormitoryId === dormitoryId || r.buildingId === dormitoryId)
+    );
+  },
+  getAll: async (): Promise<Room[]> => {
+    return roomFS.getAll([orderBy('roomNumber', 'asc')]);
   },
   create: async (data: Omit<Room, 'id'>): Promise<string> => {
-    const list = storage.get<Room[]>('rooms') || [];
-    const id = `r-${Date.now()}`;
-    const newRoom: Room = { ...data, id } as Room;
-    list.push(newRoom);
-    storage.set('rooms', list);
-    return newRoom.id;
+    return roomFS.create(data);
+  },
+  update: async (id: string, data: Partial<Room>): Promise<void> => {
+    return roomFS.update(id, data);
   },
   delete: async (id: string): Promise<void> => {
-    let list = storage.get<Room[]>('rooms') || [];
-    list = list.filter(item => item.id !== id);
-    storage.set('rooms', list);
+    return roomFS.delete(id);
   }
 };

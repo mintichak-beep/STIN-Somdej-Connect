@@ -296,7 +296,13 @@ export function AppLayout({
 
             <div className="flex items-center gap-2 border-l border-slate-100 dark:border-zinc-900 pl-3">
               <div className="h-8.5 w-8.5 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-black text-xs overflow-hidden">
-                {user?.photoURL ? <img src={user.photoURL} alt="User" /> : (user?.displayName?.substring(0, 2).toUpperCase() || 'AD')}
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="User" referrerPolicy="no-referrer" />
+                ) : user?.role === 'Teacher' ? (
+                  <img src="/src/assets/images/nursing_instructor_icon_1784479023431.jpg" alt="Teacher" referrerPolicy="no-referrer" />
+                ) : (
+                  user?.displayName?.substring(0, 2).toUpperCase() || 'AD'
+                )}
               </div>
               <div className="hidden text-left md:block">
                 <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate max-w-[120px]">

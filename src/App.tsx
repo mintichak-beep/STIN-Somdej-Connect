@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { StudentManagement } from './pages/StudentManagement';
@@ -13,10 +13,15 @@ import { UtilityBilling } from './pages/UtilityBilling';
 import { StudentUtilities } from './pages/StudentUtilities';
 import { Login } from './pages/Login';
 import { useAuth } from './hooks/useAuth';
+import { seedDatabaseIfEmpty } from './services/seed.service';
 
 export default function App() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  useEffect(() => {
+    seedDatabaseIfEmpty();
+  }, []);
 
   if (loading) {
     return (
