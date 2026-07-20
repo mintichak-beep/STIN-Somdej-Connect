@@ -12,11 +12,10 @@ import { Reports } from './pages/Reports';
 import { UtilityBilling } from './pages/UtilityBilling';
 import { PaymentVerification } from './pages/PaymentVerification';
 import { WelcomePage } from './pages/WelcomePage';
+import { StudentSelectionPage } from './pages/StudentSelectionPage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { StudentUtilities } from './pages/StudentUtilities';
 import { MyTransportation } from './pages/MyTransportation';
-import { seedDatabaseIfEmpty } from './services/seed.service';
-
 import { TeacherManagement } from './pages/TeacherManagement';
 
 export default function App() {
@@ -24,11 +23,9 @@ export default function App() {
     return localStorage.getItem('user_role') as 'Teacher' | 'Student' | null;
   });
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Seeding disabled
-  }, []);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(() => {
+    return localStorage.getItem('selected_student_id');
+  });
 
   const handleSelectRole = (selectedRole: 'Teacher' | 'Student') => {
     localStorage.setItem('user_role', selectedRole);
@@ -38,14 +35,21 @@ export default function App() {
 
   const handleSwitchRole = () => {
     localStorage.removeItem('user_role');
+    localStorage.removeItem('selected_student_id');
     setRole(null);
     setActiveTab('dashboard');
     setSelectedStudentId(null);
   };
 
   const handleSelectStudent = (studentId: string) => {
+    localStorage.setItem('selected_student_id', studentId);
     setSelectedStudentId(studentId);
-    setActiveTab('student-details');
+    setActiveTab('dashboard');
+  };
+
+  const handleChangeStudent = () => {
+    localStorage.removeItem('selected_student_id');
+    setSelectedStudentId(null);
   };
 
   if (!role) {
@@ -84,15 +88,19 @@ export default function App() {
       }
     } else {
       // Student Portal
+      if (!selectedStudentId) {
+        return <StudentSelectionPage onSelectStudent={handleSelectStudent} />;
+      }
+      
       switch (activeTab) {
         case 'dashboard':
-          return <StudentDashboard onNavigateToBills={() => setActiveTab('student-utilities')} />;
+          return <StudentDashboard studentId={selectedStudentId} onChangeStudent={handleChangeStudent} onNavigateToBills={() => setActiveTab('student-utilities')} />;
         case 'student-utilities':
-          return <StudentUtilities />;
+          return <StudentUtilities studentId={selectedStudentId} />;
         case 'my-transportation':
-          return <MyTransportation />;
+          return <MyTransportation studentId={selectedStudentId} />;
         default:
-          return <StudentDashboard onNavigateToBills={() => setActiveTab('student-utilities')} />;
+          return <StudentDashboard studentId={selectedStudentId} onChangeStudent={handleChangeStudent} onNavigateToBills={() => setActiveTab('student-utilities')} />;
       }
     }
   };

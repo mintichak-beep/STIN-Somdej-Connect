@@ -6,9 +6,11 @@ import { startOfWeek, isWithinInterval } from "date-fns";
 
 interface StudentDashboardProps {
   onNavigateToBills: () => void;
+  studentId: string;
+  onChangeStudent: () => void;
 }
 
-export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
+export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent }: StudentDashboardProps) {
   const [student, setStudent] = useState<Student | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [dormitory, setDormitory] = useState<Dormitory | null>(null);
@@ -27,13 +29,12 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
     const now = new Date();
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
 
-    // Load Student ("dev-student-id" as default)
+    // Load Student
     studentsUnsub = studentService.onSnapshot([], (studentsList) => {
-      const currentStudent = studentsList.find(s => s.id === "dev-student-id") || studentsList[0];
+      const currentStudent = studentsList.find(s => s.id === studentId);
       if (currentStudent) {
         setStudent(currentStudent);
-
-        // Fetch roommates based on current weekly assignment
+        // ... (rest of the logic remains the same, but using currentStudent.id)
         assignmentsUnsub = weeklyRoomAssignmentService.onSnapshot([], (assignments) => {
           const myAssignment = assignments.find(a => 
             a.studentId === currentStudent.id && 
@@ -45,7 +46,6 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
           );
 
           if (myAssignment) {
-            // Find current room
             roomsUnsub = roomService.onSnapshot([], (roomsList) => {
               const currentRoom = roomsList.find(r => r.id === myAssignment.roomId);
               if (currentRoom) {
@@ -58,7 +58,6 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
                   }
                 });
 
-                // Find roommates in the same room for the same period
                 const roommateAssignments = assignments.filter(a => 
                   a.roomId === myAssignment.roomId && 
                   a.studentId !== currentStudent.id &&
@@ -80,13 +79,13 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
 
     // Load Latest Payment
     billsUnsub = studentPaymentService.onSnapshot([], (paymentsList) => {
-      const studentPayments = paymentsList.filter(p => p.studentId === "dev-student-id");
+      const studentPayments = paymentsList.filter(p => p.studentId === studentId);
       if (studentPayments.length > 0) {
-        // Sort by billingWeek descending
         const sorted = studentPayments.sort((a, b) => b.billingWeek.localeCompare(a.billingWeek));
         setLatestPayment(sorted[0]);
       }
     });
+    // ...
 
     // Set loading to false after a slight timeout to ensure snapshots register
     const timer = setTimeout(() => {
@@ -154,6 +153,12 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
               ID: {displayStudent.studentId} • Year {displayStudent.yearLevel} {displayStudent.classGroup} • Nursing Major
             </p>
           </div>
+          <button 
+            onClick={onChangeStudent}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-all cursor-pointer border border-white/10"
+          >
+            Change Student
+          </button>
           <p className="text-sm text-blue-100/60 max-w-2xl leading-relaxed">
             Access your institutional profile, dormitory assignments, and manage utility transactions through this centralized clinical education portal.
           </p>

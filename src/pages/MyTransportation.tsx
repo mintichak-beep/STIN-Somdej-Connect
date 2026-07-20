@@ -4,7 +4,7 @@ import { VanTrip, Van, Student } from "../types/app";
 import { Bus, MapPin, Clock, Calendar, Phone, User, Info, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
-export function MyTransportation() {
+export function MyTransportation({ studentId }: { studentId: string }) {
   const [trips, setTrips] = useState<VanTrip[]>([]);
   const [vans, setVans] = useState<Van[]>([]);
   const [student, setStudent] = useState<Student | null>(null);
@@ -16,9 +16,9 @@ export function MyTransportation() {
     let vansUnsub = () => {};
     let studentsUnsub = () => {};
 
-    // Load Student ("dev-student-id" as default for preview)
+    // Load Student
     studentsUnsub = studentService.onSnapshot([], (studentsList) => {
-      const currentStudent = studentsList.find(s => s.id === "dev-student-id") || studentsList[0];
+      const currentStudent = studentsList.find(s => s.id === studentId);
       if (currentStudent) {
         setStudent(currentStudent);
       }

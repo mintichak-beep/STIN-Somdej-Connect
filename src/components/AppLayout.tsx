@@ -100,8 +100,7 @@ export function AppLayout({
   ];
 
   const studentMenuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "profile", label: "My Profile", icon: User },
+    { id: "dashboard", label: "My Profile", icon: User },
     { id: "subjects", label: "My Subject", icon: BookOpen },
     { id: "rooms", label: "My Room", icon: Home },
     { id: "my-transportation", label: "My Transportation", icon: Bus },

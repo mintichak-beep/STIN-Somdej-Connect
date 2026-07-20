@@ -731,8 +731,8 @@ export function RoomManagement() {
           occupancyCount: students.filter(s => s.roomId === r.id).length
         }))}
         searchFields={["dormName", "building", "roomNumber"]}
-        emptyTitle="No Units Available"
-        emptyDescription="No housing units found. Click 'Add New Record' to create your first room assignment."
+        emptyTitle="No rooms available."
+        emptyDescription="No rooms available. Click 'Add Room' to create one."
         columns={[
           { 
             header: "Location", 

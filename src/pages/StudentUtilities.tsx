@@ -4,13 +4,11 @@ import { studentPaymentService, weeklyBillService, paymentSlipService, notificat
 import { StudentPayment, WeeklyBill, PaymentSlip, Room, Dormitory } from '../types/app';
 import { Upload, CheckCircle2, XCircle, Clock, AlertTriangle, FileText, Droplets, Zap } from 'lucide-react';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
-import { useAuth } from '../hooks/useAuth';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Modal } from '../components/Modal';
 
-export function StudentUtilities() {
-  const { user } = useAuth();
+export function StudentUtilities({ studentId }: { studentId: string }) {
   const [payments, setPayments] = useState<StudentPayment[]>([]);
   const [bills, setBills] = useState<WeeklyBill[]>([]);
   const [slips, setSlips] = useState<PaymentSlip[]>([]);
@@ -31,7 +29,6 @@ export function StudentUtilities() {
   };
 
   useEffect(() => {
-    if (!user) return;
     setLoading(true);
 
     let billsLoaded = false;
@@ -46,7 +43,7 @@ export function StudentUtilities() {
     };
 
     const unsubscribePayments = studentPaymentService.onSnapshot([], (data) => {
-      const studentPayments = data.filter(p => p.studentId === user.uid || p.studentId === 'dev-student-id');
+      const studentPayments = data.filter(p => p.studentId === studentId);
       setPayments(studentPayments);
       billsLoaded = true; // Use as flag
       checkLoading();
@@ -82,7 +79,7 @@ export function StudentUtilities() {
       unsubscribeRooms();
       unsubscribeDorms();
     };
-  }, [user]);
+  }, [studentId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
