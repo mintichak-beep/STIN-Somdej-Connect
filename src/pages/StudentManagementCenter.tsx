@@ -126,8 +126,8 @@ export const StudentManagementCenter = () => {
 
   const filteredStudents = students.filter(s => {
     const matchesSearch = 
-      s.studentId.toLowerCase().includes(search.toLowerCase()) ||
-      s.fullName.toLowerCase().includes(search.toLowerCase());
+      (s.studentId || '').toLowerCase().includes(search.toLowerCase()) ||
+      (s.fullName || '').toLowerCase().includes(search.toLowerCase());
     const matchesCourse = filterCourse === 'all' || s.courseId === filterCourse;
     const matchesGroup = filterGroup === 'all' || s.practiceGroupId === filterGroup;
     const matchesHospital = filterHospital === 'all' || s.hospitalId === filterHospital;

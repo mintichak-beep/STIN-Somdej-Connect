@@ -8,6 +8,21 @@ export interface Student {
   classGroup: string;
   phone: string;
   status: 'active' | 'inactive';
+  subjectId?: string;
+  roomId?: string;
+  notes?: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface Subject {
+  id: string;
+  subjectCode: string;
+  subjectName: string;
+  academicYear: string;
+  semester: string;
+  department: string;
+  status: 'active' | 'inactive';
   createdAt: any;
   updatedAt: any;
 }
@@ -45,15 +60,45 @@ export interface Room {
   roomNumber: string;
   capacity: number;
   currentOccupancy: number;
-  studentId?: string;
+  monthlyRent: number;
+  waterRate: number;
+  electricityRate: number;
+  status: 'active' | 'inactive';
   createdAt: any;
   updatedAt: any;
 }
 
 export interface Van {
   id: string;
+  vanNumber: string;
   plateNumber: string;
-  seats: number;
+  driverName: string;
+  driverPhone: string;
+  capacity: number;
+  status: 'active' | 'inactive' | 'maintenance';
+  notes?: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface Passenger {
+  personId: string;
+  fullName: string;
+  role: 'Student' | 'Teacher';
+}
+
+export interface VanTrip {
+  id: string;
+  tripDate: string;
+  departureTime: string;
+  returnTime: string;
+  destination: string;
+  subject: string;
+  vanId: string;
+  passengers: Passenger[];
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: any;
   updatedAt: any;
 }
@@ -74,17 +119,32 @@ export interface Allocation {
 export interface WeeklyBill {
   id: string;
   roomId: string;
-  studentId: string;
-  billingWeek: string;
+  billingWeek: string; // e.g., "2024-W12"
   startDate: any;
   endDate: any;
-  waterUsage: number;
+  occupantsCount: number;
+  waterUsage: number; // usually same as occupantsCount for this logic
   electricityUsage: number;
   waterCharge: number;
   electricityCharge: number;
-  otherCharges?: number;
+  otherCharges: number;
   totalAmount: number;
   dueDate: any;
+  paymentStatus: 'pending' | 'waiting_verification' | 'paid' | 'rejected';
+  prevElectricMeter: number;
+  currElectricMeter: number;
+  electricRate: number;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface StudentPayment {
+  id: string;
+  billId: string;
+  studentId: string;
+  roomId: string;
+  billingWeek: string;
+  individualAmount: number;
   paymentStatus: 'pending' | 'waiting_verification' | 'paid' | 'rejected';
   createdAt: any;
   updatedAt: any;
@@ -109,6 +169,55 @@ export interface Notification {
   message: string;
   type: 'bill' | 'payment' | 'approval' | 'rejection';
   isRead: boolean;
+  createdAt: any;
+}
+
+export interface TrainingSite {
+  id: string;
+  name: string;
+  hospitalType: string;
+  address: string;
+  province: string;
+  phone: string;
+  email: string;
+  contactPerson: string;
+  status: 'active' | 'inactive' | 'pending';
+  createdAt: any;
+}
+
+export interface TrainingGroup {
+  id: string;
+  name: string;
+  teacherId: string;
+  hospital: string;
+  studentIds: string[];
+  startDate: string;
+  endDate: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface PracticeAssignment {
+  id: string;
+  studentId: string;
+  courseId: string;
+  practiceGroupId: string;
+  trainingSiteId: string;
+  wardDepartment: string;
+  teacherId: string;
+  startDate: string;
+  endDate: string;
+  status: 'assigned' | 'active' | 'completed' | 'cancelled';
+  createdAt: any;
+}
+
+export interface Course {
+  id: string;
+  courseCode: string;
+  courseName: string;
+  academicYear: string;
+  semester: string;
+  status: 'active' | 'inactive';
   createdAt: any;
 }
 

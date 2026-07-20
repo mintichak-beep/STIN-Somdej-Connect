@@ -2,8 +2,8 @@ import { Bill, Payment } from '../types/db';
 import { FirestoreService } from './firestore.service';
 import { orderBy, where, QueryConstraint } from 'firebase/firestore';
 
-const billFS = new FirestoreService<Bill>('weeklyBills');
-const paymentFS = new FirestoreService<Payment>('paymentSlips');
+const billFS = new FirestoreService<Bill>('utilityBills');
+const paymentFS = new FirestoreService<Payment>('utilityPayments');
 
 export const paymentService = {
   subscribeBills: (callback: (bills: Bill[]) => void) => {

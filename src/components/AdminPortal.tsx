@@ -1218,7 +1218,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                                 required
                                 min="1"
                                 value={roomForm.capacity}
-                                onChange={(e) => setRoomForm({ ...roomForm, capacity: parseInt(e.target.value) })}
+                                onChange={(e) => setRoomForm({ ...roomForm, capacity: parseInt(e.target.value) || 0 })}
                                 className="w-full bg-gray-50 dark:bg-zinc-950 border p-2.5 rounded-xl text-sm dark:text-white"
                               />
                             </div>

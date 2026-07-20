@@ -10,7 +10,7 @@ export interface Student {
   studentId: string;
   firstName: string;
   lastName: string;
-  fullName: string;
+  fullName?: string;
   yearLevel: string;
   classGroup: string;
   phone: string;

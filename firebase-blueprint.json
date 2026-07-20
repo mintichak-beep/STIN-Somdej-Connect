@@ -1,147 +1,136 @@
 {
-  "collections": [
-    {
-      "name": "dormitories",
-      "fields": {
-        "dormitoryName": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+  "collections": {
+    "students": {
+      "studentId": "string",
+      "firstName": "string",
+      "lastName": "string",
+      "fullName": "string",
+      "yearLevel": "string",
+      "classGroup": "string",
+      "phone": "string",
+      "status": "string",
+      "subjectId": "string?",
+      "roomId": "string?",
+      "notes": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "rooms",
-      "fields": {
-        "roomNumber": "string",
-        "building": "string",
-        "floor": "string",
-        "gender": "string",
-        "capacity": "number",
-        "currentOccupancy": "number",
-        "dormitoryId": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "teachers": {
+      "name": "string",
+      "department": "string",
+      "phone": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "students",
-      "fields": {
-        "studentId": "string",
-        "firstName": "string",
-        "lastName": "string",
-        "fullName": "string",
-        "yearLevel": "string",
-        "classGroup": "string",
-        "phone": "string",
-        "roomNumber": "string",
-        "status": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "subjects": {
+      "subjectCode": "string",
+      "subjectName": "string",
+      "academicYear": "string",
+      "semester": "string",
+      "department": "string",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "teachers",
-      "fields": {
-        "name": "string",
-        "department": "string",
-        "phone": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "hospitals": {
+      "name": "string",
+      "quota": "number",
+      "address": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "hospitals",
-      "fields": {
-        "name": "string",
-        "quota": "number",
-        "address": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "dormitories": {
+      "dormitoryName": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "vans",
-      "fields": {
-        "plateNumber": "string",
-        "seats": "number",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "rooms": {
+      "dormitoryId": "string",
+      "building": "string",
+      "floor": "string",
+      "roomNumber": "string",
+      "capacity": "number",
+      "currentOccupancy": "number",
+      "monthlyRent": "number",
+      "waterRate": "number",
+      "electricityRate": "number",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "allocations",
-      "fields": {
-        "studentId": "string",
-        "hospitalId": "string",
-        "teacherId": "string",
-        "roomId": "string",
-        "vanId": "string",
-        "startDate": "timestamp",
-        "endDate": "timestamp",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "vans": {
+      "vanNumber": "string",
+      "plateNumber": "string",
+      "driverName": "string",
+      "driverPhone": "string",
+      "capacity": "number",
+      "status": "string",
+      "notes": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "weeklyBills",
-      "fields": {
-        "roomId": "string",
-        "studentId": "string",
-        "billingWeek": "string",
-        "startDate": "timestamp",
-        "endDate": "timestamp",
-        "waterUsage": "number",
-        "electricityUsage": "number",
-        "waterCharge": "number",
-        "electricityCharge": "number",
-        "otherCharges": "number",
-        "totalAmount": "number",
-        "dueDate": "timestamp",
-        "paymentStatus": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "vanTrips": {
+      "tripDate": "string",
+      "departureTime": "string",
+      "returnTime": "string",
+      "destination": "string",
+      "subject": "string",
+      "vanId": "string",
+      "passengers": "array",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "paymentSlips",
-      "fields": {
-        "billId": "string",
-        "fileUrl": "string",
-        "uploadedAt": "timestamp",
-        "verificationStatus": "string",
-        "verifiedAt": "timestamp",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "allocations": {
+      "studentId": "string",
+      "hospitalId": "string",
+      "teacherId": "string",
+      "roomId": "string",
+      "vanId": "string",
+      "startDate": "timestamp",
+      "endDate": "timestamp",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "announcements",
-      "fields": {
-        "title": "string",
-        "content": "string",
-        "category": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "weeklyBills": {
+      "roomId": "string",
+      "studentId": "string",
+      "billingWeek": "string",
+      "startDate": "timestamp",
+      "endDate": "timestamp",
+      "waterUsage": "number",
+      "electricityUsage": "number",
+      "waterCharge": "number",
+      "electricityCharge": "number",
+      "otherCharges": "number?",
+      "totalAmount": "number",
+      "dueDate": "timestamp",
+      "paymentStatus": "string",
+      "prevWaterMeter": "number?",
+      "currWaterMeter": "number?",
+      "waterRate": "number?",
+      "prevElectricMeter": "number?",
+      "currElectricMeter": "number?",
+      "electricRate": "number?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "issues",
-      "fields": {
-        "studentId": "string",
-        "fullName": "string",
-        "roomNumber": "string",
-        "title": "string",
-        "description": "string",
-        "status": "string",
-        "createdAt": "timestamp",
-        "updatedAt": "timestamp"
-      }
+    "paymentSlips": {
+      "billId": "string",
+      "fileUrl": "string",
+      "uploadedAt": "timestamp",
+      "verificationStatus": "string",
+      "verifiedAt": "timestamp?",
+      "adminRemark": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     },
-    {
-      "name": "system_config",
-      "fields": {
-        "adminPin": "string",
-        "updatedAt": "timestamp"
-      }
+    "notifications": {
+      "userId": "string",
+      "title": "string",
+      "message": "string",
+      "type": "string",
+      "isRead": "boolean",
+      "createdAt": "timestamp"
     }
-  ]
+  }
 }

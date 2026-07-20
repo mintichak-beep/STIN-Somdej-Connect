@@ -1,5 +1,5 @@
 import { Modal } from "./Modal";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Info, AlertCircle } from "lucide-react";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -18,33 +18,42 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmLabel = "ยืนยัน",
-  cancelLabel = "ยกเลิก",
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   variant = "danger"
 }: ConfirmDialogProps) {
-  const variantStyles = {
-    danger: "bg-red-600 hover:bg-red-700 shadow-red-100",
-    warning: "bg-amber-500 hover:bg-amber-600 shadow-amber-100",
-    info: "bg-red-600 hover:bg-red-700 shadow-red-100"
+  const iconMap = {
+    danger: <AlertCircle className="h-7 w-7" />,
+    warning: <AlertTriangle className="h-7 w-7" />,
+    info: <Info className="h-7 w-7" />
+  };
+
+  const variantColorMap = {
+    danger: "text-medical-red bg-medical-red/10",
+    warning: "text-medical-orange bg-medical-orange/10",
+    info: "text-medical-blue bg-medical-blue/10"
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <div className="space-y-6">
-        <div className="flex items-start gap-4">
-          <div className={`p-3 rounded-2xl ${variant === 'danger' ? 'bg-red-50 text-red-600' : variant === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>
-            <AlertTriangle className="h-6 w-6" />
+      <div className="space-y-8">
+        <div className="flex items-start gap-5">
+          <div className={`p-4 rounded-2xl shrink-0 ${variantColorMap[variant]}`}>
+            {iconMap[variant]}
           </div>
-          <div>
-            <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          <div className="space-y-1">
+            <p className="text-base font-bold text-slate-800 leading-snug">
               {message}
+            </p>
+            <p className="text-sm font-medium text-slate-400">
+              This action cannot be undone. Please confirm to proceed.
             </p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 pt-2">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-sm font-black text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-all"
+            className="md-button-text text-slate-500 hover:text-slate-700"
           >
             {cancelLabel}
           </button>
@@ -53,7 +62,7 @@ export function ConfirmDialog({
               onConfirm();
               onClose();
             }}
-            className={`px-6 py-2.5 text-sm font-black text-white rounded-xl transition-all shadow-sm ${variantStyles[variant]}`}
+            className={`md-button-filled ${variant === 'danger' ? 'bg-medical-red' : variant === 'warning' ? 'bg-medical-orange' : 'bg-medical-blue'}`}
           >
             {confirmLabel}
           </button>

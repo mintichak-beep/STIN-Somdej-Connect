@@ -1,56 +1,53 @@
-import { CheckCircle2, AlertCircle, Archive } from 'lucide-react';
+import React from 'react';
+
+type StatusType = 
+  | 'active' | 'inactive' 
+  | 'available' | 'occupied' 
+  | 'pending' | 'paid' | 'unpaid' 
+  | 'verified' | 'pending_verification' | 'waiting_verification'
+  | 'rejected';
 
 interface StatusChipProps {
-  id?: string;
-  status: 'active' | 'inactive' | 'archived' | string;
+  status: StatusType | string;
+  label?: string;
+  variant?: 'success' | 'warning' | 'error' | 'info' | 'danger';
 }
 
-export function StatusChip({ id, status }: StatusChipProps) {
-  const normalized = status.toLowerCase();
+export function StatusChip({ status, label, variant }: StatusChipProps) {
+  const normalizedStatus = (status || '').toLowerCase();
+  
+  const variantMap: Record<string, string> = {
+    success: 'active',
+    warning: 'occupied',
+    error: 'rejected',
+    danger: 'rejected',
+    info: 'verified'
+  };
 
-  if (normalized === 'active') {
-    return (
-      <span 
-        id={id} 
-        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900/40 dark:text-emerald-300"
-      >
-        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-        Active
-      </span>
-    );
-  }
+  const lookupStatus = variant ? variantMap[variant] : normalizedStatus;
 
-  if (normalized === 'inactive') {
-    return (
-      <span 
-        id={id} 
-        className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-900/40 dark:text-amber-300"
-      >
-        <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-        Inactive
-      </span>
-    );
-  }
+  const statusConfig: Record<string, { bg: string, text: string, dot: string, label: string }> = {
+    active: { bg: 'bg-medical-green/10', text: 'text-medical-green', dot: 'bg-medical-green', label: 'Active' },
+    inactive: { bg: 'bg-medical-red/10', text: 'text-medical-red', dot: 'bg-medical-red', label: 'Inactive' },
+    available: { bg: 'bg-medical-teal/10', text: 'text-medical-teal', dot: 'bg-medical-teal', label: 'Available' },
+    occupied: { bg: 'bg-medical-orange/10', text: 'text-medical-orange', dot: 'bg-medical-orange', label: 'Occupied' },
+    pending: { bg: 'bg-medical-orange/10', text: 'text-medical-orange', dot: 'bg-medical-orange', label: 'Pending' },
+    paid: { bg: 'bg-medical-green/10', text: 'text-medical-green', dot: 'bg-medical-green', label: 'Paid' },
+    unpaid: { bg: 'bg-medical-red/10', text: 'text-medical-red', dot: 'bg-medical-red', label: 'Unpaid' },
+    verified: { bg: 'bg-medical-blue/10', text: 'text-medical-blue', dot: 'bg-medical-blue', label: 'Verified' },
+    waiting_verification: { bg: 'bg-medical-blue/10', text: 'text-medical-blue', dot: 'bg-medical-blue', label: 'Pending Verification' },
+    pending_verification: { bg: 'bg-medical-blue/10', text: 'text-medical-blue', dot: 'bg-medical-blue', label: 'Pending Verification' },
+    rejected: { bg: 'bg-medical-red/10', text: 'text-medical-red', dot: 'bg-medical-red', label: 'Rejected' },
+  };
 
-  if (normalized === 'archived') {
-    return (
-      <span 
-        id={id} 
-        className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 border border-slate-200 dark:bg-zinc-800/60 dark:border-zinc-700/60 dark:text-zinc-300"
-      >
-        <Archive className="h-3.5 w-3.5 text-slate-500 dark:text-zinc-400" />
-        Archived
-      </span>
-    );
-  }
+  const config = statusConfig[lookupStatus] || { bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-400', label: status };
 
-  // Fallback
   return (
-    <span 
-      id={id} 
-      className="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-1 text-xs font-semibold text-gray-600 border border-gray-100 dark:bg-zinc-800/30 dark:border-zinc-700/40 dark:text-zinc-400"
-    >
-      {status}
-    </span>
+    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-current/10 ${config.bg} ${config.text}`}>
+      <div className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
+      <span className="text-[10px] font-extrabold uppercase tracking-widest leading-none">
+        {label || config.label}
+      </span>
+    </div>
   );
 }

@@ -15,27 +15,28 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         <>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black"
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden"
+            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] w-full max-w-lg bg-surface rounded-[28px] shadow-2xl overflow-hidden border border-outline"
           >
-            <div className="flex items-center justify-between p-6 border-b border-slate-50 dark:border-zinc-800">
-              <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-50">{title}</h3>
+            <div className="flex items-center justify-between px-8 py-6 border-b border-outline bg-surface-variant/20">
+              <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">{title}</h3>
               <button
                 onClick={onClose}
-                className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all"
+                className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-8 max-h-[80vh] overflow-y-auto custom-scrollbar">
               {children}
             </div>
           </motion.div>

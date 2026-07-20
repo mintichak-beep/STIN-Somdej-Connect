@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, User, Phone, BookOpen, UserPlus } from "lucide-react";
 import { teacherService } from "../services/app.service";
 import { Teacher } from "../types/app";
 
@@ -59,7 +59,7 @@ export function TeacherManagement() {
       await fetchData();
     } catch (err: any) {
       console.error("Save error:", err);
-      setError(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      setError(err.message || "An error occurred while saving the instructor record.");
     } finally {
       setIsSaving(false);
     }
@@ -74,17 +74,18 @@ export function TeacherManagement() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <DataTable
-        title="จัดการข้อมูลอาจารย์"
+        title="Instructor Directory"
+        description="Manage nursing faculty profiles, departmental affiliations, and professional contact details."
         data={teachers}
         searchFields={["name", "department"]}
         columns={[
           { 
-            header: "ชื่อ-นามสกุล", 
+            header: "Faculty Member", 
             accessor: (teacher) => (
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 overflow-hidden flex items-center justify-center">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-outline shadow-sm">
                   <img 
                     src="/src/assets/images/nursing_instructor_icon_1784479023431.jpg" 
                     alt={teacher.name}
@@ -92,12 +93,32 @@ export function TeacherManagement() {
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <span>{teacher.name}</span>
+                <div className="space-y-0.5">
+                  <span className="text-sm font-extrabold text-slate-900 block">{teacher.name}</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Nursing Faculty</span>
+                </div>
               </div>
-            )
+            ),
+            sortable: true
           },
-          { header: "ภาควิชา", accessor: "department" },
-          { header: "เบอร์โทรศัพท์", accessor: "phone" },
+          { 
+            header: "Department", 
+            accessor: (teacher) => (
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-variant/50 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-tight">
+                {teacher.department}
+              </div>
+            ),
+            sortable: true 
+          },
+          { 
+            header: "Contact Details", 
+            accessor: (teacher) => (
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <Phone className="h-4 w-4 text-primary" />
+                <span className="text-xs font-bold font-mono tracking-wider">{teacher.phone}</span>
+              </div>
+            ) 
+          },
         ]}
         onAdd={handleOpenAdd}
         onEdit={handleOpenEdit}
@@ -110,56 +131,85 @@ export function TeacherManagement() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={selectedTeacher ? "แก้ไขข้อมูลอาจารย์" : "เพิ่มข้อมูลอาจารย์"}
+        title={selectedTeacher ? "Update Instructor Profile" : "Register New Instructor"}
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-8">
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
+            <div className="p-5 bg-medical-red/5 text-medical-red text-sm font-bold rounded-2xl border border-medical-red/20 flex items-center gap-4 animate-in fade-in slide-in-from-top-1">
+              <AlertCircle className="h-6 w-6 shrink-0" />
               {error}
             </div>
           )}
-          <div className="space-y-1.5">
-            <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">ชื่อ-นามสกุล</label>
-            <input
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
-            />
+          
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="md-label flex items-center gap-2">
+                <User className="h-3 w-3" />
+                Full Name
+              </label>
+              <input
+                required
+                placeholder="e.g. Dr. Jane Smith"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="md-input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="md-label flex items-center gap-2">
+                <BookOpen className="h-3 w-3" />
+                Department
+              </label>
+              <input
+                required
+                placeholder="e.g. Fundamental Nursing"
+                value={formData.department}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                className="md-input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="md-label flex items-center gap-2">
+                <Phone className="h-3 w-3" />
+                Contact Number
+              </label>
+              <input
+                required
+                placeholder="e.g. 0812345678"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="md-input"
+              />
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">ภาควิชา</label>
-            <input
-              required
-              value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-black text-zinc-500 uppercase tracking-wider">เบอร์โทรศัพท์</label>
-            <input
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-red-600/20 transition-all"
-            />
-          </div>
-          <div className="flex justify-end gap-3 mt-6">
+
+          <div className="flex justify-end gap-3 mt-10 pt-6 border-t border-outline">
             <button 
               type="button" 
               onClick={() => setIsModalOpen(false)} 
-              className="px-6 py-2.5 text-sm font-black text-zinc-500 disabled:opacity-50"
+              className="md-button-text py-3.5 px-8"
               disabled={isSaving}
             >
-              ยกเลิก
+              Cancel
             </button>
             <button 
               type="submit" 
-              className="px-6 py-2.5 text-sm font-black text-white bg-red-600 rounded-xl shadow-sm shadow-red-100 disabled:opacity-50"
+              className="md-button-filled py-3.5 px-10 flex items-center gap-3"
               disabled={isSaving}
             >
-              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+              {isSaving ? (
+                <>
+                  <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-5 w-5" />
+                  <span>{selectedTeacher ? "Update Faculty Record" : "Add Faculty Member"}</span>
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -169,8 +219,8 @@ export function TeacherManagement() {
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
-        title="ยืนยันการลบข้อมูล"
-        message={`คุณต้องการลบข้อมูลอาจารย์ ${selectedTeacher?.name} ใช่หรือไม่?`}
+        title="Confirm Deletion"
+        message={`Are you sure you want to permanently delete faculty member ${selectedTeacher?.name}? This action cannot be undone.`}
       />
     </div>
   );

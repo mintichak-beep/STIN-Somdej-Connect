@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-const mockDB = {} as any;
+const mockDB = {
+  getHospitals: () => [],
+  getVehicles: () => [],
+  getDrivers: () => [],
+  getBuildings: () => [],
+  getRooms: () => [],
+  getStudents: () => [],
+  getTransportSchedules: () => [],
+} as any;
 import {
   Users,
   MapPin,

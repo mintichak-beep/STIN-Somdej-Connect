@@ -7,22 +7,29 @@ import {
   Trash2, 
   Plus, 
   Download, 
-  Upload 
+  Upload,
+  User,
+  Filter,
+  MoreVertical,
+  ArrowUpDown
 } from "lucide-react";
 
 interface Column<T> {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
   className?: string;
+  sortable?: boolean;
 }
 
 interface DataTableProps<T> {
   title: string;
+  description?: string;
   data: T[];
   columns: Column<T>[];
   onAdd?: () => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onView?: (item: T) => void;
   onImport?: () => void;
   onExport?: () => void;
   searchPlaceholder?: string;
@@ -31,14 +38,16 @@ interface DataTableProps<T> {
 
 export function DataTable<T extends { id: string }>({
   title,
+  description = "Manage and track institutional records and medical data.",
   data,
   columns,
   onAdd,
   onEdit,
   onDelete,
+  onView,
   onImport,
   onExport,
-  searchPlaceholder = "ค้นหา...",
+  searchPlaceholder = "Search records...",
   searchFields,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,15 +66,18 @@ export function DataTable<T extends { id: string }>({
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xs border border-slate-100 dark:border-zinc-800 overflow-hidden">
-      <div className="p-6 border-b border-slate-50 dark:border-zinc-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-50">{title}</h2>
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="md-card overflow-hidden flex flex-col bg-surface border-outline">
+      <div className="p-8 border-b border-outline bg-surface">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+          <div>
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{title}</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">{description}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
             {onImport && (
               <button
                 onClick={onImport}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all"
+                className="md-button-text flex items-center gap-2 border border-outline hover:bg-surface-variant/50"
               >
                 <Upload className="h-4 w-4" />
                 <span>Import</span>
@@ -74,7 +86,7 @@ export function DataTable<T extends { id: string }>({
             {onExport && (
               <button
                 onClick={onExport}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all"
+                className="md-button-text flex items-center gap-2 border border-outline hover:bg-surface-variant/50"
               >
                 <Download className="h-4 w-4" />
                 <span>Export</span>
@@ -83,74 +95,97 @@ export function DataTable<T extends { id: string }>({
             {onAdd && (
               <button
                 onClick={onAdd}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-black text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm shadow-red-200 dark:shadow-none"
+                className="md-button-filled flex items-center gap-2"
               >
-                <Plus className="h-4 w-4" />
-                <span>เพิ่มข้อมูล</span>
+                <Plus className="h-5 w-5" />
+                <span>Add New Record</span>
               </button>
             )}
           </div>
         </div>
 
-        <div className="mt-6 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-          <input
-            type="text"
-            placeholder={searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm font-bold text-zinc-900 dark:text-zinc-50 focus:ring-2 focus:ring-red-600/20 transition-all"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-11 pr-4 py-3.5 bg-surface-variant/30 border border-outline rounded-2xl text-sm font-medium text-slate-800 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+            />
+          </div>
+          <button className="md-button-outlined flex items-center gap-2 py-3 px-5 border-outline text-slate-600 hover:text-primary">
+            <Filter className="h-4 w-4" />
+            <span>Filters</span>
+          </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/50 dark:bg-zinc-800/50">
+      <div className="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar">
+        <table className="w-full text-left border-collapse min-w-[800px]">
+          <thead className="sticky top-0 z-20 bg-surface shadow-sm">
+            <tr>
               {columns.map((col, idx) => (
-                <th key={idx} className={`px-6 py-4 text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ${col.className}`}>
-                  {col.header}
+                <th key={idx} className={`px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline ${col.className}`}>
+                  <div className="flex items-center gap-2">
+                    {col.header}
+                    {col.sortable && <ArrowUpDown className="h-3 w-3 cursor-pointer hover:text-primary transition-colors" />}
+                  </div>
                 </th>
               ))}
-              {(onEdit || onDelete) && (
-                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest text-right">
+              {(onEdit || onDelete || onView) && (
+                <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right border-b border-outline">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50 dark:divide-zinc-800">
+          <tbody className="divide-y divide-outline">
             {paginatedData.length > 0 ? (
               paginatedData.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/30 dark:hover:bg-zinc-800/30 transition-colors">
+                <tr key={item.id} className="hover:bg-primary-container/20 transition-colors group">
                   {columns.map((col, idx) => (
-                    <td key={idx} className={`px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300 ${col.className}`}>
+                    <td key={idx} className={`px-8 py-5 text-sm font-bold text-slate-700 ${col.className}`}>
                       {typeof col.accessor === 'function' ? col.accessor(item) : (item[col.accessor] as any)}
                     </td>
                   ))}
-                  {(onEdit || onDelete) && (
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                  {(onEdit || onDelete || onView) && (
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {onView && (
+                          <button
+                            onClick={() => onView(item)}
+                            className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                            title="View Profile"
+                          >
+                            <User className="h-5 w-5" />
+                          </button>
+                        )}
                         {onEdit && (
                           <button
                             onClick={() => onEdit(item)}
-                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                            className="p-2.5 text-slate-400 hover:text-medical-teal hover:bg-medical-teal/10 rounded-xl transition-all"
+                            title="Edit Record"
                           >
-                            <Edit2 className="h-4 w-4" />
+                            <Edit2 className="h-5 w-5" />
                           </button>
                         )}
                         {onDelete && (
                           <button
                             onClick={() => onDelete(item)}
-                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-all"
+                            className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                            title="Delete Record"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         )}
+                        <button className="p-2.5 text-slate-300 hover:text-slate-600">
+                          <MoreVertical className="h-5 w-5" />
+                        </button>
                       </div>
                     </td>
                   )}
@@ -158,8 +193,12 @@ export function DataTable<T extends { id: string }>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length + 1} className="px-6 py-12 text-center text-zinc-400 font-bold">
-                  ไม่พบข้อมูล
+                <td colSpan={columns.length + 1} className="px-8 py-32 text-center">
+                  <div className="flex flex-col items-center justify-center opacity-30">
+                    <Search className="h-16 w-16 mb-4 text-slate-300" />
+                    <p className="text-lg font-bold text-slate-400 uppercase tracking-widest">No matching records found</p>
+                    <p className="text-sm font-medium text-slate-300 mt-2 italic">Try adjusting your filters or search keywords</p>
+                  </div>
                 </td>
               </tr>
             )}
@@ -167,32 +206,51 @@ export function DataTable<T extends { id: string }>({
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-slate-50 dark:border-zinc-800 flex items-center justify-between">
-          <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-            แสดง {startIndex + 1} ถึง {Math.min(startIndex + itemsPerPage, filteredData.length)} จาก {filteredData.length} รายการ
+      <div className="px-8 py-6 border-t border-outline flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-variant/10">
+        <div className="flex items-center gap-4">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Showing <span className="text-primary">{startIndex + 1}</span> to <span className="text-primary">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> of <span className="text-primary">{filteredData.length}</span> entries
           </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800 text-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="text-xs font-black text-zinc-900 dark:text-zinc-50 px-2">
-              หน้า {currentPage} จาก {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800 text-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
         </div>
-      )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="md-button-outlined py-2 px-4 flex items-center gap-2 text-xs border-outline disabled:border-slate-100"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Previous</span>
+          </button>
+          
+          <div className="flex items-center gap-1">
+            {[...Array(totalPages)].map((_, i) => {
+              const pageNum = i + 1;
+              const isCurrent = pageNum === currentPage;
+              if (totalPages > 5 && Math.abs(pageNum - currentPage) > 1 && pageNum !== 1 && pageNum !== totalPages) return null;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`h-9 w-9 rounded-xl text-xs font-bold transition-all ${
+                    isCurrent ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-400 hover:bg-primary-container hover:text-primary"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="md-button-outlined py-2 px-4 flex items-center gap-2 text-xs border-outline disabled:border-slate-100"
+          >
+            <span>Next</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

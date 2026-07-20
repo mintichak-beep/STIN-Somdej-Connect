@@ -29,7 +29,7 @@ export function UserFeedbackPage() {
         <div className="space-y-4">
             <div>
                 <label className="block text-sm">Rating (1-5)</label>
-                <input type="number" min="1" max="5" value={rating} onChange={(e) => setRating(parseInt(e.target.value))} className="border rounded px-2 py-1 w-full" />
+                <input type="number" min="1" max="5" value={rating} onChange={(e) => setRating(parseInt(e.target.value) || 0)} className="border rounded px-2 py-1 w-full" />
             </div>
             <div>
                 <label className="block text-sm">Comment</label>

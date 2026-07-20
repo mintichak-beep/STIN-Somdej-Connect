@@ -1,5 +1,5 @@
 import { FirestoreService } from "./firestore.service";
-import { Student, Teacher, Hospital, Room, Van, Allocation, Dormitory, WeeklyBill, PaymentSlip, Notification } from "../types/app";
+import { Student, Teacher, Hospital, Room, Van, VanTrip, Allocation, Dormitory, WeeklyBill, StudentPayment, PaymentSlip, Notification, Subject, TrainingGroup, TrainingSite, PracticeAssignment, Course } from "../types/app";
 
 export const studentService = new FirestoreService<Student>("students");
 export const teacherService = new FirestoreService<Teacher>("teachers");
@@ -7,7 +7,14 @@ export const hospitalService = new FirestoreService<Hospital>("hospitals");
 export const dormitoryService = new FirestoreService<Dormitory>("dormitories");
 export const roomService = new FirestoreService<Room>("rooms");
 export const vanService = new FirestoreService<Van>("vans");
+export const vanTripService = new FirestoreService<VanTrip>("vanTrips");
 export const allocationService = new FirestoreService<Allocation>("allocations");
-export const weeklyBillService = new FirestoreService<WeeklyBill>("weeklyBills");
-export const paymentSlipService = new FirestoreService<PaymentSlip>("paymentSlips");
+export const weeklyBillService = new FirestoreService<WeeklyBill>("utilityBills");
+export const studentPaymentService = new FirestoreService<StudentPayment>("studentPayments");
+export const paymentSlipService = new FirestoreService<PaymentSlip>("utilityPayments");
 export const notificationService = new FirestoreService<Notification>("notifications");
+export const subjectService = new FirestoreService<Subject>("subjects");
+export const trainingGroupService = new FirestoreService<TrainingGroup>("trainingGroups");
+export const trainingSiteService = new FirestoreService<TrainingSite>("trainingSites");
+export const practiceAssignmentService = new FirestoreService<PracticeAssignment>("practiceAssignments");
+export const courseService = new FirestoreService<Course>("courses");

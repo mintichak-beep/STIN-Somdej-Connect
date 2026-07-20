@@ -64,7 +64,12 @@ export function DashboardHome() {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
-    <AppLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+    <AppLayout 
+      activeTab={activeTab} 
+      setActiveTab={setActiveTab} 
+      role={isTeacher ? "Teacher" : "Student"} 
+      onSwitchRole={() => {}}
+    >
       {activeTab === "dashboard" ? (
         isTeacher ? (
           <TeacherOperationDashboard />

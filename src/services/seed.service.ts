@@ -254,7 +254,7 @@ export async function seedDatabaseIfEmpty() {
     ];
 
     for (const bill of bills) {
-      await setDoc(doc(db, "weeklyBills", bill.id), bill);
+      await setDoc(doc(db, "utilityBills", bill.id), bill);
     }
 
     // 9. Seed PaymentSlip
@@ -272,7 +272,7 @@ export async function seedDatabaseIfEmpty() {
     ];
 
     for (const slip of slips) {
-      await setDoc(doc(db, "paymentSlips", slip.id), slip);
+      await setDoc(doc(db, "utilityPayments", slip.id), slip);
     }
 
     // 10. Seed Notifications

@@ -319,6 +319,7 @@ export interface ClinicalWardSchedule {
 }
 
 export interface Bill {
+  id?: string;
   billId: string;
   roomId: string;
   tenantId: string; // studentId
@@ -345,6 +346,7 @@ export interface Bill {
 }
 
 export interface Payment {
+  id?: string;
   paymentId: string;
   billId: string;
   roomId: string;

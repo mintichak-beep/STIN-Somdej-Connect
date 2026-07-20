@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   LayoutDashboard,
   Users,
-  MapPin,
-  Bed,
+  Home,
   Bus,
   Calendar,
   BarChart3,
@@ -14,12 +13,19 @@ import {
   ChevronRight,
   UserCheck,
   ClipboardList,
-  Sun,
-  Moon,
   Droplets,
-  Home,
   Bell,
-  LogOut
+  LogOut,
+  BookOpen,
+  FileText,
+  User,
+  CreditCard,
+  Megaphone,
+  ChevronLeft,
+  Search,
+  MessageSquare,
+  Building2,
+  Clock
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { notificationService } from "../services/app.service";
@@ -31,62 +37,81 @@ interface AppLayoutProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   children: React.ReactNode;
+  role: "Teacher" | "Student";
+  onSwitchRole: () => void;
 }
 
 export function AppLayout({
   activeTab,
   setActiveTab,
   children,
+  role,
+  onSwitchRole,
 }: AppLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const user = authUser || (role === "Teacher" ? {
+    uid: "dev-teacher-id",
+    email: "coordinator.admin@stin.ac.th",
+    displayName: "อาจารย์ ผู้ประสานงาน (Teacher Admin)",
+    role: "Teacher",
+    status: "active",
+    photoURL: "/src/assets/images/nursing_instructor_icon_1784479023431.jpg",
+    createdAt: new Date().toISOString()
+  } : {
+    uid: "dev-student-id",
+    email: "mintra.r@stin.ac.th",
+    displayName: "มินทรา รักษ์ดี (Student)",
+    role: "Nursing Student",
+    status: "active",
+    createdAt: new Date().toISOString()
+  });
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains("dark"),
-  );
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [isDark]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
       if (user) {
         const data = await notificationService.getAll();
-        setNotifications(data.filter(n => n.userId === user.uid || (user.role === 'Teacher' && n.userId === 'admin')));
+        setNotifications(data.filter(n => n.userId === user.uid || (role === 'Teacher' && n.userId === 'admin')));
       }
     };
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, role]);
 
-  const allMenuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ['Teacher', 'Nursing Student'] },
-    { id: "students", label: "นักศึกษา", icon: Users, roles: ['Teacher'] },
-    { id: "teachers", label: "อาจารย์", icon: UserCheck, roles: ['Teacher'] },
-    { id: "hospitals", label: "แหล่งฝึก", icon: MapPin, roles: ['Teacher'] },
-    { id: "rooms", label: "หอพักและห้องพัก", icon: Home, roles: ['Teacher'] },
-    { id: "utility-billing", label: "ค่าน้ำ-ค่าไฟรายสัปดาห์", icon: Droplets, roles: ['Teacher'] },
-    { id: "student-utilities", label: "บิลค่าน้ำ-ค่าไฟของฉัน", icon: Droplets, roles: ['Nursing Student'] },
-    { id: "vans", label: "รถตู้", icon: Bus, roles: ['Teacher'] },
-    { id: "allocations", label: "จัดสรรฝึกงาน", icon: Calendar, roles: ['Teacher', 'Nursing Student'] },
-    { id: "reports", label: "รายงาน", icon: BarChart3, roles: ['Teacher'] },
-    { id: "settings", label: "ตั้งค่า", icon: Settings, roles: ['Teacher', 'Nursing Student'] },
+  const adminMenuItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "students", label: "Students", icon: Users },
+    { id: "teachers", label: "Teachers", icon: UserCheck },
+    { id: "subjects", label: "Subjects", icon: BookOpen },
+    { id: "rooms", label: "Rooms", icon: Home },
+    { id: "van-trips", label: "Weekly Room Assignment", icon: Calendar },
+    { id: "vans", label: "Van Management", icon: Bus },
+    { id: "utility-billing", label: "Utility Bills", icon: Droplets },
+    { id: "payment-verification", label: "Payments", icon: ClipboardList },
+    { id: "reports", label: "Reports", icon: BarChart3 },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
-  const menuItems = allMenuItems.filter(item => item.roles.includes(user?.role || ''));
+  const studentMenuItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "profile", label: "My Profile", icon: User },
+    { id: "subjects", label: "My Subject", icon: BookOpen },
+    { id: "rooms", label: "My Room", icon: Home },
+    { id: "my-transportation", label: "My Transportation", icon: Bus },
+    { id: "student-utilities", label: "My Utility Bills", icon: Droplets },
+    { id: "payment-history", label: "Payment History", icon: Clock },
+    { id: "upload-slip", label: "Upload Payment Slip", icon: FileText },
+    { id: "announcements", label: "Announcements", icon: Megaphone },
+  ];
 
-  const activeItem = allMenuItems.find((item) => item.id === activeTab);
-  const breadcrumbPath = ["STIN Connect", activeItem?.label || "Overview"];
+  const menuItems = role === "Teacher" ? adminMenuItems : studentMenuItems;
 
+  const activeItem = menuItems.find((item) => item.id === activeTab);
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleMarkRead = async (id: string) => {
@@ -94,239 +119,239 @@ export function AppLayout({
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
 
-  const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-white dark:bg-zinc-950 border-r border-slate-100 dark:border-zinc-900 transition-colors">
-      <div className="flex h-16 items-center gap-3 border-b border-slate-50 dark:border-zinc-900 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 font-sans text-sm font-black text-white shadow-md shadow-red-200 dark:shadow-none">
-          ST
-        </div>
-        <div>
-          <h2 className="text-xs font-black tracking-wide text-zinc-900 dark:text-zinc-50 leading-tight">
-            STIN-Somdej Connect
-          </h2>
-          <p className="text-[10px] font-extrabold text-red-600 dark:text-red-500 uppercase tracking-wider">
-            {user?.role === 'Teacher' ? 'Management Portal' : 'Student Portal'}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex-1 space-y-1 overflow-y-auto p-4 scrollbar-thin">
-        <p className="px-3 pb-2 text-[9px] font-black tracking-widest text-zinc-400 dark:text-zinc-500 uppercase">
-          Main Menu
-        </p>
-        <div className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  isActive
-                    ? "bg-red-600 text-white shadow-xs font-black"
-                    : "text-zinc-500 hover:bg-slate-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-100"
-                }`}
-              >
-                <Icon
-                  className={`h-4.5 w-4.5 shrink-0 ${isActive ? "scale-110" : ""}`}
-                />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="p-4 border-t border-slate-50 dark:border-zinc-900/60 bg-slate-50/50 dark:bg-zinc-950/20">
-        <button 
-          onClick={() => logout()}
-          className="flex w-full items-center gap-3 px-3 py-2 text-xs font-black text-zinc-500 hover:text-red-600 transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>ออกจากระบบ</span>
-        </button>
-      </div>
-    </div>
-  );
+  const SidebarItem = ({ item }: { item: typeof menuItems[0] }) => {
+    const Icon = item.icon;
+    const isActive = activeTab === item.id;
+    return (
+      <button
+        onClick={() => {
+          setActiveTab(item.id);
+          setIsMobileMenuOpen(false);
+        }}
+        className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 relative group cursor-pointer ${
+          isActive
+            ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+            : "text-slate-500 hover:bg-primary-container hover:text-primary"
+        }`}
+      >
+        <Icon className={`h-5 w-5 shrink-0 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
+        <AnimatePresence mode="wait">
+          {!isSidebarCollapsed && (
+            <motion.span
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="truncate"
+            >
+              {item.label}
+            </motion.span>
+          )}
+        </AnimatePresence>
+        {isSidebarCollapsed && !isMobileMenuOpen && (
+          <div className="absolute left-16 px-3 py-1.5 bg-slate-900 text-white text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+            {item.label}
+          </div>
+        )}
+      </button>
+    );
+  };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50/60 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors duration-200">
-      <aside className="hidden w-64 md:block shrink-0">
-        <SidebarContent />
-      </aside>
+    <div className="flex h-screen w-screen bg-background overflow-hidden font-sans">
+      {/* Sidebar - Desktop */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isSidebarCollapsed ? 88 : 280 }}
+        className="hidden md:flex flex-col border-r border-outline bg-surface h-full z-40 transition-all duration-300 ease-in-out relative"
+      >
+        <div className="p-6 flex items-center justify-between mb-2">
+          <AnimatePresence mode="wait">
+            {!isSidebarCollapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-3 overflow-hidden"
+              >
+                <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 shrink-0">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-extrabold tracking-tight text-slate-900 leading-tight">STIN-Somdej Connect</h2>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Dormitory & Hospital</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="p-2 hover:bg-primary-container rounded-xl text-primary transition-colors cursor-pointer shrink-0"
+          >
+            {isSidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          </button>
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-4 space-y-1.5 custom-scrollbar pb-8">
+          {menuItems.map((item) => (
+            <SidebarItem key={item.id} item={item} />
+          ))}
+        </div>
+
+        <div className="p-4 border-t border-outline bg-surface-variant/30">
+          <button 
+            onClick={onSwitchRole}
+            className={`w-full flex items-center justify-center gap-2 rounded-2xl p-3 text-xs font-bold uppercase tracking-widest transition-all border border-primary/20 text-primary hover:bg-primary hover:text-white cursor-pointer ${isSidebarCollapsed ? 'px-0' : 'px-4'}`}
+          >
+            <LogOut className="h-4 w-4" />
+            {!isSidebarCollapsed && <span>Switch Role</span>}
+          </button>
+        </div>
+      </motion.aside>
+
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black md:hidden"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] md:hidden"
             />
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed inset-y-0 left-0 z-50 w-64 shadow-2xl md:hidden"
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-72 bg-surface z-[70] md:hidden flex flex-col shadow-2xl"
             >
-              <div className="absolute right-3 top-3 z-50">
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-lg bg-slate-100 dark:bg-zinc-900 p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                >
-                  <X className="h-5 w-5" />
+              <div className="p-6 flex items-center justify-between border-b border-outline">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white">
+                    <Building2 className="h-6 w-6" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">STIN-Somdej Connect</h2>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-full">
+                  <X className="h-6 w-6 text-slate-400" />
                 </button>
               </div>
-              <SidebarContent />
+              <div className="flex-1 overflow-y-auto p-4 space-y-1">
+                {menuItems.map((item) => (
+                  <SidebarItem key={item.id} item={item} />
+                ))}
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 px-4 md:px-6 transition-colors duration-200">
-          <div className="flex items-center gap-3">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top App Bar */}
+        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-surface border-b border-outline z-30 sticky top-0">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="rounded-xl border border-slate-100 p-2 text-zinc-500 hover:bg-slate-50 hover:text-zinc-800 dark:border-zinc-900 dark:hover:bg-zinc-900 md:hidden"
+              className="p-2 hover:bg-slate-100 rounded-xl text-slate-500 md:hidden cursor-pointer"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
             </button>
-
-            <nav className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-zinc-400 dark:text-zinc-500">
-              {breadcrumbPath.map((crumb, idx) => (
-                <div key={idx} className="flex items-center gap-1.5">
-                  {idx > 0 && (
-                    <ChevronRight className="h-3 w-3 text-zinc-300 dark:text-zinc-700" />
-                  )}
-                  <span
-                    className={
-                      idx === breadcrumbPath.length - 1
-                        ? "text-zinc-700 dark:text-zinc-300 font-bold"
-                        : ""
-                    }
-                  >
-                    {crumb}
-                  </span>
-                </div>
-              ))}
-            </nav>
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-slate-900">{activeItem?.label || "Overview"}</h1>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface-variant rounded-full text-[10px] font-extrabold text-slate-500 uppercase tracking-widest border border-outline">
+                Dormitory Management System
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="rounded-xl border border-slate-100 dark:border-zinc-900 p-2 text-zinc-400 transition-colors hover:bg-slate-50 hover:text-zinc-600 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200 cursor-pointer"
-              >
-                <Bell className="h-4.5 w-4.5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white ring-2 ring-white dark:ring-zinc-950">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              <AnimatePresence>
-                {showNotifications && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-slate-100 dark:border-zinc-800 z-50 overflow-hidden"
-                  >
-                    <div className="p-4 border-b border-slate-50 dark:border-zinc-800 flex justify-between items-center">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white">แจ้งเตือน</h4>
-                      <button onClick={() => setShowNotifications(false)}><X className="h-4 w-4 text-zinc-400" /></button>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="p-8 text-center text-xs font-bold text-zinc-400">ไม่มีการแจ้งเตือน</div>
-                      ) : (
-                        notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(n => (
-                          <div 
-                            key={n.id} 
-                            onClick={() => handleMarkRead(n.id)}
-                            className={`p-4 border-b border-slate-50 dark:border-zinc-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors ${!n.isRead ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className={`mt-1 p-1.5 rounded-lg ${
-                                n.type === 'bill' ? 'bg-blue-50 text-blue-600' :
-                                n.type === 'payment' ? 'bg-amber-50 text-amber-600' :
-                                n.type === 'approval' ? 'bg-green-50 text-green-600' :
-                                'bg-red-50 text-red-600'
-                              }`}>
-                                {n.type === 'bill' ? <Droplets className="h-3 w-3" /> : <ClipboardList className="h-3 w-3" />}
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs font-black text-zinc-900 dark:text-white">{n.title}</p>
-                                <p className="text-[11px] font-bold text-zinc-500 mt-0.5 leading-relaxed">{n.message}</p>
-                                <p className="text-[9px] text-zinc-400 mt-2 font-black uppercase tracking-tighter">
-                                  {format(new Date(n.createdAt), 'dd MMM yyyy HH:mm', { locale: th })}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <div className="flex items-center gap-4">
+            <div className="hidden lg:flex items-center bg-surface-variant/50 border border-outline rounded-2xl px-4 py-2 w-64 focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all">
+              <Search className="h-4 w-4 text-slate-400" />
+              <input type="text" placeholder="Global search..." className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full ml-2 text-slate-600 outline-none" />
             </div>
 
-            <button
-              onClick={() => setIsDark(!isDark)}
-              className="rounded-xl border border-slate-100 dark:border-zinc-900 p-2 text-zinc-400 transition-colors hover:bg-slate-50 hover:text-zinc-600 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200 cursor-pointer"
-              title="Toggle theme mode"
-            >
-              {isDark ? (
-                <Sun className="h-4.5 w-4.5 text-amber-500" />
-              ) : (
-                <Moon className="h-4.5 w-4.5 text-zinc-500" />
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors cursor-pointer">
+                <MessageSquare className="h-5 w-5" />
+              </button>
+              
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors relative cursor-pointer"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-primary rounded-full ring-2 ring-surface" />
+                  )}
+                </button>
 
-            <div className="flex items-center gap-2 border-l border-slate-100 dark:border-zinc-900 pl-3">
-              <div className="h-8.5 w-8.5 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-black text-xs overflow-hidden">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="User" referrerPolicy="no-referrer" />
-                ) : user?.role === 'Teacher' ? (
-                  <img src="/src/assets/images/nursing_instructor_icon_1784479023431.jpg" alt="Teacher" referrerPolicy="no-referrer" />
-                ) : (
-                  user?.displayName?.substring(0, 2).toUpperCase() || 'AD'
-                )}
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-80 bg-surface rounded-2xl shadow-2xl border border-outline z-50 overflow-hidden"
+                    >
+                      <div className="p-4 border-b border-outline flex justify-between items-center bg-surface-variant/30">
+                        <h4 className="text-sm font-bold text-slate-900">Notifications</h4>
+                        <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-slate-600">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="max-h-96 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                        {notifications.length === 0 ? (
+                          <div className="py-12 text-center text-slate-400 text-xs">No notifications yet</div>
+                        ) : (
+                          notifications.map(n => (
+                            <div key={n.id} onClick={() => handleMarkRead(n.id)} className={`p-3 rounded-xl hover:bg-surface-variant transition-colors cursor-pointer ${!n.isRead ? 'bg-primary-container/30' : ''}`}>
+                              <p className="text-xs font-bold text-slate-900">{n.title}</p>
+                              <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{n.message}</p>
+                              <p className="text-[9px] text-slate-400 mt-2">{format(n.createdAt?.toDate ? n.createdAt.toDate() : new Date(n.createdAt), 'dd MMM HH:mm')}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <div className="hidden text-left md:block">
-                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate max-w-[120px]">
-                  {user?.displayName || 'Administrator'}
-                </p>
-                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">
-                  {user?.role === 'Teacher' ? 'Coordinator' : 'Nursing Student'}
-                </p>
+            </div>
+
+            <div className="h-8 w-px bg-outline" />
+
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-32">{user?.displayName?.split(' ')[0]}</p>
+                <p className="text-[9px] font-bold text-primary uppercase tracking-widest">{role}</p>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-primary-container flex items-center justify-center border border-primary/10 overflow-hidden">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-5 w-5 text-primary" />
+                )}
               </div>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/40 dark:bg-zinc-950/40">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2 }}
-            className="mx-auto max-w-7xl h-full"
-          >
-            {children}
-          </motion.div>
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="h-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>

@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-const mockDB = {} as any;
+const mockDB = {
+  getHospitals: () => [],
+  getVehicles: () => [],
+  getDrivers: () => [],
+  getBuildings: () => [],
+  getRooms: () => [],
+  getStudents: () => [],
+  getTransportSchedules: () => [],
+} as any;
 import {
   Users,
   MapPin,
@@ -1696,8 +1704,8 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       ? `${hospitalObj.hospitalNameTH} ${hospitalObj.hospitalNameEN}`
                       : g.hospital;
                     const matchesSearch =
-                      g.name.toLowerCase().includes(tgSearch.toLowerCase()) ||
-                      hospitalName
+                      (g.name || '').toLowerCase().includes(tgSearch.toLowerCase()) ||
+                      (hospitalName || '')
                         .toLowerCase()
                         .includes(tgSearch.toLowerCase());
                     const matchesFilter = tgFilterHospital
@@ -1993,7 +2001,7 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
 
             // Room search
             if (searchQuery.trim() !== "") {
-              return room.roomNumber
+              return (room.roomNumber || '')
                 .toLowerCase()
                 .includes(searchQuery.toLowerCase());
             }
@@ -2717,10 +2725,10 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                           .filter((s) => {
                             if (!studentSearchQuery) return true;
                             return (
-                              s.studentName
+                              (s.studentName || '')
                                 .toLowerCase()
                                 .includes(studentSearchQuery.toLowerCase()) ||
-                              s.studentNumber
+                              (s.studentNumber || '')
                                 .toLowerCase()
                                 .includes(studentSearchQuery.toLowerCase())
                             );
@@ -2753,10 +2761,10 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                         {unassignedStudents.filter((s) => {
                           if (!studentSearchQuery) return true;
                           return (
-                            s.studentName
+                            (s.studentName || '')
                               .toLowerCase()
                               .includes(studentSearchQuery.toLowerCase()) ||
-                            s.studentNumber
+                            (s.studentNumber || '')
                               .toLowerCase()
                               .includes(studentSearchQuery.toLowerCase())
                           );
@@ -3644,10 +3652,10 @@ export function TeacherTabs({ activeTab }: TeacherTabsProps) {
                       // List of students that aren't already booked on this trip's other seats
                       const candidateStudents = dbStudents.filter((s) => {
                         const matchesSearch =
-                          s.studentName
+                          (s.studentName || '')
                             .toLowerCase()
                             .includes(studentAssignSearch.toLowerCase()) ||
-                          s.studentNumber
+                          (s.studentNumber || '')
                             .toLowerCase()
                             .includes(studentAssignSearch.toLowerCase());
                         const isAlreadyBookedOnAnotherSeat =

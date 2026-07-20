@@ -138,387 +138,395 @@ export function ReportsCenter() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
         <div>
-          <h1 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
-            Reports Center
+          <h1 className="text-2xl font-bold text-slate-900 font-sans tracking-tight">
+            Institutional Intelligence
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Operational analytics and data exports.
+          <p className="text-sm text-slate-400 font-medium mt-1">
+            Analyze operational metrics, rotation cycles, and resource utilization.
           </p>
         </div>
 
         <button
           onClick={handleExport}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-indigo-700 transition"
+          className="px-6 py-3 text-sm font-bold text-white bg-medical-blue rounded-xl shadow-lg shadow-medical-blue/20 hover:bg-blue-700 transition-all flex items-center gap-3 cursor-pointer"
         >
-          <Download className="h-4 w-4" /> Export CSV
+          <Download className="h-5 w-5" />
+          <span>Export Analytics</span>
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-5">
         <SummaryCard
-          title="Total Students"
+          title="Total Residents"
           value={summary?.totalStudents || 0}
           icon={Users}
           color="indigo"
         />
         <SummaryCard
-          title="Total Courses"
+          title="Clinical Courses"
           value={summary?.totalCourses || 0}
           icon={FileText}
           color="blue"
         />
         <SummaryCard
-          title="Total Hospitals"
+          title="Partner Sites"
           value={summary?.totalHospitals || 0}
           icon={MapPin}
           color="emerald"
         />
         <SummaryCard
-          title="Practice Groups"
+          title="Rotation Groups"
           value={summary?.totalPracticeGroups || 0}
           icon={Users}
           color="amber"
         />
         <SummaryCard
-          title="Training Periods"
+          title="Active Cycles"
           value={summary?.totalTrainingPeriods || 0}
           icon={BarChart3}
           color="purple"
         />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 p-5 dark:bg-zinc-900 dark:border-zinc-800 shadow-sm">
-        <div className="flex gap-2 border-b border-slate-200 dark:border-zinc-800 mb-6 overflow-x-auto pb-2 scrollbar-thin">
+      <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="flex gap-4 px-8 border-b border-slate-50 overflow-x-auto pb-0 custom-scrollbar scroll-smooth">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-bold uppercase tracking-wider border-b-2 transition whitespace-nowrap ${activeTab === tab.id ? "border-indigo-600 text-indigo-600 dark:text-indigo-400" : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"}`}
+              className={`px-6 py-6 text-xs font-bold uppercase tracking-widest border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id ? "border-medical-blue text-medical-blue" : "border-transparent text-slate-400 hover:text-slate-600"}`}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {activeTab === "practice" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Academic Year</th>
-                  <th className="px-4 py-3 font-black">Semester</th>
-                  <th className="px-4 py-3 font-black">Course</th>
-                  <th className="px-4 py-3 font-black">Group</th>
-                  <th className="px-4 py-3 font-black">Hospital</th>
-                  <th className="px-4 py-3 font-black text-right">Students</th>
-                  <th className="px-4 py-3 font-black">Period</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {practiceReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100">
-                      {r.academicYear}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100">
-                      {r.semester}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.course}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.practiceGroup}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.hospital}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-bold text-right">
-                      {r.studentCount}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 text-xs">
-                      {r.practicePeriod}
-                    </td>
+        <div className="p-4">
+          {activeTab === "practice" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Academic Year</th>
+                    <th className="px-6 py-5">Semester</th>
+                    <th className="px-6 py-5">Clinical Course</th>
+                    <th className="px-6 py-5">Practice Group</th>
+                    <th className="px-6 py-5">Training Facility</th>
+                    <th className="px-6 py-5 text-right">Deployment</th>
+                    <th className="px-6 py-5">Interval</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {practiceReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 text-slate-600 font-mono text-xs">
+                        {r.academicYear}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {r.semester}
+                      </td>
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.course}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {r.practiceGroup}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {r.hospital}
+                      </td>
+                      <td className="px-6 py-4 text-slate-900 font-bold text-right">
+                        {r.studentCount} Residents
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                        {r.practicePeriod}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {activeTab === "students" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Course</th>
-                  <th className="px-4 py-3 font-black">Hospital</th>
-                  <th className="px-4 py-3 font-black">Ward</th>
-                  <th className="px-4 py-3 font-black">Year Level</th>
-                  <th className="px-4 py-3 font-black text-right">Students</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {studentDistReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.course}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.hospital}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.ward}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.yearLevel}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-bold text-right">
-                      {r.studentCount}
-                    </td>
+          {activeTab === "students" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Clinical Course</th>
+                    <th className="px-6 py-5">Training Site</th>
+                    <th className="px-6 py-5">Medical Unit</th>
+                    <th className="px-6 py-5">Resident Level</th>
+                    <th className="px-6 py-5 text-right">Resident Count</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {studentDistReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.course}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {r.hospital}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {r.ward}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full uppercase tracking-widest">Year {r.yearLevel}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-900 font-bold text-right">
+                        {r.studentCount} Deployed
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {activeTab === "hospitals" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Hospital Name</th>
-                  <th className="px-4 py-3 font-black text-right">Courses</th>
-                  <th className="px-4 py-3 font-black text-right">Students</th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Capacity Usage
-                  </th>
-                  <th className="px-4 py-3 font-black">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {hospitalReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.hospitalName}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 text-right">
-                      {r.coursesCount}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 text-right">
-                      {r.studentCount}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 text-right text-xs">
-                      {r.studentCount} / {r.capacity}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-1 rounded text-[10px] font-black uppercase ${r.status === "active" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-400"}`}
-                      >
-                        {r.status}
-                      </span>
-                    </td>
+          {activeTab === "hospitals" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Healthcare Facility</th>
+                    <th className="px-6 py-5 text-right">Courses Active</th>
+                    <th className="px-6 py-5 text-right">Total Residents</th>
+                    <th className="px-6 py-5 text-right">
+                      Utilization Factor
+                    </th>
+                    <th className="px-6 py-5">Site Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {hospitalReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.hospitalName}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-right font-medium">
+                        {r.coursesCount} Cycles
+                      </td>
+                      <td className="px-6 py-4 text-slate-900 text-right font-bold">
+                        {r.studentCount} Residents
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{Math.round((r.studentCount / r.capacity) * 100)}% Used</span>
+                          <div className="w-24 h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-medical-blue transition-all duration-1000" style={{ width: `${Math.min(100, (r.studentCount / r.capacity) * 100)}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${r.status === "active" ? "bg-medical-green/10 text-medical-green border-medical-green/10" : "bg-slate-100 text-slate-400 border-slate-200"}`}
+                        >
+                          {r.status === "active" ? "Active Site" : "Inactive"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {activeTab === "transport" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Date</th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Total Trips
-                  </th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Students Transported
-                  </th>
-                  <th className="px-4 py-3 font-black text-right">Van Usage</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {transportReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.date}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 text-right">
-                      {r.totalTrips}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-bold text-right">
-                      {r.totalStudentsTransported}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 text-right">
-                      {r.vanUsage}
-                    </td>
+          {activeTab === "transport" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Operational Date</th>
+                    <th className="px-6 py-5 text-right">
+                      Daily Trips
+                    </th>
+                    <th className="px-6 py-5 text-right">
+                      Residents Transported
+                    </th>
+                    <th className="px-6 py-5 text-right">Fleet Capacity Usage</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {transportReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.date}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-right font-medium">
+                        {r.totalTrips} Circuits
+                      </td>
+                      <td className="px-6 py-4 text-slate-900 font-bold text-right">
+                        {r.totalStudentsTransported} Seats
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 text-right font-mono text-xs">
+                        {r.vanUsage}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {activeTab === "dorm" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Dormitory</th>
-                  <th className="px-4 py-3 font-black text-right">Rooms</th>
-                  <th className="px-4 py-3 font-black text-right">Capacity</th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Occupied Beds
-                  </th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Available Beds
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {dormReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.dormitory}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 text-right">
-                      {r.roomsCount}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 text-right">
-                      {r.capacity}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 text-right font-bold">
-                      {r.occupiedBeds}
-                    </td>
-                    <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 text-right font-bold">
-                      {r.availableBeds}
-                    </td>
+          {activeTab === "dorm" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Residential Facility</th>
+                    <th className="px-6 py-5 text-right">Units Count</th>
+                    <th className="px-6 py-5 text-right">Total Capacity</th>
+                    <th className="px-6 py-5 text-right">
+                      Occupied Beds
+                    </th>
+                    <th className="px-6 py-5 text-right">
+                      Available Beds
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {dormReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.dormitory}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-right font-medium">
+                        {r.roomsCount} Rooms
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 text-right font-medium">
+                        {r.capacity} Total
+                      </td>
+                      <td className="px-6 py-4 text-slate-900 text-right font-bold">
+                        {r.occupiedBeds} Units
+                      </td>
+                      <td className="px-6 py-4 text-medical-green text-right font-bold">
+                        {r.availableBeds} Vacant
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {activeTab === "utility" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Month</th>
-                  <th className="px-4 py-3 font-black">Dormitory ID</th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Total Water
-                  </th>
-                  <th className="px-4 py-3 font-black text-right">
-                    Total Electricity
-                  </th>
-                  <th className="px-4 py-3 font-black text-right text-emerald-600">
-                    Paid
-                  </th>
-                  <th className="px-4 py-3 font-black text-right text-amber-600">
-                    Pending
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {utilityReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.month}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.dormitoryId}
-                    </td>
-                    <td className="px-4 py-3 text-red-600 dark:text-red-400 text-right font-mono">
-                      ฿{r.totalWaterCost.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-amber-600 dark:text-amber-400 text-right font-mono">
-                      ฿{r.totalElectricityCost.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 text-right font-bold font-mono">
-                      ฿{r.paid.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-rose-600 dark:text-rose-400 text-right font-bold font-mono">
-                      ฿{r.pending.toFixed(2)}
-                    </td>
+          {activeTab === "utility" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Billing Month</th>
+                    <th className="px-6 py-5">Facility Code</th>
+                    <th className="px-6 py-5 text-right">
+                      Aquatic Expenses
+                    </th>
+                    <th className="px-6 py-5 text-right">
+                      Electrical Expenses
+                    </th>
+                    <th className="px-6 py-5 text-right">
+                      Verified Revenue
+                    </th>
+                    <th className="px-6 py-5 text-right">
+                      Outstanding Receivable
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {utilityReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.month}
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 font-mono text-xs uppercase tracking-widest">
+                        {r.dormitoryId}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-right font-mono text-xs">
+                        ฿{r.totalWaterCost.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-right font-mono text-xs">
+                        ฿{r.totalElectricityCost.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-medical-green text-right font-bold font-mono text-xs">
+                        ฿{r.paid.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-medical-red text-right font-bold font-mono text-xs">
+                        ฿{r.pending.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {activeTab === "document" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 font-black">Required Document</th>
-                  <th className="px-4 py-3 font-black">Category</th>
-                  <th className="px-4 py-3 font-black">Target Group</th>
-                  <th className="px-4 py-3 font-black text-right">Submitted</th>
-                  <th className="px-4 py-3 font-black text-right">Pending</th>
-                  <th className="px-4 py-3 font-black text-right">Rejected</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {documentReport.map((r, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50"
-                  >
-                    <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">
-                      {r.requiredDocument}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold dark:bg-zinc-800 dark:text-zinc-300">
-                        {r.category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                      {r.targetGroup}
-                    </td>
-                    <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 text-right font-bold">
-                      {r.submitted}
-                    </td>
-                    <td className="px-4 py-3 text-amber-600 dark:text-amber-400 text-right font-bold">
-                      {r.pending}
-                    </td>
-                    <td className="px-4 py-3 text-red-600 dark:text-red-400 text-right font-bold">
-                      {r.rejected}
-                    </td>
+          {activeTab === "document" && (
+            <div className="overflow-x-auto rounded-[32px] border border-slate-50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-6 py-5">Credential Registry</th>
+                    <th className="px-6 py-5">Clinical Category</th>
+                    <th className="px-6 py-5">Demographic</th>
+                    <th className="px-6 py-5 text-right">Verified</th>
+                    <th className="px-6 py-5 text-right">Pending</th>
+                    <th className="px-6 py-5 text-right">Discrepancy</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {documentReport.map((r, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 group-hover:text-medical-blue transition-colors">
+                        {r.requiredDocument}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full uppercase tracking-widest">
+                          {r.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {r.targetGroup}
+                      </td>
+                      <td className="px-6 py-4 text-medical-green text-right font-bold">
+                        {r.submitted}
+                      </td>
+                      <td className="px-6 py-4 text-medical-orange text-right font-bold">
+                        {r.pending}
+                      </td>
+                      <td className="px-6 py-4 text-medical-red text-right font-bold">
+                        {r.rejected}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -537,31 +545,31 @@ function SummaryCard({
 }) {
   const colorClasses = {
     indigo:
-      "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
-    blue: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
+      "bg-indigo-50 text-indigo-600",
+    blue: "bg-medical-blue/10 text-medical-blue",
     emerald:
-      "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
+      "bg-medical-green/10 text-medical-green",
     amber:
-      "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
+      "bg-medical-orange/10 text-medical-orange",
     purple:
-      "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400",
-    rose: "bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400",
+      "bg-purple-50 text-purple-600",
+    rose: "bg-medical-red/10 text-medical-red",
   }[color];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 flex flex-col items-center justify-center text-center gap-2"
+      className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center gap-4 transition-all hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 group"
     >
-      <div className={`p-2 rounded-lg ${colorClasses}`}>
-        <Icon className="w-5 h-5" />
+      <div className={`p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500 ${colorClasses}`}>
+        <Icon className="w-6 h-6" />
       </div>
       <div>
-        <p className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
           {title}
         </p>
-        <p className="text-xl font-black text-zinc-900 dark:text-white">
+        <p className="text-2xl font-bold text-slate-900 tracking-tight">
           {value}
         </p>
       </div>

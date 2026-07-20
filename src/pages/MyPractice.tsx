@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { practiceAssignmentService } from "../services/practiceAssignment.service";
-import { PracticeAssignment } from "../types/db";
+import { studentService, practiceAssignmentService } from "../services/app.service";
+import { PracticeAssignment } from "../types/app";
 import { useAuth } from "../hooks/useAuth";
 import { MapPin, User, Calendar, Briefcase, Building } from "lucide-react";
 import { LoadingSkeleton } from "../components/LoadingSkeleton";
@@ -13,15 +13,23 @@ export function MyPractice() {
   useEffect(() => {
     async function fetchData() {
       if (user?.uid) {
-        // Extract student ID from mock email (e.g., 6610001@stin.ac.th -> 6610001)
-        const mockStudentId = user.email?.split("@")[0] || "";
+        // Find the student record matching this user
+        const students = await studentService.getAll();
+        const student = students.find(s => s.id === user.uid || s.studentId === user.uid);
+        
         const allData = await practiceAssignmentService.getAll();
-        // Filter by the student's ID based on login
-        const studentAssignments = allData.filter(
-          (a) =>
-            a.studentId === mockStudentId || mockStudentId.includes("student"),
-        );
-        setAssignments(studentAssignments);
+        
+        if (student) {
+          const studentAssignments = allData.filter(a => a.studentId === student.id);
+          setAssignments(studentAssignments);
+        } else {
+          // Fallback for dev/simulated users
+          const mockStudentId = user.email?.split("@")[0] || "";
+          const studentAssignments = allData.filter(
+            (a) => a.studentId === mockStudentId || mockStudentId.includes("student")
+          );
+          setAssignments(studentAssignments);
+        }
       }
       setLoading(false);
     }
