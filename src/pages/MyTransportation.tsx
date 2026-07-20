@@ -133,37 +133,53 @@ export function MyTransportation() {
                   </div>
                 </div>
 
-                {/* Locations */}
-                <div className="p-8 bg-slate-50/30 flex flex-col gap-6 relative overflow-hidden">
-                  <div className="absolute left-[3.25rem] top-12 bottom-12 w-px bg-slate-200 border-dashed border-l" />
-                  
-                  <div className="flex items-start gap-6 relative">
-                    <div className="h-10 w-10 rounded-full bg-white border-4 border-medical-teal flex items-center justify-center z-10 shadow-sm">
-                      <MapPin className="h-4 w-4 text-medical-teal" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Departure Station</span>
-                      <p className="text-sm font-bold text-slate-800">{trip.pickupLocation || "STIN Main Campus"}</p>
+                {/* Departure & Return Routes */}
+                <div className="p-8 bg-slate-50/30 flex flex-col gap-6 relative overflow-hidden border-b border-slate-50">
+                  {/* Departure Route Section */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] font-black uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                      Departure Schedule ({trip.departureTime})
+                    </h5>
+                    <div className="pl-4 border-l-2 border-indigo-100 space-y-4 relative">
+                      <div className="flex items-start gap-4">
+                        <MapPin className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">From Location</span>
+                          <p className="text-sm font-bold text-slate-800">{trip.departureLocation || trip.pickupLocation || "STIN Main Campus"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <MapPin className="h-4 w-4 text-indigo-600 mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider">To Destination</span>
+                          <p className="text-sm font-bold text-slate-800">{trip.destination}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-6 relative">
-                    <div className="h-10 w-10 rounded-full bg-white border-4 border-medical-blue flex items-center justify-center z-10 shadow-sm">
-                      <MapPin className="h-4 w-4 text-medical-blue" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Destination Clinic</span>
-                      <p className="text-sm font-bold text-slate-800">{trip.destination}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-6 relative">
-                    <div className="h-10 w-10 rounded-full bg-white border-4 border-slate-200 flex items-center justify-center z-10 shadow-sm">
-                      <Info className="h-4 w-4 text-slate-400" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Drop-off / Conclusion</span>
-                      <p className="text-sm font-bold text-slate-800">{trip.dropoffLocation || "STIN Residential Hall"}</p>
+                  {/* Return Route Section */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                      Return Schedule ({trip.returnTime})
+                    </h5>
+                    <div className="pl-4 border-l-2 border-emerald-100 space-y-4 relative">
+                      <div className="flex items-start gap-4">
+                        <MapPin className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pickup From</span>
+                          <p className="text-sm font-bold text-slate-800">{trip.returnPickupLocation || trip.destination || "Clinical Site"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <MapPin className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Return Destination</span>
+                          <p className="text-sm font-bold text-slate-800">{trip.returnDestination || trip.dropoffLocation || "STIN Residential Hall"}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

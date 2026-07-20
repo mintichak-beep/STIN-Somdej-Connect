@@ -7,6 +7,7 @@ import { SubjectManagement } from './pages/SubjectManagement';
 import { RoomManagement } from './pages/RoomManagement';
 import { VanManagement } from './pages/VanManagement';
 import { VanTrips } from './pages/VanTrips';
+import { WeeklyRoomAssignmentPage } from './pages/WeeklyRoomAssignment';
 import { Reports } from './pages/Reports';
 import { UtilityBilling } from './pages/UtilityBilling';
 import { PaymentVerification } from './pages/PaymentVerification';
@@ -26,7 +27,7 @@ export default function App() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   useEffect(() => {
-    seedDatabaseIfEmpty();
+    // Seeding disabled
   }, []);
 
   const handleSelectRole = (selectedRole: 'Teacher' | 'Student') => {
@@ -62,6 +63,8 @@ export default function App() {
           return <StudentDetails studentId={selectedStudentId!} onBack={() => setActiveTab('students')} />;
         case 'rooms':
           return <RoomManagement />;
+        case 'room-assignments':
+          return <WeeklyRoomAssignmentPage />;
         case 'vans':
           return <VanManagement />;
         case 'van-trips':

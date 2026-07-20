@@ -102,6 +102,8 @@ export function SubjectManagement() {
         description="Comprehensive index of nursing curricula, theoretical modules, and practical clinical courses."
         data={subjects}
         searchFields={["subjectCode", "subjectName", "department"]}
+        emptyTitle="No Courses Found"
+        emptyDescription="The course directory is empty. Click 'Add New Record' to create your first clinical course."
         columns={[
           { 
             header: "Course Identifier", 

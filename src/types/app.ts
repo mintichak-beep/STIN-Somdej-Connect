@@ -6,6 +6,8 @@ export interface Student {
   fullName: string;
   yearLevel: string;
   classGroup: string;
+  faculty?: string;
+  major?: string;
   phone: string;
   status: 'active' | 'inactive';
   subjectId?: string;
@@ -83,7 +85,6 @@ export interface Van {
 
 export interface Passenger {
   personId: string;
-  fullName: string;
   role: 'Student' | 'Teacher';
 }
 
@@ -98,6 +99,9 @@ export interface VanTrip {
   passengers: Passenger[];
   pickupLocation?: string;
   dropoffLocation?: string;
+  departureLocation?: string;
+  returnPickupLocation?: string;
+  returnDestination?: string;
   status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: any;
   updatedAt: any;
@@ -219,6 +223,17 @@ export interface Course {
   semester: string;
   status: 'active' | 'inactive';
   createdAt: any;
+}
+
+export interface WeeklyRoomAssignment {
+  id: string;
+  studentId: string;
+  roomId: string;
+  startDate: any;
+  endDate: any;
+  status: 'active' | 'inactive';
+  createdAt: any;
+  updatedAt: any;
 }
 
 export interface AllocationDetails extends Allocation {

@@ -25,6 +25,9 @@ export function VanTrips() {
     destination: "",
     subject: "",
     vanId: "",
+    departureLocation: "",
+    returnPickupLocation: "",
+    returnDestination: "",
     passengers: [] as Passenger[]
   });
 
@@ -54,6 +57,9 @@ export function VanTrips() {
       destination: "",
       subject: "",
       vanId: "",
+      departureLocation: "STIN Main Campus",
+      returnPickupLocation: "",
+      returnDestination: "STIN Residential Hall",
       passengers: []
     });
     setIsModalOpen(true);
@@ -68,6 +74,9 @@ export function VanTrips() {
       destination: trip.destination,
       subject: trip.subject,
       vanId: trip.vanId,
+      departureLocation: trip.departureLocation || trip.pickupLocation || "STIN Main Campus",
+      returnPickupLocation: trip.returnPickupLocation || trip.destination || "",
+      returnDestination: trip.returnDestination || trip.dropoffLocation || "STIN Residential Hall",
       passengers: trip.passengers || []
     });
     setIsModalOpen(true);
@@ -80,6 +89,8 @@ export function VanTrips() {
     try {
       const dataToSave = {
         ...formData,
+        pickupLocation: formData.departureLocation, // Sync legacy fields
+        dropoffLocation: formData.returnDestination, // Sync legacy fields
         updatedAt: new Date()
       };
       if (selectedTrip) {
@@ -112,10 +123,10 @@ export function VanTrips() {
   const capacity = selectedVan?.capacity || 0;
   const totalPassengers = formData.passengers.length;
 
-  const addPassenger = (p: Passenger) => {
+  const addPassenger = (p: { personId: string; role: 'Student' | 'Teacher' }) => {
     if (totalPassengers >= capacity) return;
     if (formData.passengers.find(x => x.personId === p.personId)) return;
-    setFormData(prev => ({ ...prev, passengers: [...prev.passengers, p] }));
+    setFormData(prev => ({ ...prev, passengers: [...prev.passengers, { personId: p.personId, role: p.role }] }));
   };
 
   const removePassenger = (personId: string) => {
@@ -124,7 +135,11 @@ export function VanTrips() {
 
   const filteredPeople = [...students.map(s => ({ personId: s.id, fullName: s.fullName || '', role: 'Student' as const })), 
                           ...teachers.map(t => ({ personId: t.id, fullName: t.name || '', role: 'Teacher' as const }))]
-                         .filter(p => (p.fullName || '').toLowerCase().includes(search.toLowerCase()));
+                         .filter(p => {
+                           const fullName = p.fullName || '';
+                           const searchTerm = (search || '').toLowerCase();
+                           return fullName.toLowerCase().includes(searchTerm);
+                         });
 
   return (
     <div className="space-y-6">
@@ -136,20 +151,40 @@ export function VanTrips() {
           { 
             header: "Schedule", 
             accessor: (item) => (
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-1">
                 <span className="font-bold text-slate-900">{item.tripDate}</span>
-                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> {item.departureTime} - {item.returnTime}
-                </span>
+                <div className="flex flex-col text-[10px] text-slate-500 font-medium">
+                  <span className="flex items-center gap-1 font-bold text-slate-700">
+                    <span className="px-1 py-0.25 bg-indigo-50 text-indigo-600 rounded text-[8px] uppercase tracking-wide font-extrabold">Dep</span>
+                    {item.departureTime}
+                  </span>
+                  <span className="flex items-center gap-1 font-bold text-slate-700 mt-0.5">
+                    <span className="px-1 py-0.25 bg-emerald-50 text-emerald-600 rounded text-[8px] uppercase tracking-wide font-extrabold">Ret</span>
+                    {item.returnTime}
+                  </span>
+                </div>
               </div>
             )
           },
           { 
-            header: "Destination", 
+            header: "Route / Purpose", 
             accessor: (item) => (
-              <div className="flex flex-col">
-                <span className="font-bold text-slate-900">{item.destination}</span>
-                <span className="text-[10px] font-bold text-primary truncate max-w-[150px]">{item.subject}</span>
+              <div className="flex flex-col gap-1">
+                <div className="text-[11px] font-medium text-slate-600 space-y-0.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Dep:</span>
+                    <span className="font-bold text-slate-800 truncate max-w-[100px]">{item.departureLocation || item.pickupLocation || "Campus"}</span>
+                    <span className="text-slate-400">➔</span>
+                    <span className="font-bold text-slate-800 truncate max-w-[100px]">{item.destination}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Ret:</span>
+                    <span className="font-bold text-slate-800 truncate max-w-[100px]">{item.returnPickupLocation || item.destination || "Clinic"}</span>
+                    <span className="text-slate-400">➔</span>
+                    <span className="font-bold text-slate-800 truncate max-w-[100px]">{item.returnDestination || item.dropoffLocation || "Campus"}</span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-primary truncate max-w-[200px]" title={item.subject}>{item.subject}</span>
               </div>
             )
           },
@@ -220,77 +255,136 @@ export function VanTrips() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Date</label>
-              <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input 
-                  type="date" 
-                  required 
-                  value={formData.tripDate} 
-                  onChange={(e) => setFormData({ ...formData, tripDate: e.target.value })} 
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
-                />
+          <div className="space-y-4 border-b border-slate-100 pb-4">
+            <h4 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+              General Info
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    type="date" 
+                    required 
+                    value={formData.tripDate} 
+                    onChange={(e) => setFormData({ ...formData, tripDate: e.target.value })} 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Assigned Vehicle</label>
-              <div className="relative">
-                <Bus className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <select 
-                  required 
-                  value={formData.vanId} 
-                  onChange={(e) => setFormData({ ...formData, vanId: e.target.value })} 
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none"
-                >
-                  <option value="">Select vehicle...</option>
-                  {vans.map(v => <option key={v.id} value={v.id}>{v.plateNumber} ({v.vanNumber})</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Departure Time</label>
-              <div className="relative">
-                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input 
-                  type="time" 
-                  required 
-                  value={formData.departureTime} 
-                  onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })} 
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Return Time</label>
-              <div className="relative">
-                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input 
-                  type="time" 
-                  required 
-                  value={formData.returnTime} 
-                  onChange={(e) => setFormData({ ...formData, returnTime: e.target.value })} 
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
-                />
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Assigned Vehicle</label>
+                <div className="relative">
+                  <Bus className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <select 
+                    required 
+                    value={formData.vanId} 
+                    onChange={(e) => setFormData({ ...formData, vanId: e.target.value })} 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none"
+                  >
+                    <option value="">Select vehicle...</option>
+                    {vans.map(v => <option key={v.id} value={v.id}>{v.plateNumber} ({v.vanNumber})</option>)}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Destination</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                required 
-                placeholder="e.g. Siriraj Hospital"
-                value={formData.destination} 
-                onChange={(e) => setFormData({ ...formData, destination: e.target.value })} 
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
-              />
+          <div className="space-y-4 border-b border-slate-100 pb-4">
+            <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"></span>
+              Departure Schedule
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Departure Time</label>
+                <div className="relative">
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    type="time" 
+                    required 
+                    value={formData.departureTime} 
+                    onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })} 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Departure Location</label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    required 
+                    placeholder="e.g. STIN Main Campus"
+                    value={formData.departureLocation} 
+                    onChange={(e) => setFormData({ ...formData, departureLocation: e.target.value })} 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Destination</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input 
+                  required 
+                  placeholder="e.g. Siriraj Hospital"
+                  value={formData.destination} 
+                  onChange={(e) => setFormData({ ...formData, destination: e.target.value })} 
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4 border-b border-slate-100 pb-4">
+            <h4 className="text-xs font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block"></span>
+              Return Schedule
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Return Time</label>
+                <div className="relative">
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    type="time" 
+                    required 
+                    value={formData.returnTime} 
+                    onChange={(e) => setFormData({ ...formData, returnTime: e.target.value })} 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Return Pickup Location</label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    required 
+                    placeholder="e.g. Siriraj Hospital"
+                    value={formData.returnPickupLocation} 
+                    onChange={(e) => setFormData({ ...formData, returnPickupLocation: e.target.value })} 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Return Destination</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input 
+                  required 
+                  placeholder="e.g. STIN Residential Hall"
+                  value={formData.returnDestination} 
+                  onChange={(e) => setFormData({ ...formData, returnDestination: e.target.value })} 
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                />
+              </div>
             </div>
           </div>
 

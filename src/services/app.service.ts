@@ -1,5 +1,5 @@
 import { FirestoreService } from "./firestore.service";
-import { Student, Teacher, Hospital, Room, Van, VanTrip, Allocation, Dormitory, WeeklyBill, StudentPayment, PaymentSlip, Notification, Subject, TrainingGroup, TrainingSite, PracticeAssignment, Course } from "../types/app";
+import { Student, Teacher, Hospital, Room, Van, VanTrip, Allocation, Dormitory, WeeklyBill, StudentPayment, PaymentSlip, Notification, Subject, TrainingGroup, TrainingSite, PracticeAssignment, Course, WeeklyRoomAssignment } from "../types/app";
 
 export const studentService = new FirestoreService<Student>("students");
 export const teacherService = new FirestoreService<Teacher>("teachers");
@@ -18,3 +18,4 @@ export const trainingGroupService = new FirestoreService<TrainingGroup>("trainin
 export const trainingSiteService = new FirestoreService<TrainingSite>("trainingSites");
 export const practiceAssignmentService = new FirestoreService<PracticeAssignment>("practiceAssignments");
 export const courseService = new FirestoreService<Course>("courses");
+export const weeklyRoomAssignmentService = new FirestoreService<WeeklyRoomAssignment>("weeklyRoomAssignments");

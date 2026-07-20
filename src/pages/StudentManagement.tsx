@@ -24,6 +24,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     lastName: "",
     yearLevel: "1",
     classGroup: "",
+    faculty: "",
+    major: "",
     phone: "",
     status: "active" as "active" | "inactive",
     subjectId: ""
@@ -116,6 +118,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
       lastName: "",
       yearLevel: "1",
       classGroup: "",
+      faculty: "",
+      major: "",
       phone: "",
       status: "active",
       subjectId: ""
@@ -132,6 +136,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
       lastName: student.lastName,
       yearLevel: student.yearLevel,
       classGroup: student.classGroup,
+      faculty: student.faculty || "",
+      major: student.major || "",
       phone: student.phone,
       status: student.status,
       subjectId: student.subjectId || ""
@@ -151,6 +157,15 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     };
 
     try {
+      // Check for duplicate student ID
+      const existingStudents = await studentService.getAll();
+      const duplicate = existingStudents.find(
+        (s) => s.studentId === formData.studentId && (!selectedStudent || s.id !== selectedStudent.id)
+      );
+      if (duplicate) {
+        throw new Error("Student ID already exists.");
+      }
+
       if (selectedStudent) {
         await studentService.update(selectedStudent.id, data);
       } else {
@@ -181,6 +196,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
         description="Maintain a centralized repository of student profiles, clinical assignments, and academic status."
         data={students}
         searchFields={["studentId", "fullName", "phone"]}
+        emptyTitle="No Students Registered"
+        emptyDescription="No student records found. Click 'Add Student' to register your first nursing student."
         columns={[
           { 
             header: "Student ID", 
@@ -199,7 +216,7 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
             accessor: (item) => (
               <div className="space-y-0.5">
                 <div className="text-sm font-extrabold text-slate-900">{item.fullName}</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.firstName} {item.lastName}</div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.faculty || 'N/A'} • {item.major || 'N/A'}</div>
               </div>
             ),
             sortable: true
@@ -297,6 +314,27 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
                   placeholder="e.g. 0812345678"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="md-input"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="md-label">Faculty</label>
+                <input
+                  placeholder="e.g. Nursing"
+                  value={formData.faculty}
+                  onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
+                  className="md-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="md-label">Major</label>
+                <input
+                  placeholder="e.g. Professional Nursing"
+                  value={formData.major}
+                  onChange={(e) => setFormData({ ...formData, major: e.target.value })}
                   className="md-input"
                 />
               </div>

@@ -34,6 +34,8 @@ interface DataTableProps<T> {
   onExport?: () => void;
   searchPlaceholder?: string;
   searchFields: (keyof T)[];
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -49,6 +51,8 @@ export function DataTable<T extends { id: string }>({
   onExport,
   searchPlaceholder = "Search records...",
   searchFields,
+  emptyTitle = "No Records Available",
+  emptyDescription = "This collection is currently empty. Start by adding your first record manually.",
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -194,10 +198,30 @@ export function DataTable<T extends { id: string }>({
             ) : (
               <tr>
                 <td colSpan={columns.length + 1} className="px-8 py-32 text-center">
-                  <div className="flex flex-col items-center justify-center opacity-30">
-                    <Search className="h-16 w-16 mb-4 text-slate-300" />
-                    <p className="text-lg font-bold text-slate-400 uppercase tracking-widest">No matching records found</p>
-                    <p className="text-sm font-medium text-slate-300 mt-2 italic">Try adjusting your filters or search keywords</p>
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="h-20 w-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 border border-outline border-dashed">
+                      <Search className="h-10 w-10 text-slate-200" />
+                    </div>
+                    {data.length === 0 ? (
+                      <>
+                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-widest mb-2">{emptyTitle}</h3>
+                        <p className="text-sm font-medium text-slate-400 max-w-xs mx-auto mb-8">{emptyDescription}</p>
+                        {onAdd && (
+                          <button
+                            onClick={onAdd}
+                            className="md-button-filled flex items-center gap-3 px-8"
+                          >
+                            <Plus className="h-5 w-5" />
+                            <span>Add First Record</span>
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-black text-slate-900 uppercase tracking-widest mb-2">No Matching Results</p>
+                        <p className="text-sm font-medium text-slate-400 max-w-xs mx-auto">Try adjusting your filters or search keywords to find what you're looking for.</p>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

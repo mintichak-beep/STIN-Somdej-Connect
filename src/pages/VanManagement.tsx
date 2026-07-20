@@ -103,6 +103,8 @@ export function VanManagement() {
         title="Van Fleet Management"
         data={vans}
         searchFields={["vanNumber", "plateNumber"]}
+        emptyTitle="No Vehicles Registered"
+        emptyDescription="The transport fleet is empty. Click 'Add New Record' to register your first transport vehicle."
         columns={[
           { 
             header: "Vehicle Info", 

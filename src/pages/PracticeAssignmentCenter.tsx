@@ -323,12 +323,10 @@ export function PracticeAssignmentCenter() {
                   >
                     <option value="">-- Select Healthcare Facility --</option>
                     {trainingSites.map((ts) => (
-                      <option key={ts.id} value={ts.name}>
+                      <option key={ts.id} value={ts.id}>
                         {ts.name}
                       </option>
                     ))}
-                    <option value="แหล่งฝึกสมเด็จ">แหล่งฝึกสมเด็จ</option>
-                    <option value="แหล่งฝึกจุฬาลงกรณ์">แหล่งฝึกจุฬาลงกรณ์</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -365,7 +363,7 @@ export function PracticeAssignmentCenter() {
                   >
                     <option value="">-- Select Instructor --</option>
                     {teachers.map((t) => (
-                      <option key={t.uid} value={t.name || t.email}>
+                      <option key={t.uid} value={t.uid}>
                         {t.name || t.email}
                       </option>
                     ))}
@@ -487,7 +485,7 @@ export function PracticeAssignmentCenter() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Training Facility</p>
-                      <p className="text-sm font-bold text-slate-800">{wizardData.trainingSiteId}</p>
+                      <p className="text-sm font-bold text-slate-800">{trainingSites.find(ts => ts.id === wizardData.trainingSiteId)?.name || wizardData.trainingSiteId}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ward / Unit</p>
@@ -495,7 +493,7 @@ export function PracticeAssignmentCenter() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Faculty Lead</p>
-                      <p className="text-sm font-bold text-slate-800">{wizardData.teacherId}</p>
+                      <p className="text-sm font-bold text-slate-800">{teachers.find(t => t.uid === wizardData.teacherId)?.name || teachers.find(t => t.uid === wizardData.teacherId)?.email || wizardData.teacherId}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rotation Cycle</p>
@@ -588,7 +586,7 @@ export function PracticeAssignmentCenter() {
                 <div className="space-y-4 py-4 border-t border-slate-50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Training Site</span>
-                    <span className="text-sm font-bold text-slate-700">{a.trainingSiteId}</span>
+                    <span className="text-sm font-bold text-slate-700">{trainingSites.find(ts => ts.id === a.trainingSiteId)?.name || a.trainingSiteId}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clinical Unit</span>
@@ -596,7 +594,7 @@ export function PracticeAssignmentCenter() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Faculty Lead</span>
-                    <span className="text-sm font-bold text-slate-700">{a.teacherId}</span>
+                    <span className="text-sm font-bold text-slate-700">{teachers.find(t => t.uid === a.teacherId)?.name || teachers.find(t => t.uid === a.teacherId)?.email || a.teacherId}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resident ID</span>
@@ -678,9 +676,8 @@ export function PracticeAssignmentCenter() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Training Site</label>
-                  <input
-                    type="text"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-medical-blue/10 focus:border-medical-blue outline-none transition-all"
+                  <select
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-medical-blue/10 focus:border-medical-blue outline-none transition-all appearance-none"
                     value={editFormData.trainingSiteId}
                     onChange={(e) =>
                       setEditFormData({
@@ -689,7 +686,14 @@ export function PracticeAssignmentCenter() {
                       })
                     }
                     required
-                  />
+                  >
+                    <option value="">-- Select Healthcare Facility --</option>
+                    {trainingSites.map((ts) => (
+                      <option key={ts.id} value={ts.id}>
+                        {ts.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -711,9 +715,8 @@ export function PracticeAssignmentCenter() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Faculty Lead</label>
-                  <input
-                    type="text"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-medical-blue/10 focus:border-medical-blue outline-none transition-all"
+                  <select
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-medical-blue/10 focus:border-medical-blue outline-none transition-all appearance-none"
                     value={editFormData.teacherId}
                     onChange={(e) =>
                       setEditFormData({
@@ -722,7 +725,14 @@ export function PracticeAssignmentCenter() {
                       })
                     }
                     required
-                  />
+                  >
+                    <option value="">-- Select Instructor --</option>
+                    {teachers.map((t) => (
+                      <option key={t.uid} value={t.uid}>
+                        {t.name || t.email}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

@@ -25,7 +25,8 @@ import {
   Search,
   MessageSquare,
   Building2,
-  Clock
+  Clock,
+  MapPin
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { notificationService } from "../services/app.service";
@@ -88,8 +89,9 @@ export function AppLayout({
     { id: "students", label: "Students", icon: Users },
     { id: "teachers", label: "Teachers", icon: UserCheck },
     { id: "subjects", label: "Subjects", icon: BookOpen },
-    { id: "rooms", label: "Rooms", icon: Home },
-    { id: "van-trips", label: "Weekly Room Assignment", icon: Calendar },
+    { id: "room-assignments", label: "Weekly Room Assignment", icon: Calendar },
+    { id: "rooms", label: "Room Management", icon: Home },
+    { id: "van-trips", label: "Transport Schedule", icon: MapPin },
     { id: "vans", label: "Van Management", icon: Bus },
     { id: "utility-billing", label: "Utility Bills", icon: Droplets },
     { id: "payment-verification", label: "Payments", icon: ClipboardList },

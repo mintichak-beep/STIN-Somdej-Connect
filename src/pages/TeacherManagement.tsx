@@ -80,6 +80,8 @@ export function TeacherManagement() {
         description="Manage nursing faculty profiles, departmental affiliations, and professional contact details."
         data={teachers}
         searchFields={["name", "department"]}
+        emptyTitle="No Faculty Registered"
+        emptyDescription="The instructor directory is empty. Click 'Add New Record' to register your first nursing faculty member."
         columns={[
           { 
             header: "Faculty Member", 

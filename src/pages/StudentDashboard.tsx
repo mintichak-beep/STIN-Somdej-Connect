@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { studentService, roomService, dormitoryService, weeklyBillService, studentPaymentService } from "../services/app.service";
-import { Student, Room, Dormitory, WeeklyBill, StudentPayment } from "../types/app";
+import { studentService, roomService, dormitoryService, weeklyBillService, studentPaymentService, weeklyRoomAssignmentService } from "../services/app.service";
+import { Student, Room, Dormitory, WeeklyBill, StudentPayment, WeeklyRoomAssignment } from "../types/app";
 import { User, Home, Users, AlertCircle, Droplets, Zap, FileText, ArrowRight } from "lucide-react";
+import { startOfWeek, isWithinInterval } from "date-fns";
 
 interface StudentDashboardProps {
   onNavigateToBills: () => void;
@@ -21,6 +22,10 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
     let roomsUnsub = () => {};
     let dormsUnsub = () => {};
     let billsUnsub = () => {};
+    let assignmentsUnsub = () => {};
+
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
 
     // Load Student ("dev-student-id" as default)
     studentsUnsub = studentService.onSnapshot([], (studentsList) => {
@@ -28,25 +33,46 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
       if (currentStudent) {
         setStudent(currentStudent);
 
-        // Fetch roommates (same room, exclude self)
-        if (currentStudent.roomId) {
-          const mates = studentsList.filter(s => s.roomId === currentStudent.roomId && s.id !== currentStudent.id);
-          setRoommates(mates);
-        }
-      }
-    });
+        // Fetch roommates based on current weekly assignment
+        assignmentsUnsub = weeklyRoomAssignmentService.onSnapshot([], (assignments) => {
+          const myAssignment = assignments.find(a => 
+            a.studentId === currentStudent.id && 
+            a.status === 'active' &&
+            isWithinInterval(weekStart, { 
+              start: a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate), 
+              end: a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate) 
+            })
+          );
 
-    // Load Room and Dormitory
-    roomsUnsub = roomService.onSnapshot([], (roomsList) => {
-      // Find room associated with dev-student-id
-      const currentRoom = roomsList.find(r => (r as any).studentId === "dev-student-id" || r.id === "room-1");
-      if (currentRoom) {
-        setRoom(currentRoom);
+          if (myAssignment) {
+            // Find current room
+            roomsUnsub = roomService.onSnapshot([], (roomsList) => {
+              const currentRoom = roomsList.find(r => r.id === myAssignment.roomId);
+              if (currentRoom) {
+                setRoom(currentRoom);
+                
+                dormsUnsub = dormitoryService.onSnapshot([], (dormsList) => {
+                  const currentDorm = dormsList.find(d => d.id === currentRoom.dormitoryId);
+                  if (currentDorm) {
+                    setDormitory(currentDorm);
+                  }
+                });
 
-        dormsUnsub = dormitoryService.onSnapshot([], (dormsList) => {
-          const currentDorm = dormsList.find(d => d.id === currentRoom.dormitoryId);
-          if (currentDorm) {
-            setDormitory(currentDorm);
+                // Find roommates in the same room for the same period
+                const roommateAssignments = assignments.filter(a => 
+                  a.roomId === myAssignment.roomId && 
+                  a.studentId !== currentStudent.id &&
+                  a.status === 'active' &&
+                  isWithinInterval(weekStart, { 
+                    start: a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate), 
+                    end: a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate) 
+                  })
+                );
+
+                const mates = studentsList.filter(s => roommateAssignments.some(ra => ra.studentId === s.id));
+                setRoommates(mates);
+              }
+            });
           }
         });
       }
@@ -72,6 +98,7 @@ export function StudentDashboard({ onNavigateToBills }: StudentDashboardProps) {
       roomsUnsub();
       dormsUnsub();
       billsUnsub();
+      assignmentsUnsub();
       clearTimeout(timer);
     };
   }, []);

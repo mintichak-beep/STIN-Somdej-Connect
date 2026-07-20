@@ -34,7 +34,10 @@ import {
   vanService, 
   vanTripService,
   weeklyBillService,
-  notificationService
+  notificationService,
+  weeklyRoomAssignmentService,
+  allocationService,
+  hospitalService
 } from "../services/app.service";
 import { useAuth } from "../hooks/useAuth";
 import { format } from "date-fns";
@@ -54,39 +57,50 @@ export function Dashboard() {
     paidBills: 0
   });
 
+  const [hospitalStats, setHospitalStats] = useState<any[]>([]);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [students, teachers, rooms, vans, vanTrips, bills, notifications] = await Promise.all([
+        const [students, teachers, rooms, vans, vanTrips, bills, notifications, assignments, allocations, hospitals] = await Promise.all([
           studentService.getAll(),
           teacherService.getAll(),
           roomService.getAll(),
           vanService.getAll(),
           vanTripService.getAll(),
           weeklyBillService.getAll(),
-          notificationService.getAll()
+          notificationService.getAll(),
+          weeklyRoomAssignmentService.getAll(),
+          allocationService.getAll(),
+          hospitalService.getAll()
         ]);
 
         const today = format(new Date(), 'yyyy-MM-dd');
         const todayTrips = vanTrips.filter(t => t.tripDate === today).length;
         
-        const availableRoomsCount = rooms.filter(r => r.status === 'active' && r.currentOccupancy < r.capacity).length;
-        const occupiedRoomsCount = rooms.filter(r => r.status === 'active' && r.currentOccupancy >= r.capacity).length;
+        const availableRoomsCount = rooms.filter(r => r.status === 'active' && (r.currentOccupancy || 0) < r.capacity).length;
+        const occupiedRoomsCount = rooms.filter(r => r.status === 'active' && (r.currentOccupancy || 0) >= r.capacity).length;
 
         setStats({
           totalStudents: students.length,
           totalTeachers: teachers.length,
           availableRooms: availableRoomsCount,
           occupiedRooms: occupiedRoomsCount,
-          weeklyAssignments: 24, // Mock/Static for now as per design
+          weeklyAssignments: assignments.filter(a => a.status === 'active').length,
           todayVanTrips: todayTrips,
           pendingPayments: bills.filter(b => b.paymentStatus === 'waiting_verification').length,
           paidBills: bills.filter(b => b.paymentStatus === 'paid').length
         });
 
+        // Calculate hospital distribution
+        const hStats = hospitals.map(h => {
+          const count = allocations.filter(a => a.hospitalId === h.id).length;
+          return { name: h.name, students: count };
+        }).filter(h => h.students > 0).slice(0, 5);
+        
+        setHospitalStats(hStats.length > 0 ? hStats : [{ name: 'No Data', students: 0 }]);
         setRecentActivities(notifications.slice(0, 5));
       } catch (error) {
         console.error("Dashboard data fetch error:", error);
@@ -98,14 +112,14 @@ export function Dashboard() {
   }, []);
 
   const statCards = [
-    { label: "Total Students", value: stats.totalStudents, icon: Users, trend: "+12% vs last month", color: "medical-blue" },
-    { label: "Total Teachers", value: stats.totalTeachers, icon: UserCheck, trend: "Stable", color: "medical-teal" },
-    { label: "Available Rooms", value: stats.availableRooms, icon: Bed, trend: "82% Capacity", color: "medical-green" },
-    { label: "Occupied Rooms", value: stats.occupiedRooms, icon: Building2, trend: "In Demand", color: "medical-orange" },
-    { label: "Weekly Assignments", value: stats.weeklyAssignments, icon: Calendar, trend: "Active Cycle", color: "primary" },
+    { label: "Total Students", value: stats.totalStudents, icon: Users, trend: "Real-time", color: "medical-blue" },
+    { label: "Total Teachers", value: stats.totalTeachers, icon: UserCheck, trend: "Verified", color: "medical-teal" },
+    { label: "Available Rooms", value: stats.availableRooms, icon: Bed, trend: "Ready", color: "medical-green" },
+    { label: "Occupied Rooms", value: stats.occupiedRooms, icon: Building2, trend: "Active", color: "medical-orange" },
+    { label: "Weekly Assignments", value: stats.weeklyAssignments, icon: Calendar, trend: "Current", color: "primary" },
     { label: "Today's Van Trips", value: stats.todayVanTrips, icon: Bus, trend: "Scheduled", color: "medical-blue" },
-    { label: "Pending Payments", value: stats.pendingPayments, icon: AlertTriangle, trend: "Action Required", color: "medical-red" },
-    { label: "Paid Utility Bills", value: stats.paidBills, icon: CheckCircle, trend: "Verified", color: "medical-green" },
+    { label: "Pending Payments", value: stats.pendingPayments, icon: AlertTriangle, trend: "Action Needed", color: "medical-red" },
+    { label: "Paid Utility Bills", value: stats.paidBills, icon: CheckCircle, trend: "Completed", color: "medical-green" },
   ];
 
   if (loading) {
@@ -129,10 +143,6 @@ export function Dashboard() {
             <Calendar className="h-4 w-4 text-primary" />
             <span className="text-xs font-bold text-slate-700">{format(new Date(), 'MMMM do, yyyy')}</span>
           </div>
-          <button className="md-button-filled flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span>Generate Insight</span>
-          </button>
         </div>
       </header>
 
@@ -152,7 +162,7 @@ export function Dashboard() {
                 <stat.icon className="h-6 w-6" />
               </div>
               <div className="flex items-center gap-1 text-[10px] font-bold text-medical-green bg-medical-green/5 px-2 py-1 rounded-full border border-medical-green/10">
-                <TrendingUp className="h-3 w-3" />
+                <Activity className="h-3 w-3" />
                 {stat.trend}
               </div>
             </div>
@@ -172,17 +182,10 @@ export function Dashboard() {
               <h3 className="text-lg font-bold text-slate-900">Hospital Placement Distribution</h3>
               <p className="text-sm font-medium text-slate-400">Student count per training facility</p>
             </div>
-            <button className="md-button-text text-xs">View All Sites</button>
           </div>
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={[
-                { name: 'Somdej', students: 45 },
-                { name: 'Chonburi', students: 32 },
-                { name: 'Queen', students: 28 },
-                { name: 'Banglamung', students: 24 },
-                { name: 'Phyathai', students: 18 },
-              ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={hospitalStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                 <XAxis 
                   dataKey="name" 
@@ -211,7 +214,6 @@ export function Dashboard() {
             </ResponsiveContainer>
           </div>
         </div>
-
         {/* Recent Activities */}
         <div className="md-card p-8 flex flex-col h-full">
           <div className="flex items-center gap-3 mb-8">

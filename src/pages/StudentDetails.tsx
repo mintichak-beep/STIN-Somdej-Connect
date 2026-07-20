@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { studentService, roomService, weeklyBillService, vanTripService, subjectService, allocationService, vanService, studentPaymentService } from "../services/app.service";
-import { Student, Room, WeeklyBill, VanTrip, Subject, Allocation, Van, StudentPayment } from "../types/app";
-import { ArrowLeft, User, Home, Receipt, Bus, BookOpen, FileText, Plus, Trash2, Edit2, Eye } from "lucide-react";
+import { studentService, roomService, weeklyBillService, vanTripService, subjectService, allocationService, vanService, studentPaymentService, weeklyRoomAssignmentService } from "../services/app.service";
+import { Student, Room, WeeklyBill, VanTrip, Subject, Allocation, Van, StudentPayment, WeeklyRoomAssignment } from "../types/app";
+import { ArrowLeft, User, Home, Receipt, Bus, BookOpen, FileText, Plus, Trash2, Edit2, Eye, Calendar } from "lucide-react";
+import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from "date-fns";
 import { Modal } from "../components/Modal";
 
 export function StudentDetails({ studentId, onBack }: { studentId: string, onBack: () => void }) {
@@ -9,8 +10,9 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(true);
   
-  const [roomAllocations, setRoomAllocations] = useState<Allocation[]>([]);
+  const [roomAllocations, setRoomAllocations] = useState<WeeklyRoomAssignment[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedWeek, setSelectedWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [payments, setPayments] = useState<StudentPayment[]>([]);
   const [trips, setTrips] = useState<VanTrip[]>([]);
   const [vans, setVans] = useState<Van[]>([]);
@@ -35,7 +37,7 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
             setSubject(sub || null);
         }
         
-        const allAllocations = await allocationService.getAll();
+        const allAllocations = await weeklyRoomAssignmentService.getAll();
         setRoomAllocations(allAllocations.filter(a => a.studentId === studentId));
         
         const allRooms = await roomService.getAll();
@@ -57,19 +59,25 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
 
   const handleSaveAllocation = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { ...allocationFormData, studentId, hospitalId: "", teacherId: "", vanId: "", createdAt: new Date(), updatedAt: new Date() };
+    const data = { 
+      ...allocationFormData, 
+      studentId, 
+      status: 'active' as const,
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    };
     if (selectedAllocation) {
-        await allocationService.update(selectedAllocation.id, data);
+        await weeklyRoomAssignmentService.update(selectedAllocation.id, data);
     } else {
-        await allocationService.create(data as any);
+        await weeklyRoomAssignmentService.create(data as any);
     }
     setIsAllocationModalOpen(false);
-    const all = await allocationService.getAll();
+    const all = await weeklyRoomAssignmentService.getAll();
     setRoomAllocations(all.filter(a => a.studentId === studentId));
   };
 
   const deleteAllocation = async (id: string) => {
-      await allocationService.delete(id);
+      await weeklyRoomAssignmentService.delete(id);
       setRoomAllocations(prev => prev.filter(a => a.id !== id));
   };
 
@@ -111,33 +119,95 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
                 </div>
             )}
             {activeTab === 'room' && (
-                <div className="space-y-4">
-                    <button onClick={() => { setSelectedAllocation(null); setAllocationFormData({ roomId: "", startDate: "", endDate: "" }); setIsAllocationModalOpen(true); }} className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold"><Plus className="w-4 h-4"/> เพิ่มห้อง</button>
-                    <table className="w-full text-sm">
-                        <thead><tr><th>อาคาร</th><th>ห้อง</th><th>เริ่ม</th><th>สิ้นสุด</th><th>สถานะ</th><th></th></tr></thead>
-                        <tbody>
-                            {roomAllocations.map(a => {
-                                const room = rooms.find(r => r.id === a.roomId);
-                                const start = new Date(a.startDate);
-                                const end = new Date(a.endDate);
-                                const now = new Date();
-                                const status = now < start ? "ยังไม่เริ่ม" : now > end ? "สิ้นสุด" : "กำลังใช้งาน";
-                                return (
-                                    <tr key={a.id}>
-                                        <td>{room?.building || "-"}</td>
-                                        <td>{room?.roomNumber || "-"}</td>
-                                        <td>{start.toLocaleDateString()}</td>
-                                        <td>{end.toLocaleDateString()}</td>
-                                        <td>{status}</td>
-                                        <td className="flex gap-2">
-                                            <button onClick={() => { setSelectedAllocation(a); setAllocationFormData({ roomId: a.roomId, startDate: a.startDate, endDate: a.endDate }); setIsAllocationModalOpen(true); }}><Edit2 className="w-4 h-4"/></button>
-                                            <button onClick={() => deleteAllocation(a.id)}><Trash2 className="w-4 h-4 text-red-500"/></button>
+                <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h3 className="text-lg font-black text-zinc-900">Room Assignments</h3>
+                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            <div className="flex items-center gap-2 px-3">
+                                <Calendar className="h-4 w-4 text-slate-400" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Week</span>
+                            </div>
+                            <input 
+                                type="date"
+                                value={selectedWeek}
+                                onChange={(e) => setSelectedWeek(e.target.value)}
+                                className="bg-transparent text-sm font-bold text-slate-900 outline-none pr-4"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="md-card overflow-hidden">
+                        <table className="w-full text-sm">
+                            <thead className="bg-slate-50 border-b border-slate-100">
+                                <tr className="text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <th className="p-4">Dormitory / Room</th>
+                                    <th className="p-4">Period</th>
+                                    <th className="p-4">Status</th>
+                                    <th className="p-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {roomAllocations.map(a => {
+                                    const room = rooms.find(r => r.id === a.roomId);
+                                    const start = a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate);
+                                    const end = a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate);
+                                    const weekStart = parseISO(selectedWeek);
+                                    const isCurrent = isWithinInterval(weekStart, { start, end });
+                                    
+                                    return (
+                                        <tr key={a.id} className={`border-t border-slate-100 ${isCurrent ? 'bg-primary/5' : ''}`}>
+                                            <td className="p-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-extrabold text-slate-900">Room {room?.roomNumber || "-"}</span>
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{room?.building || "-"}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                                    {format(start, 'dd/MM/yyyy')} - {format(end, 'dd/MM/yyyy')}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isCurrent ? 'bg-success/10 text-success' : 'bg-slate-100 text-slate-400'}`}>
+                                                    {isCurrent ? "Current Week" : "Other Week"}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => { 
+                                                        setSelectedAllocation(a as any); 
+                                                        setAllocationFormData({ 
+                                                            roomId: a.roomId, 
+                                                            startDate: format(start, 'yyyy-MM-dd'), 
+                                                            endDate: format(end, 'yyyy-MM-dd') 
+                                                        }); 
+                                                        setIsAllocationModalOpen(true); 
+                                                    }} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg"><Edit2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => deleteAllocation(a.id)} className="p-2 text-medical-red hover:bg-medical-red/5 rounded-lg"><Trash2 className="w-4 h-4"/></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                                {roomAllocations.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="p-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            No room assignments found
                                         </td>
                                     </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button onClick={() => { 
+                        setSelectedAllocation(null); 
+                        setAllocationFormData({ 
+                            roomId: "", 
+                            startDate: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'), 
+                            endDate: format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') 
+                        }); 
+                        setIsAllocationModalOpen(true); 
+                    }} className="md-button-filled flex items-center gap-3 py-3 px-6"><Plus className="w-4 h-4"/> Add Assignment</button>
                 </div>
             )}
             {activeTab === 'bills' && (
