@@ -10,8 +10,15 @@
       "phone": "string",
       "status": "string",
       "subjectId": "string?",
+      "groupId": "string?",
       "roomId": "string?",
       "notes": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "subjectGroups": {
+      "groupName": "string",
+      "subjectId": "string",
       "createdAt": "timestamp",
       "updatedAt": "timestamp"
     },

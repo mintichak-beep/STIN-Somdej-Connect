@@ -11,7 +11,7 @@ import { WeeklyRoomAssignmentPage } from './pages/WeeklyRoomAssignment';
 import { Reports } from './pages/Reports';
 import { UtilityBilling } from './pages/UtilityBilling';
 import { PaymentVerification } from './pages/PaymentVerification';
-import { LandingPage } from './pages/LandingPage';
+import { WelcomePage } from './pages/WelcomePage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { StudentUtilities } from './pages/StudentUtilities';
 import { MyTransportation } from './pages/MyTransportation';
@@ -49,7 +49,7 @@ export default function App() {
   };
 
   if (!role) {
-    return <LandingPage onSelectRole={handleSelectRole} />;
+    return <WelcomePage onSelectRole={handleSelectRole} />;
   }
 
   const renderContent = () => {

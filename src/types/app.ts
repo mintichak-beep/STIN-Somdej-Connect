@@ -11,6 +11,7 @@ export interface Student {
   phone: string;
   status: 'active' | 'inactive';
   subjectId?: string;
+  groupId?: string;
   roomId?: string;
   notes?: string;
   createdAt: any;
@@ -27,6 +28,14 @@ export interface Subject {
   status: 'active' | 'inactive';
   createdAt: any;
   updatedAt: any;
+}
+
+export interface SubjectGroup {
+  id: string;
+  groupName: string;
+  subjectId: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Teacher {
