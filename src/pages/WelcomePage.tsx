@@ -11,7 +11,7 @@ export function WelcomePage({ onSelectRole }: WelcomePageProps) {
       {/* Mobile Background (hidden on desktop) */}
       <div 
         className="md:hidden absolute inset-0 bg-cover bg-center z-0 opacity-20"
-        style={{ backgroundImage: "url('/src/assets/images/medical_illustration_bg_1784609439820.jpg')" }}
+        style={{ backgroundImage: "url('/src/assets/images/medical_collage_background_1784615107928.jpg')" }}
       ></div>
 
       {/* Left Side: Blue Area */}
@@ -46,7 +46,7 @@ export function WelcomePage({ onSelectRole }: WelcomePageProps) {
             {/* Teacher Card */}
             <div className="flex-1 rounded-3xl bg-white p-6 shadow-xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300 border border-slate-100">
               <div className="h-32 w-32 rounded-full overflow-hidden mb-4 bg-red-50 p-2 border-4 border-red-50">
-                <img src="/src/assets/images/teacher_illustration_1784608045303.jpg" alt="Teacher" className="h-full w-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                <img src="/src/assets/images/nursing_instructor_avatar_1784615029312.jpg" alt="Teacher" className="h-full w-full object-cover rounded-full" referrerPolicy="no-referrer" />
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <User className="h-5 w-5 text-red-600" fill="currentColor" />
@@ -64,7 +64,7 @@ export function WelcomePage({ onSelectRole }: WelcomePageProps) {
             {/* Student Card */}
             <div className="flex-1 rounded-3xl bg-white p-6 shadow-xl flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300 border border-slate-100">
               <div className="h-32 w-32 rounded-full overflow-hidden mb-4 bg-red-50 p-2 border-4 border-red-50">
-                <img src="/src/assets/images/student_illustration_1784608061970.jpg" alt="Student" className="h-full w-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                <img src="/src/assets/images/nursing_student_avatar_1784615043179.jpg" alt="Student" className="h-full w-full object-cover rounded-full" referrerPolicy="no-referrer" />
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <GraduationCap className="h-5 w-5 text-red-600" fill="currentColor" />
@@ -92,7 +92,7 @@ export function WelcomePage({ onSelectRole }: WelcomePageProps) {
       {/* Right Side: Medical Illustration Background */}
       <div 
         className="hidden md:block md:w-[45%] lg:w-[50%] bg-cover bg-center bg-no-repeat relative"
-        style={{ backgroundImage: "url('/src/assets/images/medical_illustration_bg_1784609439820.jpg')" }}
+        style={{ backgroundImage: "url('/src/assets/images/medical_collage_background_1784615107928.jpg')" }}
       >
       </div>
     </div>
