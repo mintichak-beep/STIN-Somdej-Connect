@@ -10,7 +10,7 @@ type StatusType =
 interface StatusChipProps {
   status: StatusType | string;
   label?: string;
-  variant?: 'success' | 'warning' | 'error' | 'info' | 'danger';
+  variant?: 'success' | 'warning' | 'error' | 'info' | 'danger' | 'neutral';
 }
 
 export function StatusChip({ status, label, variant }: StatusChipProps) {
@@ -21,7 +21,8 @@ export function StatusChip({ status, label, variant }: StatusChipProps) {
     warning: 'occupied',
     error: 'rejected',
     danger: 'rejected',
-    info: 'verified'
+    info: 'verified',
+    neutral: 'inactive'
   };
 
   const lookupStatus = variant ? variantMap[variant] : normalizedStatus;

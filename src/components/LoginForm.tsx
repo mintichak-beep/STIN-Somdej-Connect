@@ -81,18 +81,18 @@ export function LoginForm() {
 
         {/* Email Input */}
         <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-zinc-300">
-            Email Address
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300">
+            Email Address / อีเมลสถาบัน
           </label>
-          <div className="relative rounded-xl shadow-xs">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Mail className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
+          <div className="relative rounded-[20px] shadow-xs">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <Mail className="h-5 w-5 text-slate-400 dark:text-zinc-500" />
             </div>
             <input
               {...register('email')}
               type="text"
               placeholder="e.g. admin@stin.ac.th"
-              className={`block w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder-gray-400 outline-hidden transition-all duration-200 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500 dark:focus:border-red-500 dark:focus:ring-red-500/10 ${
+              className={`block w-full rounded-[20px] border border-slate-200 bg-slate-50/60 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:bg-white focus:border-[#D32F2F] focus:ring-4 focus:ring-[#D32F2F]/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500 dark:focus:border-red-500 dark:focus:ring-red-500/10 ${
                 errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10 dark:border-red-500' : ''
               }`}
             />
@@ -107,65 +107,65 @@ export function LoginForm() {
         {/* Password Input */}
         <PasswordInput
           {...register('password')}
-          label="Password"
+          label="Password / รหัสผ่าน"
           placeholder="••••••••"
           error={errors.password?.message}
         />
 
         {/* Remember Me & Forgot Password */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between text-xs">
           <RememberMeCheckbox {...register('rememberMe')} />
           <Link
             to="/forgot-password"
-            className="text-sm font-semibold text-red-600 transition-colors hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            className="text-xs font-bold text-[#D32F2F] transition-colors hover:text-[#B71C1C] dark:text-red-400 dark:hover:text-red-300"
           >
             Forgot Password?
           </Link>
         </div>
 
-        {/* Login Button */}
+        {/* Large Red Login Button */}
         <button
           type="submit"
           disabled={isSubmitting || isGoogleSubmitting}
-          className="flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-600/10 active:bg-red-800 disabled:opacity-55 cursor-pointer dark:bg-red-600 dark:hover:bg-red-700"
+          className="flex w-full items-center justify-center rounded-[20px] bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] hover:from-[#C62828] hover:to-[#9A0007] px-6 py-4 text-base font-black text-white shadow-lg shadow-red-600/25 transition-all duration-200 hover:shadow-red-600/35 active:scale-[0.99] disabled:opacity-55 cursor-pointer"
         >
           {isSubmitting ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
           ) : (
-            'Sign In to STIN-Somdej connect'
+            'Sign In / เข้าสู่ระบบ'
           )}
         </button>
       </form>
 
       {/* Divider */}
-      <div className="relative flex items-center py-2">
-        <div className="flex-grow border-t border-gray-200 dark:border-zinc-800"></div>
-        <span className="mx-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500">
+      <div className="relative flex items-center py-1">
+        <div className="flex-grow border-t border-slate-200 dark:border-zinc-800"></div>
+        <span className="mx-4 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
           Or login with
         </span>
-        <div className="flex-grow border-t border-gray-200 dark:border-zinc-800"></div>
+        <div className="flex-grow border-t border-slate-200 dark:border-zinc-800"></div>
       </div>
 
       {/* Google Login Button */}
-      <GoogleLoginButton onClick={handleGoogleSignIn} isLoading={isGoogleSubmitting} />
+      <GoogleLoginButton onClick={handleGoogleSignIn} isLoading={isGoogleSubmitting} className="rounded-[20px] py-3 font-bold" />
 
       {/* Account helper card */}
-      <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-zinc-800/80 dark:bg-zinc-900/40">
-        <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-zinc-300">
-          Demo Accounts Available:
+      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50/70 p-4 dark:border-zinc-800/80 dark:bg-zinc-900/40">
+        <h4 className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-300">
+          Demo Accounts Available / บัญชีทดสอบระบบ:
         </h4>
-        <div className="space-y-2 text-xs font-medium text-gray-500 dark:text-zinc-400">
+        <div className="space-y-1.5 text-xs font-medium text-slate-500 dark:text-zinc-400">
           <div className="flex justify-between">
-            <span>Admin: <strong className="text-gray-700 dark:text-zinc-200">admin@stin.ac.th</strong></span>
-            <span>Pass: <strong className="text-gray-700 dark:text-zinc-200">AdminPassword123!</strong></span>
+            <span>Admin: <strong className="text-slate-800 dark:text-zinc-200">admin@stin.ac.th</strong></span>
+            <span>Pass: <strong className="text-slate-800 dark:text-zinc-200">AdminPassword123!</strong></span>
           </div>
           <div className="flex justify-between">
-            <span>Teacher: <strong className="text-gray-700 dark:text-zinc-200">teacher@stin.ac.th</strong></span>
-            <span>Pass: <strong className="text-gray-700 dark:text-zinc-200">TeacherPassword123!</strong></span>
+            <span>Teacher: <strong className="text-slate-800 dark:text-zinc-200">teacher@stin.ac.th</strong></span>
+            <span>Pass: <strong className="text-slate-800 dark:text-zinc-200">TeacherPassword123!</strong></span>
           </div>
           <div className="flex justify-between">
-            <span>Student: <strong className="text-gray-700 dark:text-zinc-200">student@stin.ac.th</strong></span>
-            <span>Pass: <strong className="text-gray-700 dark:text-zinc-200">StudentPassword123!</strong></span>
+            <span>Student: <strong className="text-slate-800 dark:text-zinc-200">student@stin.ac.th</strong></span>
+            <span>Pass: <strong className="text-slate-800 dark:text-zinc-200">StudentPassword123!</strong></span>
           </div>
         </div>
       </div>

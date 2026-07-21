@@ -3,6 +3,7 @@ import { Hospital } from '../types/db';
 import { HospitalStatusChip } from './HospitalStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { ChevronUp, ChevronDown, Download, Printer, ArrowUpDown, MapPin, GraduationCap, Building } from 'lucide-react';
+import { AssetImage } from './AssetImage';
 
 interface HospitalTableProps {
   id?: string;
@@ -243,11 +244,11 @@ export function HospitalTable({
                   className="hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors font-medium text-zinc-700 dark:text-zinc-300"
                 >
                   <td className="py-2 px-4">
-                    <img
+                    <AssetImage
                       src={h.logoURL || defaultLogo}
                       alt="Logo"
                       className="w-8 h-8 rounded-lg object-cover border border-zinc-100 dark:border-zinc-800 bg-white"
-                      referrerPolicy="no-referrer"
+                      fallbackType="hospital"
                     />
                   </td>
                   <td className="py-2 px-4 font-bold text-zinc-950 dark:text-white">

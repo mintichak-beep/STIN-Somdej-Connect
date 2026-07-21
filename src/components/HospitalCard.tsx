@@ -3,6 +3,7 @@ import { Hospital } from '../types/db';
 import { HospitalStatusChip } from './HospitalStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { MapPin, Users, Phone, Building, GraduationCap, School } from 'lucide-react';
+import { AssetImage } from './AssetImage';
 
 interface HospitalCardProps {
   key?: string | number;
@@ -57,11 +58,11 @@ export function HospitalCard({
     >
       {/* Cover Image */}
       <div className="h-28 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-950 relative shrink-0">
-        <img
+        <AssetImage
           src={hospital.imageURL || defaultCover}
           alt={hospital.hospitalNameEN}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          referrerPolicy="no-referrer"
+          fallbackType="hospital"
         />
         <div className="absolute top-3 left-3">
           <HospitalStatusChip status={hospital.status} />
@@ -76,11 +77,11 @@ export function HospitalCard({
       {/* Hospital Logo Avatar overlapping the Cover Image */}
       <div className="px-5 -mt-8 relative flex items-end justify-between shrink-0">
         <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-white dark:border-zinc-900 bg-white shadow-md">
-          <img
+          <AssetImage
             src={hospital.logoURL || defaultLogo}
             alt={`${hospital.hospitalNameEN} Logo`}
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            fallbackType="hospital"
           />
         </div>
         <div className="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/50">

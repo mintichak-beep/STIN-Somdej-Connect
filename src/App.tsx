@@ -5,7 +5,6 @@ import { StudentManagement } from './pages/StudentManagement';
 import { StudentDetails } from './pages/StudentDetails';
 import { SubjectManagement } from './pages/SubjectManagement';
 import { RoomManagement } from './pages/RoomManagement';
-import { VanManagement } from './pages/VanManagement';
 import { VanTrips } from './pages/VanTrips';
 import { WeeklyRoomAssignmentPage } from './pages/WeeklyRoomAssignment';
 import { Reports } from './pages/Reports';
@@ -19,13 +18,24 @@ import { MyTransportation } from './pages/MyTransportation';
 import { TeacherManagement } from './pages/TeacherManagement';
 import { TeacherProfile } from './pages/TeacherProfile';
 import { TeacherDetails } from './pages/TeacherDetails';
+import { PracticeTimetable } from './pages/PracticeTimetable';
+import { PracticeSiteManagement } from './pages/PracticeSiteManagement';
+import { WelcomeSettings } from './pages/WelcomeSettings';
+import { Announcements } from "./pages/Announcements";
+import { DutyScheduleManagement } from './pages/DutyScheduleManagement';
+import { StudentDutySchedule } from './pages/StudentDutySchedule';
+import { AcademicScheduleManagement } from './pages/AcademicScheduleManagement';
+import { ClinicalPracticePlanner } from './pages/ClinicalPracticePlanner';
+import { ClinicalSites } from './pages/ClinicalSites';
+import { Wards } from './pages/Wards';
+import { StudentGroups } from './pages/StudentGroups';
+import { StudentClinicalPractice } from './pages/StudentClinicalPractice';
+import { StudentAcademicSchedule } from './pages/StudentAcademicSchedule';
 import { useAuth } from './hooks/useAuth';
 
 export default function App() {
   const { user } = useAuth();
-  const [role, setRole] = useState<'Teacher' | 'Student' | null>(() => {
-    return localStorage.getItem('user_role') as 'Teacher' | 'Student' | null;
-  });
+  const [role, setRole] = useState<'Teacher' | 'Student' | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(() => {
     return localStorage.getItem('selected_student_id');
@@ -33,13 +43,11 @@ export default function App() {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
 
   const handleSelectRole = (selectedRole: 'Teacher' | 'Student') => {
-    localStorage.setItem('user_role', selectedRole);
     setRole(selectedRole);
     setActiveTab('dashboard');
   };
 
   const handleSwitchRole = () => {
-    localStorage.removeItem('user_role');
     localStorage.removeItem('selected_student_id');
     setRole(null);
     setActiveTab('dashboard');
@@ -74,8 +82,6 @@ export default function App() {
           return <RoomManagement />;
         case 'room-assignments':
           return <WeeklyRoomAssignmentPage />;
-        case 'vans':
-          return <VanManagement />;
         case 'van-trips':
           return <VanTrips />;
         case 'my-transportation':
@@ -91,12 +97,28 @@ export default function App() {
           return <TeacherProfile />;
         case 'subjects':
           return <SubjectManagement />;
+        case 'clinical-planner':
+        case 'practice-sites':
+        case 'academic-schedules':
+        case 'duty-management':
+        case 'practice-timetable':
+          return <ClinicalPracticePlanner />;
+        case 'clinical-sites':
+          return <ClinicalSites />;
+        case 'wards':
+          return <Wards />;
+        case 'student-groups':
+          return <StudentGroups />;
         case 'utility-billing':
           return <UtilityBilling />;
         case 'payment-verification':
           return <PaymentVerification />;
         case 'reports':
           return <Reports />;
+        case 'welcome-settings':
+          return <WelcomeSettings />;
+        case 'announcements':
+          return <Announcements role="Teacher" />;
         default:
           return <Dashboard />;
       }
@@ -111,8 +133,16 @@ export default function App() {
           return <StudentDashboard studentId={selectedStudentId} onChangeStudent={handleChangeStudent} onNavigateToBills={() => setActiveTab('student-utilities')} />;
         case 'student-utilities':
           return <StudentUtilities studentId={selectedStudentId} />;
+        case 'student-academic-schedule':
+          return <StudentAcademicSchedule />;
+        case 'clinical-duty':
+          return <StudentClinicalPractice studentId={selectedStudentId} />;
+        case 'duty-schedule':
+          return <StudentDutySchedule studentId={selectedStudentId} />;
         case 'my-transportation':
           return <MyTransportation userId={selectedStudentId} role="Student" />;
+        case 'announcements':
+          return <Announcements role="Student" />;
         default:
           return <StudentDashboard studentId={selectedStudentId} onChangeStudent={handleChangeStudent} onNavigateToBills={() => setActiveTab('student-utilities')} />;
       }

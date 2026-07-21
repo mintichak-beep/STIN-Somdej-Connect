@@ -1,240 +1,216 @@
-import { useEffect, useState } from "react";
-import { vanTripService, vanService, studentService, teacherService } from "../services/app.service";
-import { VanTrip, Van, Student, Teacher } from "../types/app";
-import { Bus, MapPin, Clock, Calendar, Phone, User, Info, AlertCircle, Users } from "lucide-react";
-import { format } from "date-fns";
+import { useState, useEffect } from "react";
+import { vanTripService, studentService, teacherService } from "../services/app.service";
+import { VanTrip, Student, Teacher } from "../types/app";
+import { Calendar, Clock, MapPin, Bus, User, Users, Info, AlertCircle, Navigation } from "lucide-react";
 
-export function MyTransportation({ userId, role }: { userId: string, role: 'Teacher' | 'Student' }) {
+export function MyTransportation({ userId, role }: { userId?: string, role?: string }) {
   const [trips, setTrips] = useState<VanTrip[]>([]);
-  const [vans, setVans] = useState<Van[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    let tripsUnsub = () => {};
-    let vansUnsub = () => {};
-    let studentsUnsub = () => {};
-
-    // Load Data
-    studentsUnsub = studentService.onSnapshot([], (studentsList) => {
-      setStudents(studentsList);
-    });
-    teachersUnsub = teacherService.onSnapshot([], (teachersList) => {
-      setTeachers(teachersList);
-    });
-    tripsUnsub = vanTripService.onSnapshot([], (tripsList) => {
-      setTrips(tripsList);
-    });
-    vansUnsub = vanService.onSnapshot([], (vansList) => {
-      setVans(vansList);
-    });
-
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => {
-      tripsUnsub();
-      vansUnsub();
-      studentsUnsub();
-      teachersUnsub();
-      clearTimeout(timer);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const tripData = await vanTripService.getAll();
+        const studentData = await studentService.getAll();
+        const teacherData = await teacherService.getAll();
+        
+        setStudents(studentData);
+        setTeachers(teacherData);
+        
+        // In a real app we'd filter by the actual logged-in user
+        // For now, let's just show trips that have at least one student, or all trips if we want to preview
+        setTrips(tripData.filter(t => (role === "Student" ? t.studentIds?.includes(userId || "") : t.instructorIds?.includes(userId || ""))));
+      } catch (err) {
+        console.error("Error fetching transportation:", err);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    fetchData();
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-24 bg-white rounded-[40px] border border-slate-50 shadow-sm">
-        <div className="h-12 w-12 border-4 border-medical-blue border-t-transparent rounded-full animate-spin mb-6"></div>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Accessing transit registry...</p>
+      <div className="flex items-center justify-center p-12 text-slate-400">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-primary animate-spin" />
+          <span className="text-sm font-bold uppercase tracking-widest">Loading Transportation...</span>
+        </div>
       </div>
     );
   }
 
-  // Filter trips where current user is a passenger
-  const myTrips = trips.filter(trip => 
-    trip.passengers.some(p => p.personId === userId)
-  ).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime());
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Page Header */}
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+    <div className="space-y-6">
+      <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 font-sans tracking-tight">
-            My Transportation
-          </h1>
-          <p className="text-sm text-slate-400 font-medium mt-1">
-            Clinical rotation shuttle schedules and vehicle assignment details.
-          </p>
-        </div>
-        <div className="bg-medical-blue/10 px-6 py-3 rounded-2xl flex items-center gap-3">
-          <Bus className="h-5 w-5 text-medical-blue" />
-          <span className="text-xs font-bold text-medical-blue uppercase tracking-widest">{myTrips.length} Active Trips</span>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">My Shuttle Van</h2>
+          <p className="text-sm text-slate-500 font-medium mt-1">Your upcoming clinical transportation schedules</p>
         </div>
       </div>
 
-      {myTrips.length === 0 ? (
-        <div className="bg-white rounded-[40px] border border-slate-100 p-20 text-center space-y-6 shadow-sm">
-          <div className="bg-slate-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto">
-            <Bus className="h-10 w-10 text-slate-200" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-bold text-slate-900">No transportation schedule available.</h3>
-            <p className="text-sm text-slate-400 max-w-sm mx-auto">
-              You are currently not assigned to any institutional transport circuits for the upcoming clinical cycle.
-            </p>
-          </div>
+      {trips.length === 0 ? (
+        <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-slate-100 border-dashed">
+          <Bus className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-900">No Upcoming Trips</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto mt-2">
+            You do not have any shuttle van assignments at this time.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {myTrips.map((trip) => {
-            const van = vans.find(v => v.id === trip.vanId);
-            const statusColor = {
-              scheduled: "bg-medical-blue/10 text-medical-blue border-medical-blue/10",
-              in_progress: "bg-medical-orange/10 text-medical-orange border-medical-orange/10 animate-pulse",
-              completed: "bg-medical-green/10 text-medical-green border-medical-green/10",
-              cancelled: "bg-medical-red/10 text-medical-red border-medical-red/10"
-            }[trip.status || 'scheduled'];
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {trips.map((trip) => {
+            const assignedStudents = students
+              .filter(s => trip.studentIds?.includes(s.id))
+              .map(s => s.firstName || 'Unknown');
+              
+            const assignedInstructors = teachers
+              .filter(t => trip.instructorIds?.includes(t.id))
+              .map(t => t.name || 'Unknown');
 
             return (
-              <div key={trip.id} className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group flex flex-col">
-                {/* Trip Header */}
-                <div className="p-8 border-b border-slate-50 flex justify-between items-start">
-                  <div className="space-y-4">
+              <div key={trip.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col hover:border-primary/20 hover:shadow-lg transition-all duration-300">
+                
+                {/* Header & Status */}
+                <div className="p-8 border-b border-slate-50 bg-slate-50/50">
+                  <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="bg-medical-blue/10 p-3 rounded-2xl text-medical-blue group-hover:scale-110 transition-transform">
+                      <div className="h-12 w-12 rounded-2xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
                         <Calendar className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Trip Deployment</p>
-                        <h4 className="text-xl font-bold text-slate-900">{format(typeof trip.tripDate === 'string' ? new Date(trip.tripDate) : (trip.tripDate as any).toDate(), 'EEEE, MMMM do')}</h4>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Travel Date</p>
+                        <h4 className="text-lg font-black text-slate-900">{trip.date || (trip as any).tripDate}</h4>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${statusColor}`}>
-                        {trip.status ? trip.status.replace('_', ' ') : 'Scheduled'}
+                    <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                      trip.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' :
+                      trip.status === 'Cancelled' ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'
+                    }`}>
+                      <span className="relative flex h-2 w-2">
+                        {trip.status === 'Scheduled' && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>}
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                          trip.status === 'Completed' ? 'bg-emerald-500' :
+                          trip.status === 'Cancelled' ? 'bg-red-500' : 'bg-indigo-500'
+                        }`}></span>
                       </span>
-                      <span className="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-slate-100 bg-slate-50 text-slate-500">
-                        {trip.subject}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-2 justify-end text-medical-blue mb-1">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-lg font-bold">{trip.departureTime}</span>
-                    </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Est. Return: {trip.returnTime}</p>
-                  </div>
-                </div>
-
-                {/* Departure & Return Routes */}
-                <div className="p-8 bg-slate-50/30 flex flex-col gap-6 relative overflow-hidden border-b border-slate-50">
-                  {/* Departure Route Section */}
-                  <div className="space-y-4">
-                    <h5 className="text-[10px] font-black uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse" />
-                      Departure Schedule ({trip.departureTime})
-                    </h5>
-                    <div className="pl-4 border-l-2 border-indigo-100 space-y-4 relative">
-                      <div className="flex items-start gap-4">
-                        <MapPin className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">From Location</span>
-                          <p className="text-sm font-bold text-slate-800">{trip.departureLocation || trip.pickupLocation || "STIN Main Campus"}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-4">
-                        <MapPin className="h-4 w-4 text-indigo-600 mt-0.5 shrink-0" />
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider">To Destination</span>
-                          <p className="text-sm font-bold text-slate-800">{trip.destination}</p>
-                        </div>
-                      </div>
+                      {trip.status || 'Scheduled'}
                     </div>
                   </div>
 
-                  {/* Return Route Section */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                      Return Schedule ({trip.returnTime})
-                    </h5>
-                    <div className="pl-4 border-l-2 border-emerald-100 space-y-4 relative">
-                      <div className="flex items-start gap-4">
-                        <MapPin className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pickup From</span>
-                          <p className="text-sm font-bold text-slate-800">{trip.returnPickupLocation || trip.destination || "Clinical Site"}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-4">
-                        <MapPin className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Return Destination</span>
-                          <p className="text-sm font-bold text-slate-800">{trip.returnDestination || trip.dropoffLocation || "STIN Residential Hall"}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {role === 'Teacher' && (
-                  <div className="p-8 bg-white border-b border-slate-50">
-                    <h5 className="text-xs font-black uppercase tracking-widest text-slate-800 flex items-center gap-2 mb-4">
-                      <Users className="h-4 w-4 text-medical-teal" />
-                      Passenger List ({trip.passengers.length})
-                    </h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">
-                      {trip.passengers.map((p) => {
-                        const student = students.find(s => s.id === p.personId);
-                        const teacher = teachers.find(t => t.id === p.personId);
-                        return (
-                          <div key={p.personId} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                            <span className="text-xs font-bold text-slate-700">
-                              {student?.fullName || teacher?.name || "Unknown User"}
-                            </span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-white px-2 py-0.5 rounded-lg border border-slate-100">
-                              {p.role}
-                            </span>
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <h5 className="text-[10px] font-black uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+                        Outbound Trip
+                      </h5>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                          <div className="space-y-0.5">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Departure Time</span>
+                            <p className="text-sm font-bold text-slate-800">{trip.departureTime}</p>
                           </div>
-                        );
-                      })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                        Return Trip
+                      </h5>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                          <div className="space-y-0.5">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Return Time</span>
+                            <p className="text-sm font-bold text-slate-800">{trip.returnTime}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
+                  
+                  <div className="mt-6 pt-6 border-t border-slate-200">
+                    <div className="flex items-start gap-3">
+                      <Navigation className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] font-bold text-primary uppercase tracking-wider">Destination</span>
+                        <p className="text-sm font-bold text-slate-800">{trip.destination}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info List */}
+                <div className="p-8 bg-white border-b border-slate-50 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-800 flex items-center gap-2 mb-3">
+                        <User className="h-4 w-4 text-teal-500" />
+                        Instructor Name(s)
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {assignedInstructors.length > 0 ? assignedInstructors.map((name, i) => (
+                          <span key={i} className="px-3 py-1 bg-teal-50 text-teal-700 text-[10px] font-bold rounded-lg border border-teal-100">
+                            {name}
+                          </span>
+                        )) : <span className="text-[10px] text-slate-400 font-bold uppercase italic">No instructor</span>}
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-800 flex items-center gap-2 mb-3">
+                        <Users className="h-4 w-4 text-indigo-500" />
+                        Student List ({assignedStudents.length})
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {assignedStudents.map((name, i) => (
+                          <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg border border-indigo-100">
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {trip.notes && (
+                    <div className="pt-4 border-t border-slate-50">
+                      <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-800 flex items-center gap-2 mb-2">
+                        <Info className="h-4 w-4 text-primary" />
+                        Trip Notes
+                      </h5>
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        {trip.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Van & Driver Info */}
-                <div className="p-8 mt-auto bg-white border-t border-slate-50 grid grid-cols-2 gap-8">
+                <div className="p-8 mt-auto bg-slate-50/50 grid grid-cols-2 gap-8 border-t border-slate-50">
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-medical-blue/5 flex items-center justify-center text-medical-blue">
+                      <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-medical-blue shadow-sm border border-slate-100">
                         <Bus className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Assigned Unit</p>
-                        <p className="text-sm font-bold text-slate-800">Van #{van?.vanNumber || "TBD"}</p>
-                        <p className="text-xs font-mono font-bold text-medical-blue">{van?.plateNumber || "Pending"}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">License Plate</p>
+                        <p className="text-sm font-bold text-slate-800">{trip.licensePlate || "TBD"}</p>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-medical-teal/5 flex items-center justify-center text-medical-teal">
+                      <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-medical-teal shadow-sm border border-slate-100">
                         <User className="h-6 w-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vehicle Operator</p>
-                        <p className="text-sm font-bold text-slate-800 truncate">{van?.driverName || "Assigning..."}</p>
-                        {van?.driverPhone && (
-                          <a href={`tel:${van.driverPhone}`} className="text-xs font-bold text-medical-teal hover:underline flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            {van.driverPhone}
-                          </a>
-                        )}
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Driver Name</p>
+                        <p className="text-sm font-bold text-slate-800 truncate">{trip.driverName || "Assigning..."}</p>
                       </div>
                     </div>
                   </div>
@@ -252,15 +228,12 @@ export function MyTransportation({ userId, role }: { userId: string, role: 'Teac
           <div className="space-y-2">
             <div className="flex items-center gap-3 text-medical-red">
               <AlertCircle className="h-6 w-6" />
-              <h4 className="text-lg font-bold">Transit Protocol & Contingencies</h4>
+              <h4 className="text-lg font-bold">Transit Protocol</h4>
             </div>
             <p className="text-sm text-slate-400 max-w-2xl">
-              Arrival at the departure station is required 15 minutes prior to deployment. For emergency cancellations or shuttle discrepancies, please contact the Clinical Coordination Office immediately.
+              Arrival at the departure station is required 15 minutes prior to deployment.
             </p>
           </div>
-          <button className="px-8 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-sm font-bold transition-all border border-white/10 backdrop-blur-md">
-            View Transit Rules
-          </button>
         </div>
       </div>
     </div>

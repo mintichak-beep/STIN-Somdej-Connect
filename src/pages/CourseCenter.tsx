@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, ToggleLeft, ToggleRight, Trash2, AlertTriangle } from 'lucide-react';
 import { courseService } from '../services/course.service';
 import { Course } from '../types/db';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { deduplicationService } from '../services/deduplication.service';
 
 export const CourseCenter = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -10,12 +11,15 @@ export const CourseCenter = () => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [bypassDuplicate, setBypassDuplicate] = useState(false);
   const [formData, setFormData] = useState({
     courseCode: '',
     courseName: '',
     academicYear: '2569',
     semester: '1',
-    status: 'active' as 'active' | 'inactive'
+    status: 'active' as 'active' | 'inactive',
+    color: '#6366f1' // Default color
   });
 
   const fetchCourses = async () => {
@@ -33,6 +37,14 @@ export const CourseCenter = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!bypassDuplicate) {
+        const dup = await deduplicationService.checkDuplicateBeforeSave("courses", formData, editingCourse?.id);
+        if (dup) {
+          setDuplicateWarning(`A course with matching Course Code already exists (Code: ${dup.courseCode}, Name: ${dup.courseName}). Do you want to proceed and create a duplicate?`);
+          return;
+        }
+      }
+
       if (editingCourse) {
         await courseService.update(editingCourse.id, formData);
       } else {
@@ -45,11 +57,39 @@ export const CourseCenter = () => {
         courseName: '',
         academicYear: '2569',
         semester: '1',
-        status: 'active'
+        status: 'active',
+        color: '#6366f1'
       });
       fetchCourses();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'An error occurred');
+    }
+  };
+
+  const handleBypassAndSave = async () => {
+    setDuplicateWarning(null);
+    setBypassDuplicate(true);
+    try {
+      if (editingCourse) {
+        await courseService.update(editingCourse.id, formData);
+      } else {
+        await courseService.create(formData);
+      }
+      setIsModalOpen(false);
+      setEditingCourse(null);
+      setFormData({
+        courseCode: '',
+        courseName: '',
+        academicYear: '2569',
+        semester: '1',
+        status: 'active',
+        color: '#6366f1'
+      });
+      fetchCourses();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setBypassDuplicate(false);
     }
   };
 
@@ -60,8 +100,11 @@ export const CourseCenter = () => {
       courseName: course.courseName,
       academicYear: course.academicYear,
       semester: course.semester,
-      status: course.status
+      status: course.status,
+      color: course.color || '#6366f1'
     });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -80,6 +123,16 @@ export const CourseCenter = () => {
         <button
           onClick={() => {
             setEditingCourse(null);
+            setFormData({
+              courseCode: '',
+              courseName: '',
+              academicYear: '2569',
+              semester: '1',
+              status: 'active',
+              color: '#6366f1'
+            });
+            setDuplicateWarning(null);
+            setBypassDuplicate(false);
             setIsModalOpen(true);
           }}
           className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
@@ -184,6 +237,34 @@ export const CourseCenter = () => {
               <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
                 {editingCourse ? 'Edit Course' : 'Add New Course'}
               </h2>
+
+              {duplicateWarning && (
+                <div className="p-5 bg-amber-50 text-amber-800 text-sm font-medium rounded-2xl border border-amber-200 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1">
+                  <div className="flex items-start gap-4">
+                    <AlertTriangle className="h-6 w-6 shrink-0 text-amber-500" />
+                    <div className="space-y-1">
+                      <p className="font-bold text-amber-950">Duplicate Detected</p>
+                      <p className="text-xs leading-relaxed">{duplicateWarning}</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2.5 mt-1">
+                    <button
+                      type="button"
+                      onClick={handleBypassAndSave}
+                      className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+                    >
+                      Confirm & Create
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDuplicateWarning(null)}
+                      className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-extrabold hover:bg-slate-200 transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
               
               <div className="space-y-4">
                 <div>
@@ -208,7 +289,7 @@ export const CourseCenter = () => {
                     placeholder="e.g., Maternal Nursing Practice 1"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Academic Year</label>
                     <input
@@ -230,6 +311,16 @@ export const CourseCenter = () => {
                       <option value="2">2</option>
                       <option value="Summer">Summer</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Course Color</label>
+                    <input
+                      type="color"
+                      required
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      className="w-full h-9 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl cursor-pointer"
+                    />
                   </div>
                 </div>
               </div>

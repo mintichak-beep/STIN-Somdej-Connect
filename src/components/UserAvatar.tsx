@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AssetImage } from './AssetImage';
 
 interface UserAvatarProps {
   src?: string;
@@ -47,12 +48,11 @@ export function UserAvatar({ src, name, size = 'md', className = '' }: UserAvata
 
   if (src && !imageError) {
     return (
-      <img
+      <AssetImage
         src={src}
         alt={name}
         onError={() => setImageError(true)}
         className={`${sizeClasses[size]} rounded-full object-cover border border-gray-200 dark:border-zinc-800 shadow-sm ${className}`}
-        referrerPolicy="no-referrer"
       />
     );
   }

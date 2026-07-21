@@ -6,6 +6,7 @@ import { StudentPayment, WeeklyBill, Room, Student, PaymentSlip, Dormitory } fro
 import { CheckCircle, XCircle, Eye, AlertCircle, Search, Clock, MapPin, User, CreditCard } from "lucide-react";
 import { StatusChip } from "../components/StatusChip";
 import { motion, AnimatePresence } from "motion/react";
+import { AssetImage } from "../components/AssetImage";
 
 export function PaymentVerification() {
   const [payments, setPayments] = useState<StudentPayment[]>([]);
@@ -142,7 +143,7 @@ export function PaymentVerification() {
   };
 
   const verificationsData = payments
-    .filter(p => p.paymentStatus === 'waiting_verification' || p.paymentStatus === 'paid' || p.paymentStatus === 'rejected')
+    .filter(p => p.paymentStatus === 'payment_slip_uploaded' || p.paymentStatus === 'waiting_verification' || slips.some(s => s.billId === p.id))
     .map(p => {
       const room = rooms.find(r => r.id === p.roomId);
       const dormitory = dormitories.find(d => d.id === room?.dormitoryId);
@@ -153,32 +154,33 @@ export function PaymentVerification() {
         ...p,
         roomInfo: `${dormitory?.dormitoryName || ''} - ${room?.roomNumber || 'N/A'}`,
         location: `${room?.building || ''} ชั้น ${room?.floor || ''}`,
-        studentName: student?.fullName || "N/A",
-        studentCode: student?.studentId || "N/A",
+        studentName: slip?.studentName || student?.fullName || "N/A",
+        studentCode: slip?.studentCode || student?.studentId || "N/A",
+        invoiceNumber: p.invoiceNumber || slip?.invoiceNumber || "N/A",
         total: p.individualAmount.toLocaleString() + " ฿",
         hasSlip: !!slip,
-        slipDate: slip?.uploadedAt ? new Date(slip.uploadedAt.seconds ? slip.uploadedAt.seconds * 1000 : slip.uploadedAt).toLocaleString('th-TH') : "N/A"
+        slipDate: slip?.uploadDate && slip?.uploadTime ? `${slip.uploadDate} ${slip.uploadTime}` : (slip?.uploadedAt ? new Date(slip.uploadedAt.seconds ? slip.uploadedAt.seconds * 1000 : slip.uploadedAt).toLocaleString('th-TH') : "N/A")
       };
     });
 
   return (
     <div className="space-y-6">
       <DataTable
-        title="Payment Verification Queue"
+        title="รายการสลิปหลักฐานการชำระเงินของนักศึกษา"
         data={verificationsData}
-        searchFields={["roomInfo", "studentName", "billingWeek", "studentCode"]}
+        searchFields={["roomInfo", "studentName", "billingWeek", "studentCode", "invoiceNumber"]}
         columns={[
           { 
-            header: "Cycle", 
+            header: "เลขที่ใบแจ้งหนี้ / รอบ", 
             accessor: (item) => (
               <div className="flex flex-col">
-                <span className="font-mono text-xs font-bold text-slate-900">{item.billingWeek}</span>
-                <span className="text-[10px] font-bold text-slate-400">Week ID</span>
+                <span className="font-mono text-xs font-bold text-slate-900">{item.invoiceNumber}</span>
+                <span className="text-[10px] font-bold text-slate-400">สัปดาห์ที่ {item.billingWeek}</span>
               </div>
             )
           },
           { 
-            header: "Resident Info", 
+            header: "ข้อมูลนักศึกษา", 
             accessor: (item) => (
               <div className="flex flex-col">
                 <span className="font-bold text-slate-900">{item.studentName}</span>
@@ -187,7 +189,7 @@ export function PaymentVerification() {
             )
           },
           { 
-            header: "Location", 
+            header: "หอพัก / ห้อง", 
             accessor: (item) => (
               <div className="flex flex-col">
                 <span className="font-bold text-slate-700">{item.roomInfo}</span>
@@ -196,33 +198,29 @@ export function PaymentVerification() {
             )
           },
           { 
-            header: "Amount", 
+            header: "ยอดเงิน", 
             accessor: (item) => <span className="font-bold text-primary">{item.total}</span>
           },
           { 
-            header: "Submission", 
+            header: "วันที่และเวลาที่อัปโหลด", 
             accessor: (item) => (
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-slate-600">{item.slipDate}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Date</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Timestamp</span>
               </div>
             )
           },
           { 
-            header: "Status", 
+            header: "สถานะ", 
             accessor: (item) => (
               <StatusChip 
-                status={item.paymentStatus === 'waiting_verification' ? 'Pending Review' : item.paymentStatus} 
-                variant={
-                  item.paymentStatus === 'paid' ? 'success' : 
-                  item.paymentStatus === 'waiting_verification' ? 'warning' : 
-                  item.paymentStatus === 'rejected' ? 'error' : 'info'
-                }
+                status="Payment Slip Uploaded" 
+                variant="info"
               />
             )
           },
           {
-            header: "Actions",
+            header: "จัดการ",
             accessor: (item) => (
               <button
                 disabled={!item.hasSlip}
@@ -234,7 +232,7 @@ export function PaymentVerification() {
                 }`}
               >
                 <Eye className="h-4 w-4" />
-                <span>Verify</span>
+                <span>เปิดดูสลิป</span>
               </button>
             )
           }
@@ -243,65 +241,50 @@ export function PaymentVerification() {
 
       <Modal
         isOpen={isSlipModalOpen}
-        onClose={() => !isSaving && setIsSlipModalOpen(false)}
-        title="Transaction Proof Audit"
+        onClose={() => setIsSlipModalOpen(false)}
+        title="ตรวจสอบหลักฐานการโอนเงิน (Payment Slip)"
       >
         <div className="space-y-6">
           <div className="aspect-[4/5] w-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 relative group shadow-inner">
             {selectedSlip?.fileUrl ? (
-              <img src={selectedSlip.fileUrl} alt="Payment Slip" referrerPolicy="no-referrer" className="w-full h-full object-contain" />
+              <AssetImage src={selectedSlip.fileUrl} alt="Payment Slip" className="w-full h-full object-contain" fallbackType="slip" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-4">
                 <AlertCircle className="h-10 w-10 opacity-20" />
-                <span className="text-xs font-bold uppercase tracking-widest opacity-40">Proof document not found</span>
+                <span className="text-xs font-bold uppercase tracking-widest opacity-40">ไม่พบไฟล์หลักฐาน</span>
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resident</span>
-              <p className="text-sm font-bold text-slate-900">{students.find(s => s.id === selectedPayment?.studentId)?.fullName}</p>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ชื่อนักศึกษา</span>
+              <p className="text-sm font-bold text-slate-900">{selectedSlip?.studentName || students.find(s => s.id === selectedPayment?.studentId)?.fullName}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dormitory Unit</span>
-              <p className="text-sm font-bold text-slate-900">Room {rooms.find(r => r.id === selectedPayment?.roomId)?.roomNumber}</p>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">รหัสนักศึกษา</span>
+              <p className="text-sm font-bold text-slate-900">{selectedSlip?.studentCode || students.find(s => s.id === selectedPayment?.studentId)?.studentId}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cycle Week</span>
-              <p className="text-sm font-bold text-slate-900 font-mono">{selectedPayment?.billingWeek}</p>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">เลขที่ใบแจ้งหนี้</span>
+              <p className="text-sm font-bold text-slate-900 font-mono">{selectedSlip?.invoiceNumber || selectedPayment?.invoiceNumber}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Amount</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ยอดชำระ</span>
               <p className="text-lg font-bold text-primary">฿{selectedPayment?.individualAmount.toLocaleString()}</p>
             </div>
+            <div className="space-y-1 col-span-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">เวลาที่อัปโหลด</span>
+              <p className="text-sm font-bold text-slate-700">{selectedSlip?.uploadDate && selectedSlip?.uploadTime ? `${selectedSlip.uploadDate} ${selectedSlip.uploadTime}` : "N/A"}</p>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Auditor Remarks</label>
-            <textarea
-              disabled={isSaving}
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-              placeholder="State the reason for approval or rejection..."
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all min-h-[100px]"
-            />
-          </div>
-
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-2">
             <button 
-              disabled={isSaving}
-              onClick={() => handleVerify('rejected')}
-              className="flex-1 py-4 text-sm font-bold text-error bg-error/10 hover:bg-error/20 rounded-xl transition-all flex items-center justify-center gap-2"
+              onClick={() => setIsSlipModalOpen(false)}
+              className="w-full py-3 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
             >
-              <XCircle className="h-4 w-4" /> Decline
-            </button>
-            <button 
-              disabled={isSaving}
-              onClick={() => handleVerify('approved')}
-              className="flex-1 py-4 text-sm font-bold text-white bg-success hover:bg-success/90 rounded-xl shadow-lg shadow-success/20 transition-all flex items-center justify-center gap-2"
-            >
-              <CheckCircle className="h-4 w-4" /> Approve
+              ปิดหน้าต่าง
             </button>
           </div>
         </div>

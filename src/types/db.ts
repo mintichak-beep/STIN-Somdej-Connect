@@ -45,6 +45,7 @@ export interface Course {
   academicYear: string;
   semester: string;
   status: 'active' | 'inactive';
+  color?: string;
   createdAt: string;
 
   // Backward compatibility
@@ -338,7 +339,6 @@ export interface Bill {
   prevElectricMeter?: number;
   currElectricMeter?: number;
   electricRate?: number;
-  otherCharges?: number;
   notes?: string;
   adjustmentAmount?: number;
   adjustmentNote?: string;

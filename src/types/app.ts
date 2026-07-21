@@ -44,6 +44,7 @@ export interface SubjectGroup {
 export interface Teacher {
   id: string;
   name: string;
+  employeeId?: string;
   department: string;
   phone: string;
   photoUrl?: string;
@@ -85,13 +86,76 @@ export interface Room {
 
 export interface Van {
   id: string;
-  vanNumber: string;
-  plateNumber: string;
+  vanId: string; // User requested "Van ID" specifically
+  licensePlate: string;
   driverName: string;
   driverPhone: string;
-  capacity: number;
-  status: 'active' | 'inactive' | 'maintenance';
-  notes?: string;
+  seatCapacity: number;
+  status: 'Available' | 'Maintenance' | 'In Service';
+  createdAt: any;
+  updatedAt: any;
+  // Compatibility aliases for legacy components
+  plateNumber?: string;
+  capacity?: number;
+  vanNumber?: string;
+}
+
+export interface DutySchedule {
+  id: string;
+  dutyDate: string;
+  startTime: string;
+  endTime: string;
+  dutyType: string;
+  dutyLocation: string;
+  dormitoryId: string;
+  assignedStudents: string[];
+  status: 'Upcoming' | 'Completed' | 'Cancelled';
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface Milestone {
+  type: 'Orientation' | 'Lecture' | 'Clinical Practice' | 'Midterm' | 'Final Examination' | 'Evaluation';
+  date: string;
+  label?: string;
+}
+
+export interface AcademicSchedule {
+  id: string;
+  academicYear: string;
+  semester: string;
+  courseCode: string;
+  courseName: string;
+  instructor: string;
+  department: string;
+  startDate: string;
+  endDate: string;
+  milestones: Milestone[];
+  status: 'Planned' | 'Ongoing' | 'Completed';
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface ShuttleRoute {
+  id: string;
+  routeName: string;
+  direction: 'Morning' | 'Evening';
+  departureLocation: string;
+  destination: string;
+  departureTime: string;
+  arrivalTime: string;
+  vanId: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface ShuttleAssignment {
+  id: string;
+  studentId: string;
+  routeId: string;
+  vanId: string;
+  assignedAt: any;
+  status: 'active' | 'cancelled';
   createdAt: any;
   updatedAt: any;
 }
@@ -103,21 +167,18 @@ export interface Passenger {
 
 export interface VanTrip {
   id: string;
-  tripDate: string;
+  date: string;
+  licensePlate: string;
+  driverName: string;
   departureTime: string;
   returnTime: string;
   destination: string;
-  subject: string;
-  vanId: string;
-  passengers: Passenger[];
-  pickupLocation?: string;
-  dropoffLocation?: string;
-  departureLocation?: string;
-  returnPickupLocation?: string;
-  returnDestination?: string;
-  status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  studentIds: string[];
+  instructorIds: string[];
+  notes?: string;
+  status: 'Scheduled' | 'Completed' | 'Cancelled';
   createdAt: any;
-  updatedAt: any;
+  updatedAt?: any;
 }
 
 export interface Allocation {
@@ -136,21 +197,24 @@ export interface Allocation {
 export interface WeeklyBill {
   id: string;
   roomId: string;
+  invoiceNumber: string;
   billingWeek: string; // e.g., "2024-W12"
   startDate: any;
   endDate: any;
   occupantsCount: number;
-  waterUsage: number; // usually same as occupantsCount for this logic
+  waterUsage: number;
   electricityUsage: number;
+  roomFee: number;
   waterCharge: number;
   electricityCharge: number;
   otherCharges: number;
   totalAmount: number;
   dueDate: any;
-  paymentStatus: 'pending' | 'waiting_verification' | 'paid' | 'rejected';
+  paymentStatus: 'pending' | 'payment_slip_uploaded' | 'waiting_verification' | 'paid' | 'rejected';
   prevElectricMeter: number;
   currElectricMeter: number;
   electricRate: number;
+  practiceSite?: string;
   createdAt: any;
   updatedAt: any;
 }
@@ -160,19 +224,40 @@ export interface StudentPayment {
   billId: string;
   studentId: string;
   roomId: string;
+  invoiceNumber: string;
   billingWeek: string;
+  roomFee: number;
+  waterCharge: number;
+  electricityCharge: number;
+  otherCharges: number;
   individualAmount: number;
-  paymentStatus: 'pending' | 'waiting_verification' | 'paid' | 'rejected';
+  paymentStatus: 'pending' | 'payment_slip_uploaded' | 'waiting_verification' | 'paid' | 'rejected';
   createdAt: any;
   updatedAt: any;
+}
+
+export interface BankAccountConfig {
+  id?: string;
+  accountName: string;
+  bankName: string;
+  accountNumber: string;
+  promptPayNumber?: string;
+  qrCodeUrl: string;
+  paymentInstructions?: string;
 }
 
 export interface PaymentSlip {
   id: string;
   billId: string;
+  studentId: string;
+  studentName?: string;
+  studentCode?: string;
+  invoiceNumber?: string;
   fileUrl: string;
   uploadedAt: any;
-  verificationStatus: 'pending' | 'approved' | 'rejected';
+  uploadDate?: string;
+  uploadTime?: string;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
   verifiedAt?: any;
   adminRemark?: string;
   createdAt: any;
@@ -228,6 +313,73 @@ export interface PracticeAssignment {
   createdAt: any;
 }
 
+export interface ClinicalSite {
+  id: string;
+  name: string;
+  type: string; // e.g. Hospital, Health Center
+  address: string;
+  phone: string;
+  status: 'active' | 'inactive';
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface Ward {
+  id: string;
+  clinicalSiteId: string;
+  name: string;
+  department: string;
+  status: 'active' | 'inactive';
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface ClinicalSchedule {
+  id: string;
+  academicYear: string;
+  semester: string;
+  courseId: string;
+  studentGroupId?: string;
+  studentIds?: string[];
+  clinicalSiteId: string;
+  wardId: string;
+  instructorId?: string;
+  secondaryInstructorId?: string;
+  startDate: string;
+  endDate: string;
+  shift?: 'Morning' | 'Afternoon' | 'Night';
+  subShift?: string;
+  remarks?: string;
+  status?: 'Upcoming' | 'Ongoing' | 'Completed';
+  minStudents?: number;
+  maxStudents?: number;
+  courseColor?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface DutyAssignment {
+  id: string;
+  scheduleId: string;
+  studentId: string;
+  date: string;
+  shift: 'M' | 'A' | 'N' | 'OFF' | 'EVA' | 'CL';
+  subShift?: string;
+  instructorId: string;
+  remarks?: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface StudentGroup {
+  id: string;
+  name: string;
+  studentIds: string[];
+  courseId?: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
 export interface Course {
   id: string;
   courseCode: string;
@@ -235,12 +387,15 @@ export interface Course {
   academicYear: string;
   semester: string;
   status: 'active' | 'inactive';
+  color?: string;
   createdAt: any;
 }
 
 export interface WeeklyRoomAssignment {
   id: string;
-  studentId: string;
+  studentId?: string;
+  studentIds?: string[];
+  instructorIds?: string[];
   roomId: string;
   startDate: any;
   endDate: any;
@@ -255,4 +410,26 @@ export interface AllocationDetails extends Allocation {
   teacher?: Teacher;
   room?: Room;
   van?: Van;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  author: string;
+  date: any; // Firestore timestamp
+  attachmentUrl?: string;
+  isPinned: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface AppImage {
+  id: string;
+  imageName: string;
+  imageType: 'login' | 'welcome' | 'dashboard_banner' | 'medical_illustration' | 'empty_state' | 'custom';
+  imageUrl: string;
+  updatedAt?: any;
+  createdAt?: any;
 }

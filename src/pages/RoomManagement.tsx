@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { roomService, dormitoryService, studentService, weeklyRoomAssignmentService, subjectService } from "../services/app.service";
-import { Room, Dormitory, Student, WeeklyRoomAssignment, Subject } from "../types/app";
+import { roomService, dormitoryService, studentService, weeklyRoomAssignmentService, subjectService, teacherService, trainingSiteService, studentGroupService, clinicalScheduleService } from "../services/app.service";
+import { Room, Dormitory, Student, WeeklyRoomAssignment, Subject, Teacher, TrainingSite, StudentGroup, ClinicalSchedule } from "../types/app";
 import { StatusChip } from "../components/StatusChip";
 import { Timestamp } from "firebase/firestore";
 import { format, startOfWeek, endOfWeek, addWeeks, isWithinInterval, parseISO } from "date-fns";
+import { AssetImage } from "../components/AssetImage";
 import { 
   Home, 
   AlertCircle, 
@@ -28,7 +29,9 @@ import {
   Trash2,
   Edit2,
   Move,
-  X
+  X,
+  UserCheck,
+  Briefcase
 } from "lucide-react";
 
 export function RoomManagement() {
@@ -36,6 +39,10 @@ export function RoomManagement() {
   const [dormitories, setDormitories] = useState<Dormitory[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [trainingSites, setTrainingSites] = useState<TrainingSite[]>([]);
+  const [studentGroups, setStudentGroups] = useState<StudentGroup[]>([]);
+  const [clinicalSchedules, setClinicalSchedules] = useState<ClinicalSchedule[]>([]);
   const [weeklyAssignments, setWeeklyAssignments] = useState<WeeklyRoomAssignment[]>([]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,14 +56,25 @@ export function RoomManagement() {
 
   const [selectedWeek, setSelectedWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isAssignInstructorModalOpen, setIsAssignInstructorModalOpen] = useState(false);
   const [assignmentSearch, setAssignmentSearch] = useState("");
+  const [instructorSearch, setInstructorSearch] = useState("");
   const [assignmentFormData, setAssignmentFormData] = useState({
     studentIds: [] as string[],
     startDate: "",
     endDate: ""
   });
+  const [assignmentInstructorIds, setAssignmentInstructorIds] = useState<string[]>([]);
   const [editingAssignment, setEditingAssignment] = useState<WeeklyRoomAssignment | null>(null);
   const [movingAssignment, setMovingAssignment] = useState<WeeklyRoomAssignment | null>(null);
+
+  // Filters
+  const [filterBuilding, setFilterBuilding] = useState("");
+  const [filterRoom, setFilterRoom] = useState("");
+  const [filterInstructor, setFilterInstructor] = useState("");
+  const [filterStudentGroup, setFilterStudentGroup] = useState("");
+  const [filterPracticeSite, setFilterPracticeSite] = useState("");
+  const [filterOccupancyStatus, setFilterOccupancyStatus] = useState("all");
 
   const [formData, setFormData] = useState({
     dormitoryId: "",
@@ -74,21 +92,6 @@ export function RoomManagement() {
     dormitoryName: ""
   });
 
-  const fetchData = async () => {
-    try {
-      const [roomsData, dormsData, studentsData] = await Promise.all([
-        roomService.getAll(),
-        dormitoryService.getAll(),
-        studentService.getAll()
-      ]);
-      setRooms(roomsData);
-      setDormitories(dormsData);
-      setStudents(studentsData);
-    } catch (err) {
-      console.error("fetchData error:", err);
-    }
-  };
-
   useEffect(() => {
     const unsubscribeRooms = roomService.onSnapshot([], (data) => {
       setRooms(data);
@@ -103,8 +106,20 @@ export function RoomManagement() {
     const unsubscribeStudents = studentService.onSnapshot([], (data) => {
       setStudents(data);
     });
+    const unsubscribeTeachers = teacherService.onSnapshot([], (data) => {
+      setTeachers(data);
+    });
     const unsubscribeSubjects = subjectService.onSnapshot([], (data) => {
       setSubjects(data);
+    });
+    const unsubscribeTrainingSites = trainingSiteService.onSnapshot([], (data) => {
+      setTrainingSites(data);
+    });
+    const unsubscribeStudentGroups = studentGroupService.onSnapshot([], (data) => {
+      setStudentGroups(data);
+    });
+    const unsubscribeClinicalSchedules = clinicalScheduleService.onSnapshot([], (data) => {
+      setClinicalSchedules(data);
     });
     const unsubscribeAssignments = weeklyRoomAssignmentService.onSnapshot([], (data) => {
       setWeeklyAssignments(data);
@@ -114,7 +129,11 @@ export function RoomManagement() {
       unsubscribeRooms();
       unsubscribeDorms();
       unsubscribeStudents();
+      unsubscribeTeachers();
       unsubscribeSubjects();
+      unsubscribeTrainingSites();
+      unsubscribeStudentGroups();
+      unsubscribeClinicalSchedules();
       unsubscribeAssignments();
     };
   }, [viewingRoom]);
@@ -162,7 +181,6 @@ export function RoomManagement() {
         await roomService.create(formData as any);
       }
       setIsModalOpen(false);
-      await fetchData();
     } catch (err: any) {
       console.error("Save error:", err);
       setError(err.message || "An error occurred while saving the room data.");
@@ -179,7 +197,6 @@ export function RoomManagement() {
       await dormitoryService.create(dormFormData as any);
       setIsDormModalOpen(false);
       setDormFormData({ dormitoryName: "" });
-      await fetchData();
     } catch (err: any) {
       console.error("Save dorm error:", err);
       setDormError(err.message || "An error occurred while registering the dormitory.");
@@ -192,7 +209,6 @@ export function RoomManagement() {
     if (selectedRoom) {
       await roomService.delete(selectedRoom.id);
       setIsDeleteOpen(false);
-      fetchData();
     }
   };
 
@@ -210,6 +226,15 @@ export function RoomManagement() {
       })
     );
 
+    // Calculate total occupants (students + instructors)
+    let totalOccupants = 0;
+    currentAssignments.forEach(a => {
+      if (a.studentId) totalOccupants += 1;
+      if (a.studentIds) totalOccupants += a.studentIds.length;
+      if (a.instructorIds) totalOccupants += a.instructorIds.length;
+    });
+
+    const remainingCapacity = viewingRoom.capacity - totalOccupants;
     const otherRooms = rooms.filter(r => r.id !== viewingRoom.id && r.status === 'active');
 
     const handleAssignStudents = async (e: React.FormEvent) => {
@@ -218,15 +243,14 @@ export function RoomManagement() {
       setError(null);
 
       try {
-        if (currentAssignments.length + assignmentFormData.studentIds.length > viewingRoom.capacity) {
-          throw new Error(`Cannot exceed room capacity of ${viewingRoom.capacity} students.`);
+        if (totalOccupants + assignmentFormData.studentIds.length > viewingRoom.capacity) {
+          throw new Error(`Cannot exceed room capacity of ${viewingRoom.capacity}. Total occupants would be ${totalOccupants + assignmentFormData.studentIds.length}.`);
         }
 
         const start = new Date(assignmentFormData.startDate);
         const end = new Date(assignmentFormData.endDate);
 
         for (const studentId of assignmentFormData.studentIds) {
-          // Check if student is already assigned elsewhere this week
           const existing = weeklyAssignments.find(a => 
             a.studentId === studentId && 
             a.status === 'active' &&
@@ -261,6 +285,38 @@ export function RoomManagement() {
       }
     };
 
+    const handleAssignInstructors = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSaving(true);
+      setError(null);
+
+      try {
+        if (totalOccupants + assignmentInstructorIds.length > viewingRoom.capacity) {
+          throw new Error(`Cannot exceed room capacity of ${viewingRoom.capacity}. Total occupants would be ${totalOccupants + assignmentInstructorIds.length}.`);
+        }
+
+        const start = new Date(assignmentFormData.startDate);
+        const end = new Date(assignmentFormData.endDate);
+
+        await weeklyRoomAssignmentService.create({
+          instructorIds: assignmentInstructorIds,
+          roomId: viewingRoom.id,
+          startDate: Timestamp.fromDate(start),
+          endDate: Timestamp.fromDate(end),
+          status: 'active',
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        } as any);
+
+        setIsAssignInstructorModalOpen(false);
+        setAssignmentInstructorIds([]);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
     const handleRemoveAssignment = async (assignmentId: string) => {
       if (confirm("Are you sure you want to remove this assignment?")) {
         await weeklyRoomAssignmentService.delete(assignmentId);
@@ -274,17 +330,23 @@ export function RoomManagement() {
       const targetRoom = rooms.find(r => r.id === targetRoomId);
       if (!targetRoom) return;
 
-      // Check target room capacity
-      const targetRoomCurrentOccupants = weeklyAssignments.filter(a => 
+      const targetRoomAssignments = weeklyAssignments.filter(a => 
         a.roomId === targetRoomId && 
         a.status === 'active' &&
         isWithinInterval(assignment.startDate?.toDate ? assignment.startDate.toDate() : new Date(assignment.startDate), { 
           start: a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate), 
           end: a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate) 
         })
-      ).length;
+      );
+      let targetOccupants = 0;
+      targetRoomAssignments.forEach(a => {
+        if (a.studentId) targetOccupants += 1;
+        if (a.studentIds) targetOccupants += a.studentIds.length;
+        if (a.instructorIds) targetOccupants += a.instructorIds.length;
+      });
 
-      if (targetRoomCurrentOccupants >= targetRoom.capacity) {
+      const movingCount = assignment.studentId ? 1 : (assignment.instructorIds?.length || 0);
+      if (targetOccupants + movingCount > targetRoom.capacity) {
         alert(`Room ${targetRoom.roomNumber} is full for this period.`);
         return;
       }
@@ -362,10 +424,10 @@ export function RoomManagement() {
         {/* Room Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { label: "Monthly Base Rent", value: `${viewingRoom.monthlyRent || 0} THB`, icon: DollarSign, color: "text-primary bg-primary/5" },
-            { label: "Water Rate", value: `${viewingRoom.waterRate || 0} THB/U`, icon: Droplets, color: "text-info bg-info/5" },
-            { label: "Electricity Rate", value: `${viewingRoom.electricityRate || 0} THB/U`, icon: Zap, color: "text-warning bg-warning/5" },
-            { label: "Bed Occupancy", value: `${currentAssignments.length} / ${viewingRoom.capacity}`, icon: Users, color: "text-success bg-success/5" },
+            { label: "Total Occupants", value: `${totalOccupants} / ${viewingRoom.capacity}`, icon: Users, color: "text-success bg-success/5" },
+            { label: "Remaining Capacity", value: `${remainingCapacity} Beds`, icon: Hotel, color: "text-primary bg-primary/5" },
+            { label: "Monthly Base Rent", value: `${viewingRoom.monthlyRent || 0} THB`, icon: DollarSign, color: "text-info bg-info/5" },
+            { label: "Utility Rates", value: `W: ${viewingRoom.waterRate || 0} | E: ${viewingRoom.electricityRate || 0}`, icon: Zap, color: "text-warning bg-warning/5" },
           ].map((stat, idx) => (
             <div key={idx} className="md-card p-6 flex items-center gap-5">
               <div className={`p-4 rounded-2xl ${stat.color}`}>
@@ -373,12 +435,102 @@ export function RoomManagement() {
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{stat.label}</p>
-                <p className="text-xl font-black text-slate-900 font-mono tracking-tight">{stat.value}</p>
+                <p className="text-lg font-black text-slate-900 font-mono tracking-tight">{stat.value}</p>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Practice Links & Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md-card p-6 space-y-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Linked Practice Site</span>
+            <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-primary" />
+              {trainingSites[0]?.name || "Primary Hospital / Training Center"}
+            </p>
+          </div>
+          <div className="md-card p-6 space-y-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Group</span>
+            <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <Users className="h-4 w-4 text-info" />
+              {studentGroups[0]?.name || "Nursing Cohort A"}
+            </p>
+          </div>
+          <div className="md-card p-6 space-y-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Practice Schedule</span>
+            <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-warning" />
+              {clinicalSchedules[0]?.startDate ? `Rotation (${clinicalSchedules[0].startDate})` : "Clinical Ward Rotation"}
+            </p>
+          </div>
+        </div>
+
+        {/* Assigned Instructors Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Assigned Instructors</h3>
+              <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Supervising faculty members for this accommodation</p>
+            </div>
+            <button
+              onClick={() => {
+                setAssignmentFormData({
+                  studentIds: [],
+                  startDate: format(weekStart, 'yyyy-MM-dd'),
+                  endDate: format(weekEnd, 'yyyy-MM-dd')
+                });
+                setAssignmentInstructorIds([]);
+                setIsAssignInstructorModalOpen(true);
+              }}
+              disabled={totalOccupants >= viewingRoom.capacity}
+              className="md-button-filled flex items-center gap-3 py-3 px-6 disabled:opacity-50"
+            >
+              <UserCheck className="h-4 w-4" />
+              <span>Assign Instructor</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {currentAssignments.filter(a => a.instructorIds && a.instructorIds.length > 0).map(a => (
+              a.instructorIds?.map(id => {
+                const teacher = teachers.find(t => t.id === id);
+                return (
+                  <div key={`${a.id}-${id}`} className="md-card p-5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-200">
+                        {teacher?.photoUrl ? (
+                          <AssetImage src={teacher.photoUrl} alt={teacher.name} className="h-full w-full object-cover" fallbackType="teacher" />
+                        ) : (
+                          <Users className="h-6 w-6 text-slate-400" />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900">{teacher?.name || 'Unknown Instructor'}</h4>
+                        <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{teacher?.department || 'Nursing'}</p>
+                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">{teacher?.phone || 'No Phone'}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveAssignment(a.id)}
+                      className="p-2 text-medical-red hover:bg-medical-red/5 rounded-xl transition-colors"
+                      title="Remove Assignment"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                );
+              })
+            ))}
+            {currentAssignments.filter(a => a.instructorIds && a.instructorIds.length > 0).length === 0 && (
+              <div className="col-span-full p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-outline">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No instructors assigned to this room for the selected week.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Assigned Students Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -394,7 +546,7 @@ export function RoomManagement() {
                 });
                 setIsAssignModalOpen(true);
               }}
-              disabled={currentAssignments.length >= viewingRoom.capacity}
+              disabled={totalOccupants >= viewingRoom.capacity}
               className="md-button-filled flex items-center gap-3 py-3 px-6 disabled:opacity-50"
             >
               <UserPlus className="h-4 w-4" />
@@ -406,7 +558,7 @@ export function RoomManagement() {
             <DataTable
               title="Current Residents"
               searchFields={["studentId"]}
-              data={currentAssignments.map(a => {
+              data={currentAssignments.filter(a => a.studentId).map(a => {
                 const student = students.find(s => s.id === a.studentId);
                 const subject = subjects.find(sub => sub.id === student?.subjectId);
                 return { ...a, student, subject };
@@ -492,7 +644,7 @@ export function RoomManagement() {
           </div>
         </div>
 
-        {/* Multi-Assign Modal */}
+        {/* Multi-Assign Students Modal */}
         <Modal
           isOpen={isAssignModalOpen}
           onClose={() => setIsAssignModalOpen(false)}
@@ -622,6 +774,139 @@ export function RoomManagement() {
           </form>
         </Modal>
 
+        {/* Assign Instructors Modal */}
+        <Modal
+          isOpen={isAssignInstructorModalOpen}
+          onClose={() => setIsAssignInstructorModalOpen(false)}
+          title="Assign Instructors from Directory"
+        >
+          <form onSubmit={handleAssignInstructors} className="space-y-6">
+            {error && (
+              <div className="p-4 bg-medical-red/5 text-medical-red text-xs font-bold rounded-2xl border border-medical-red/20 flex items-center gap-3">
+                <AlertCircle className="h-5 w-5" />
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="md-label">Find Instructors (Name or Department)</label>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Search instructors..."
+                  value={instructorSearch}
+                  onChange={(e) => setInstructorSearch(e.target.value)}
+                  className="md-input pl-12"
+                />
+              </div>
+
+              {instructorSearch && (
+                <div className="mt-2 p-2 bg-slate-50 rounded-2xl border border-outline max-h-48 overflow-y-auto space-y-1">
+                  {teachers
+                    .filter(t => 
+                      !assignmentInstructorIds.includes(t.id) &&
+                      (t.name?.toLowerCase().includes(instructorSearch.toLowerCase()) || 
+                       t.department?.toLowerCase().includes(instructorSearch.toLowerCase()))
+                    )
+                    .map(t => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => {
+                          setAssignmentInstructorIds(prev => [...prev, t.id]);
+                          setInstructorSearch("");
+                        }}
+                        className="w-full flex items-center justify-between p-3 hover:bg-white rounded-xl text-left transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center">
+                            {t.photoUrl ? (
+                              <AssetImage src={t.photoUrl} alt={t.name} className="h-full w-full object-cover" fallbackType="teacher" />
+                            ) : (
+                              <Users className="h-4 w-4 text-slate-400" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-black text-slate-900">{t.name}</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.department}</div>
+                          </div>
+                        </div>
+                        <Plus className="h-4 w-4 text-primary" />
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="md-label">Selected Instructors ({assignmentInstructorIds.length})</label>
+              <div className="flex flex-wrap gap-2">
+                {assignmentInstructorIds.map(id => {
+                  const teacher = teachers.find(t => t.id === id);
+                  return (
+                    <div key={id} className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/10 rounded-full text-xs font-black text-primary">
+                      <span>{teacher?.name}</span>
+                      <button 
+                        type="button"
+                        onClick={() => setAssignmentInstructorIds(prev => prev.filter(x => x !== id))}
+                        className="hover:text-medical-red transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+                {assignmentInstructorIds.length === 0 && (
+                  <div className="text-xs text-slate-400 font-bold uppercase tracking-widest p-4 text-center w-full bg-slate-50 rounded-2xl border border-dashed border-outline">
+                    No instructors selected
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="md-label">Start Date</label>
+                <input 
+                  type="date"
+                  required
+                  value={assignmentFormData.startDate}
+                  onChange={(e) => setAssignmentFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                  className="md-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="md-label">End Date</label>
+                <input 
+                  type="date"
+                  required
+                  value={assignmentFormData.endDate}
+                  onChange={(e) => setAssignmentFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                  className="md-input"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6 border-t border-outline">
+              <button 
+                type="button" 
+                onClick={() => setIsAssignInstructorModalOpen(false)} 
+                className="md-button-text px-6"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                disabled={isSaving || assignmentInstructorIds.length === 0}
+                className="md-button-filled px-8 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSaving ? "Processing..." : "Assign Instructors"}
+              </button>
+            </div>
+          </form>
+        </Modal>
+
         {/* Edit Dates Modal */}
         <Modal
           isOpen={!!editingAssignment}
@@ -706,12 +991,44 @@ export function RoomManagement() {
     );
   }
 
+  // Filter rooms based on advanced filter criteria
+  const filteredRooms = rooms.filter(r => {
+    const weekStart = parseISO(selectedWeek);
+    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+    const assignments = weeklyAssignments.filter(a => 
+      a.roomId === r.id && 
+      a.status === 'active' &&
+      isWithinInterval(weekStart, { 
+        start: a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate), 
+        end: a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate) 
+      })
+    );
+
+    let occupants = 0;
+    assignments.forEach(a => {
+      if (a.studentId) occupants += 1;
+      if (a.studentIds) occupants += a.studentIds.length;
+      if (a.instructorIds) occupants += a.instructorIds.length;
+    });
+
+    const occupancyStatus = occupants >= r.capacity ? 'full' : (occupants >= r.capacity * 0.8 ? 'almost_full' : 'available');
+
+    if (filterBuilding && r.building !== filterBuilding) return false;
+    if (filterRoom && !r.roomNumber.toLowerCase().includes(filterRoom.toLowerCase())) return false;
+    if (filterOccupancyStatus !== 'all' && occupancyStatus !== filterOccupancyStatus) return false;
+    if (filterInstructor) {
+      const hasInstructor = assignments.some(a => a.instructorIds?.includes(filterInstructor));
+      if (!hasInstructor) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white p-8 rounded-3xl border border-outline shadow-sm">
         <div className="space-y-1">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Institutional Housing</h2>
-          <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Facility & Accommodation Infrastructure Management</p>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Institutional Housing & Accommodation</h2>
+          <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Facility, Student & Instructor Room Management</p>
         </div>
         <button 
           onClick={() => setIsDormModalOpen(true)}
@@ -722,17 +1039,107 @@ export function RoomManagement() {
         </button>
       </div>
 
+      {/* Advanced Filters Panel */}
+      <div className="bg-white p-6 rounded-3xl border border-outline shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+            <Search className="h-4 w-4 text-primary" />
+            Search & Advanced Filters
+          </h3>
+          {(filterBuilding || filterRoom || filterInstructor || filterOccupancyStatus !== 'all') && (
+            <button 
+              onClick={() => {
+                setFilterBuilding("");
+                setFilterRoom("");
+                setFilterInstructor("");
+                setFilterOccupancyStatus("all");
+              }}
+              className="text-xs font-bold text-primary hover:underline"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="md-label text-[10px]">Building</label>
+            <input 
+              type="text"
+              placeholder="e.g. Wing A"
+              value={filterBuilding}
+              onChange={(e) => setFilterBuilding(e.target.value)}
+              className="md-input text-sm py-2"
+            />
+          </div>
+          <div>
+            <label className="md-label text-[10px]">Room Number</label>
+            <input 
+              type="text"
+              placeholder="e.g. 401"
+              value={filterRoom}
+              onChange={(e) => setFilterRoom(e.target.value)}
+              className="md-input text-sm py-2"
+            />
+          </div>
+          <div>
+            <label className="md-label text-[10px]">Assigned Instructor</label>
+            <select
+              value={filterInstructor}
+              onChange={(e) => setFilterInstructor(e.target.value)}
+              className="md-input text-sm py-2"
+            >
+              <option value="">All Instructors</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.id}>{t.name} ({t.department})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="md-label text-[10px]">Occupancy Status</label>
+            <select
+              value={filterOccupancyStatus}
+              onChange={(e) => setFilterOccupancyStatus(e.target.value)}
+              className="md-input text-sm py-2"
+            >
+              <option value="all">All Statuses</option>
+              <option value="available">Available</option>
+              <option value="almost_full">Almost Full</option>
+              <option value="full">Full</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <DataTable
         title="Unit Inventory"
-        description="Comprehensive index of all dormitory units, occupancy states, and utility rates."
-        data={rooms.map(r => ({
-          ...r,
-          dormName: dormitories.find(d => d.id === r.dormitoryId)?.dormitoryName || "N/A",
-          occupancyCount: students.filter(s => s.roomId === r.id).length
-        }))}
+        description="Comprehensive index of all dormitory units, student/instructor occupancy states, and rates."
+        data={filteredRooms.map(r => {
+          const weekStart = parseISO(selectedWeek);
+          const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+          const assignments = weeklyAssignments.filter(a => 
+            a.roomId === r.id && 
+            a.status === 'active' &&
+            isWithinInterval(weekStart, { 
+              start: a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate), 
+              end: a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate) 
+            })
+          );
+          let occupancyCount = 0;
+          assignments.forEach(a => {
+            if (a.studentId) occupancyCount += 1;
+            if (a.studentIds) occupancyCount += a.studentIds.length;
+            if (a.instructorIds) occupancyCount += a.instructorIds.length;
+          });
+
+          return {
+            ...r,
+            dormName: dormitories.find(d => d.id === r.dormitoryId)?.dormitoryName || "N/A",
+            occupancyCount
+          };
+        })}
         searchFields={["dormName", "building", "roomNumber"]}
         emptyTitle="No rooms available."
-        emptyDescription="No rooms available. Click 'Add Room' to create one."
+        emptyDescription="No rooms match your filter criteria. Click 'Add Room' to create one."
         columns={[
           { 
             header: "Location", 
@@ -768,7 +1175,7 @@ export function RoomManagement() {
             accessor: (r: any) => <StatusChip status={r.status} /> 
           },
           { 
-            header: "Occupancy State", 
+            header: "Total Occupancy", 
             accessor: (r: any) => (
               <div className="flex items-center gap-3">
                 <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -784,14 +1191,14 @@ export function RoomManagement() {
             ) 
           },
           {
-            header: "Residents",
+            header: "Occupants & Actions",
             accessor: (r: any) => (
               <button
                 onClick={() => setViewingRoom(r)}
                 className="md-button-text p-2 flex items-center gap-2 group"
               >
                 <Users className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Manage</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">Manage Residents</span>
               </button>
             )
           }

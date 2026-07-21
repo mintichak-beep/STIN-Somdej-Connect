@@ -1,80 +1,142 @@
+import { useState, useEffect } from 'react';
 import { LoginForm } from '../components/LoginForm';
+import { welcomeSettingsService } from '../services/welcomeSettings.service';
+import { appImageService } from '../services/app.service';
+import { appSettingsService } from '../services/appSettings.service';
+import { HeartPulse, ShieldCheck, Hospital } from 'lucide-react';
+
+const DEFAULT_HOSPITAL_BG = "/src/assets/images/login_medical_flat_left_1784648165379.jpg";
 
 export function Login() {
-  return (
-    <div className="flex min-h-screen flex-col md:flex-row bg-gray-50 dark:bg-zinc-950 transition-colors duration-300">
-      {/* Left side: Red Cross branding banner */}
-      <div className="relative hidden md:flex md:w-1/2 flex-col justify-between bg-gradient-to-br from-red-700 via-red-800 to-red-950 p-12 text-white overflow-hidden">
-        {/* Abstract design vector decorations in background */}
-        <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-white/5 blur-3xl"></div>
-        <div className="absolute -bottom-10 -left-10 h-72 w-72 rounded-full bg-red-600/20 blur-2xl"></div>
+  const [bgImageUrl, setBgImageUrl] = useState<string>(DEFAULT_HOSPITAL_BG);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
-        {/* Top brand */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-red-600 shadow-md">
-            {/* Elegant Red Cross Icon */}
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M10.5 3h3v7.5H21v3h-7.5V21h-3v-7.5H3v-3h7.5V3z" />
-            </svg>
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLoginBackgroundAndLogo = async () => {
+      try {
+        // 1. Try Welcome Settings map
+        const welcomeMap = await welcomeSettingsService.getAsMap();
+        if (welcomeMap.backgroundImage || welcomeMap.loginBackgroundImage) {
+          if (isMounted) setBgImageUrl(welcomeMap.backgroundImage || welcomeMap.loginBackgroundImage);
+        } else {
+          // 2. Try App Images collection
+          const images = await appImageService.getAll();
+          const loginImg = images.find(img => img.imageType === 'login');
+          if (loginImg?.imageUrl) {
+            if (isMounted) setBgImageUrl(loginImg.imageUrl);
+          } else {
+            // 3. Try App Settings
+            const appSet = await appSettingsService.getSettings();
+            if (appSet?.loginImageUrl && isMounted) {
+              setBgImageUrl(appSet.loginImageUrl);
+            }
+          }
+        }
+
+        if (welcomeMap.logo && isMounted) {
+          setLogoUrl(welcomeMap.logo);
+        }
+      } catch (err) {
+        console.error("Failed to load custom login background:", err);
+      }
+    };
+
+    loadLoginBackgroundAndLogo();
+
+    // Real-time listener for welcomeSettings changes
+    const unsubWelcome = welcomeSettingsService.onSnapshot([], (data) => {
+      const map: Record<string, string> = {};
+      data.forEach((item) => {
+        if (item.id) map[item.id] = item.value;
+      });
+      if (map.backgroundImage || map.loginBackgroundImage) {
+        setBgImageUrl(map.backgroundImage || map.loginBackgroundImage);
+      }
+      if (map.logo) {
+        setLogoUrl(map.logo);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubWelcome();
+    };
+  }, []);
+
+  return (
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-x-hidden font-sans select-none">
+      {/* Full-screen hospital background image automatically scaled to all screen sizes */}
+      <img
+        src={bgImageUrl}
+        alt="Hospital Background"
+        className="fixed inset-0 w-full h-full object-cover object-center z-0 transition-opacity duration-700"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = DEFAULT_HOSPITAL_BG;
+        }}
+      />
+
+      {/* Soft dark overlay over background for optimal contrast and readability */}
+      <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-[3px] z-0 pointer-events-none transition-all duration-300" />
+
+      {/* Decorative Red Ambient Glows */}
+      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#D32F2F]/15 rounded-full blur-[140px] pointer-events-none z-0" />
+
+      {/* Centered White Glassmorphism Login Card */}
+      <div className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl shadow-red-950/30 rounded-[20px] p-6 sm:p-10 border-t-4 border-t-[#D32F2F] my-auto transition-all duration-300 hover:shadow-red-900/40 animate-in fade-in zoom-in-95">
+        
+        {/* Top Header & Branding */}
+        <div className="flex flex-col items-center text-center mb-6 space-y-2">
+          
+          {/* Logo Badge */}
+          <div className="h-16 w-16 rounded-[20px] bg-gradient-to-br from-[#D32F2F] to-[#B71C1C] text-white flex items-center justify-center shadow-lg shadow-red-600/30 border border-red-400/30 transition-transform duration-300 hover:scale-105 shrink-0">
+            {logoUrl ? (
+              <img src={logoUrl} alt="STIN Logo" className="h-11 w-11 object-contain rounded-xl" />
+            ) : (
+              <svg className="h-9 w-9" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M10.5 3h3v7.5H21v3h-7.5V21h-3v-7.5H3v-3h7.5V3z" />
+              </svg>
+            )}
           </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-widest uppercase">STIN</h1>
-            <p className="text-[10px] font-semibold tracking-wider text-red-200">
-              Srisavarindhira Thai Red Cross
+
+          {/* Badge Label */}
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-50 text-[#D32F2F] text-[11px] font-black uppercase tracking-wider border border-red-100 shadow-2xs">
+            <HeartPulse className="h-3.5 w-3.5 text-[#D32F2F] animate-pulse" />
+            <span>STIN-Somdej Connect</span>
+          </div>
+
+          {/* System Name */}
+          <div className="pt-1 space-y-1">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+              ระบบประสานงานแหล่งฝึก
+            </h1>
+            <p className="text-sm font-extrabold text-[#D32F2F]">
+              รพ.สมเด็จพระบรมราชเทวี ณ ศรีราชา
             </p>
           </div>
-        </div>
 
-        {/* Core welcoming copy */}
-        <div className="space-y-6 max-w-lg z-10 my-auto">
-          <div className="inline-flex rounded-lg bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-red-100 backdrop-blur-md">
-            Academic Year 2026/2027
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-none">
-            STIN-Somdej Connect
-          </h2>
-          <p className="text-base text-red-100/90 leading-relaxed">
-            Welcome to the STIN-Somdej Connect portal for Srisavarindhira Thai Red Cross Institute of Nursing. Seamlessly manage academic schedules, clinic room allocations, and transit assignments in one integrated platform.
+          {/* Short Welcome Message */}
+          <p className="text-xs font-semibold text-slate-500 max-w-xs leading-relaxed pt-1">
+            ยินดีต้อนรับเข้าสู่ระบบจัดการฝึกปฏิบัติการพยาบาล กรุณาลงชื่อเข้าใช้งานด้วยบัญชีสถาบัน
           </p>
         </div>
 
+        {/* Existing Login Functionality Form */}
+        <LoginForm />
+
         {/* Footer info */}
-        <div className="flex items-center justify-between text-xs text-red-200 z-10 border-t border-white/10 pt-6">
-          <p>© 2026 STIN Nursing Institute. All Rights Reserved.</p>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-white transition">Support</a>
-            <a href="#" className="hover:text-white transition">Privacy Policy</a>
+        <div className="mt-8 pt-4 border-t border-slate-200/80 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <div className="flex items-center gap-1 text-[#D32F2F]">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>Secure System</span>
+          </div>
+          <div className="flex items-center gap-1 text-slate-500">
+            <Hospital className="h-3.5 w-3.5" />
+            <span>STIN Red Cross</span>
           </div>
         </div>
-      </div>
 
-      {/* Right side: Modern login card column */}
-      <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-16 bg-white dark:bg-zinc-950">
-        <div className="mx-auto w-full max-w-md">
-          {/* Mobile brand header (visible on small displays only) */}
-          <div className="flex md:hidden items-center gap-3 mb-8">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 text-white shadow-md">
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10.5 3h3v7.5H21v3h-7.5V21h-3v-7.5H3v-3h7.5V3z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-sm font-black tracking-wider uppercase text-gray-900 dark:text-white">STIN-Somdej Connect</h2>
-              <p className="text-[10px] font-semibold text-red-600 dark:text-red-500">STIN Nursing Institute</p>
-            </div>
-          </div>
-
-          <div className="space-y-2 mb-8 text-left">
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Sign In
-            </h3>
-            <p className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
-              Enter your STIN account credentials to access STIN-Somdej Connect.
-            </p>
-          </div>
-
-          <LoginForm />
-        </div>
       </div>
     </div>
   );

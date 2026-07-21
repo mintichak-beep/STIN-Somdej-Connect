@@ -8,7 +8,7 @@ import {
   hospitalService, 
   teacherService, 
   roomService, 
-  vanService,
+  vanTripService,
   subjectService
 } from "../services/app.service";
 import { AllocationDetails, Student, Hospital, Teacher, Room, Van, Subject } from "../types/app";
@@ -43,21 +43,33 @@ export function AllocationManagement() {
   });
 
   const fetchData = async () => {
-    const [allocs, studs, hosps, tchs, rms, vns, subs] = await Promise.all([
+    const [allocs, studs, hosps, tchs, rms, tripsData, subs] = await Promise.all([
       allocationService.getAll(),
       studentService.getAll(),
       hospitalService.getAll(),
       teacherService.getAll(),
       roomService.getAll(),
-      vanService.getAll(),
+      vanTripService.getAll(),
       subjectService.getAll()
     ]);
+
+    const mappedVans = tripsData.map((trip: any) => ({
+      id: trip.id,
+      vanId: trip.id,
+      licensePlate: trip.licensePlate || "N/A",
+      driverName: trip.driverName || "N/A",
+      driverPhone: "",
+      seatCapacity: 15,
+      status: "Available" as const,
+      createdAt: trip.createdAt,
+      updatedAt: trip.createdAt
+    }));
 
     setStudents(studs);
     setHospitals(hosps);
     setTeachers(tchs);
     setRooms(rms);
-    setVans(vns);
+    setVans(mappedVans);
     setSubjects(subs);
 
     const enriched = allocs.map(a => ({
@@ -66,7 +78,7 @@ export function AllocationManagement() {
       hospital: hosps.find(h => h.id === a.hospitalId),
       teacher: tchs.find(t => t.id === a.teacherId),
       room: rms.find(r => r.id === a.roomId),
-      van: vns.find(v => v.id === a.vanId)
+      van: mappedVans.find(v => v.id === a.vanId)
     }));
 
     setAllocations(enriched);
@@ -78,16 +90,28 @@ export function AllocationManagement() {
     let hospsList: any[] = [];
     let tchsList: any[] = [];
     let rmsList: any[] = [];
-    let vnsList: any[] = [];
+    let tripsList: any[] = [];
 
     const updateEnriched = () => {
+      const mappedVans = tripsList.map((trip: any) => ({
+        id: trip.id,
+        vanId: trip.id,
+        licensePlate: trip.licensePlate || "N/A",
+        driverName: trip.driverName || "N/A",
+        driverPhone: "",
+        seatCapacity: 15,
+        status: "Available" as const,
+        createdAt: trip.createdAt,
+        updatedAt: trip.createdAt
+      }));
+
       const enriched = allocsList.map(a => ({
         ...a,
         student: studsList.find(s => s.id === a.studentId),
         hospital: hospsList.find(h => h.id === a.hospitalId),
         teacher: tchsList.find(t => t.id === a.teacherId),
         room: rmsList.find(r => r.id === a.roomId),
-        van: vnsList.find(v => v.id === a.vanId)
+        van: mappedVans.find(v => v.id === a.vanId)
       }));
       setAllocations(enriched);
     };
@@ -117,9 +141,20 @@ export function AllocationManagement() {
         setRooms(data);
         updateEnriched();
       }),
-      vanService.onSnapshot([], (data) => {
-        vnsList = data;
-        setVans(data);
+      vanTripService.onSnapshot([], (data) => {
+        tripsList = data;
+        const mappedVans = data.map((trip: any) => ({
+          id: trip.id,
+          vanId: trip.id,
+          licensePlate: trip.licensePlate || "N/A",
+          driverName: trip.driverName || "N/A",
+          driverPhone: "",
+          seatCapacity: 15,
+          status: "Available" as const,
+          createdAt: trip.createdAt,
+          updatedAt: trip.createdAt
+        }));
+        setVans(mappedVans);
         updateEnriched();
       }),
       subjectService.onSnapshot([], (data) => {
@@ -170,8 +205,8 @@ export function AllocationManagement() {
         }
 
         const vanAllocations = allocations.filter(a => a.vanId === formData.vanId && a.id !== selectedAllocation?.id);
-        if (van && vanAllocations.length >= van.capacity) {
-          setError(`Van ${van.plateNumber} is at full capacity (${van.capacity}).`);
+        if (van && vanAllocations.length >= van.seatCapacity) {
+          setError(`Van ${van.licensePlate} is at full capacity (${van.seatCapacity}).`);
           setIsSaving(false);
           return;
         }
@@ -272,7 +307,7 @@ export function AllocationManagement() {
           { 
             header: "Transport", 
             accessor: (a) => (
-                <StatusChip status={a.van?.plateNumber || "No Transport"} variant={a.van ? "info" : "warning"} />
+                <StatusChip status={a.van?.licensePlate || "No Transport"} variant={a.van ? "info" : "warning"} />
             ) 
           },
         ]}
@@ -381,7 +416,7 @@ export function AllocationManagement() {
                 >
                     <option value="">Choose van...</option>
                     {vans.map(v => (
-                        <option key={v.id} value={v.id}>{v.plateNumber} ({v.capacity} seats)</option>
+                        <option key={v.id} value={v.id}>{v.licensePlate} ({v.seatCapacity} seats)</option>
                     ))}
                 </select>
               </div>

@@ -1,118 +1,126 @@
-import { useState } from "react";
+import React, { useState } from 'react';
 import { 
   Search, 
   ChevronLeft, 
   ChevronRight, 
-  Edit2, 
-  Trash2, 
   Plus, 
   Download, 
-  Upload,
-  User,
-  Filter,
-  MoreVertical,
-  ArrowUpDown
-} from "lucide-react";
+  Upload, 
+  Filter, 
+  MoreVertical, 
+  Edit2, 
+  Trash2, 
+  User, 
+  ArrowUpDown 
+} from 'lucide-react';
 
-interface Column<T> {
+export interface Column<T> {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
-  className?: string;
   sortable?: boolean;
+  className?: string;
 }
 
 interface DataTableProps<T> {
   title: string;
   description?: string;
-  data: T[];
   columns: Column<T>[];
+  data: T[];
+  searchFields?: (keyof T | string)[];
   onAdd?: () => void;
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  onView?: (item: T) => void;
   onImport?: () => void;
   onExport?: () => void;
   onDownloadTemplate?: () => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  onView?: (item: T) => void;
   searchPlaceholder?: string;
-  searchFields: (keyof T)[];
   emptyTitle?: string;
   emptyDescription?: string;
 }
 
-export function DataTable<T extends { id: string }>({
+export function DataTable<T>({
   title,
-  description = "Manage and track institutional records and medical data.",
-  data,
+  description,
   columns,
+  data,
+  searchFields,
   onAdd,
-  onEdit,
-  onDelete,
-  onView,
   onImport,
   onExport,
   onDownloadTemplate,
+  onEdit,
+  onDelete,
+  onView,
   searchPlaceholder = "Search records...",
-  searchFields,
-  emptyTitle = "No Records Available",
-  emptyDescription = "This collection is currently empty. Start by adding your first record manually.",
+  emptyTitle = "No Data Found",
+  emptyDescription = "Get started by adding your first record to this collection."
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
 
-  const filteredData = data.filter((item) =>
-    searchFields.some((field) => {
-      const value = item[field];
-      return String(value).toLowerCase().includes(searchTerm.toLowerCase());
-    })
-  );
+  // Filter Data
+  const filteredData = data.filter(item => {
+    if (!searchTerm) return true;
+    if (searchFields && searchFields.length > 0) {
+      return searchFields.some(field => {
+        const val = (item as any)[field];
+        return val !== undefined && val !== null && String(val).toLowerCase().includes(searchTerm.toLowerCase());
+      });
+    }
+    return Object.values(item as any).some(val => 
+      val !== undefined && val !== null && String(val).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="md-card overflow-hidden flex flex-col bg-surface border-outline">
-      <div className="p-8 border-b border-outline bg-surface">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+    <div className="md-card overflow-hidden flex flex-col bg-white border border-slate-200/80 shadow-xl rounded-[20px]">
+      <div className="p-6 sm:p-8 border-b border-slate-200 bg-slate-50/50">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{title}</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">{description}</p>
+            <h2 className="text-2xl font-black text-[#212121] tracking-tight">{title}</h2>
+            {description && <p className="text-xs font-semibold text-[#616161] mt-1">{description}</p>}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {onDownloadTemplate && (
               <button
                 onClick={onDownloadTemplate}
-                className="md-button-text flex items-center gap-2 border border-outline hover:bg-surface-variant/50"
+                className="md-button-outlined text-xs py-2.5 px-4 flex items-center gap-2"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-4 w-4 text-[#424242]" />
                 <span>Download Template</span>
               </button>
             )}
             {onImport && (
               <button
                 onClick={onImport}
-                className="md-button-text flex items-center gap-2 border border-outline hover:bg-surface-variant/50"
+                className="md-button-outlined text-xs py-2.5 px-4 flex items-center gap-2"
               >
-                <Upload className="h-4 w-4" />
+                <Upload className="h-4 w-4 text-[#424242]" />
                 <span>Import</span>
               </button>
             )}
             {onExport && (
               <button
                 onClick={onExport}
-                className="md-button-text flex items-center gap-2 border border-outline hover:bg-surface-variant/50"
+                className="md-button-outlined text-xs py-2.5 px-4 flex items-center gap-2"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-4 w-4 text-[#424242]" />
                 <span>Export</span>
               </button>
             )}
             {onAdd && (
               <button
                 onClick={onAdd}
-                className="md-button-filled flex items-center gap-2"
+                className="md-button-filled text-xs py-3 px-5 flex items-center gap-2"
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4" />
                 <span>Add New Record</span>
               </button>
             )}
@@ -130,10 +138,10 @@ export function DataTable<T extends { id: string }>({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-11 pr-4 py-3.5 bg-surface-variant/30 border border-outline rounded-2xl text-sm font-medium text-slate-800 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-medium text-[#212121] focus:border-[#D32F2F] focus:ring-4 focus:ring-[#D32F2F]/10 outline-none transition-all placeholder:text-slate-400 shadow-xs"
             />
           </div>
-          <button className="md-button-outlined flex items-center gap-2 py-3 px-5 border-outline text-slate-600 hover:text-primary">
+          <button className="md-button-outlined text-xs py-3 px-5 border-slate-200 text-[#424242] hover:text-[#212121] flex items-center gap-2">
             <Filter className="h-4 w-4" />
             <span>Filters</span>
           </button>
@@ -142,64 +150,64 @@ export function DataTable<T extends { id: string }>({
 
       <div className="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar">
         <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead className="sticky top-0 z-20 bg-surface shadow-sm">
+          <thead className="sticky top-0 z-20 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white shadow-md">
             <tr>
               {columns.map((col, idx) => (
-                <th key={idx} className={`px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline ${col.className}`}>
+                <th key={idx} className={`px-8 py-4 text-[11px] font-black uppercase tracking-wider text-white ${col.className || ''}`}>
                   <div className="flex items-center gap-2">
                     {col.header}
-                    {col.sortable && <ArrowUpDown className="h-3 w-3 cursor-pointer hover:text-primary transition-colors" />}
+                    {col.sortable && <ArrowUpDown className="h-3 w-3 cursor-pointer hover:text-red-200 transition-colors" />}
                   </div>
                 </th>
               ))}
               {(onEdit || onDelete || onView) && (
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right border-b border-outline">
+                <th className="px-8 py-4 text-[11px] font-black uppercase tracking-wider text-right text-white">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-outline">
+          <tbody className="divide-y divide-slate-100 text-[#212121]">
             {paginatedData.length > 0 ? (
-              paginatedData.map((item) => (
-                <tr key={item.id} className="hover:bg-primary-container/20 transition-colors group">
+              paginatedData.map((item: any, rowIdx: number) => (
+                <tr key={item.id || rowIdx} className={`transition-colors group ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FA]'} hover:bg-red-50/50`}>
                   {columns.map((col, idx) => (
-                    <td key={idx} className={`px-8 py-5 text-sm font-bold text-slate-700 ${col.className}`}>
+                    <td key={idx} className={`px-8 py-4 text-xs font-semibold text-[#212121] ${col.className || ''}`}>
                       {typeof col.accessor === 'function' ? col.accessor(item) : (item[col.accessor] as any)}
                     </td>
                   ))}
                   {(onEdit || onDelete || onView) && (
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-8 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         {onView && (
                           <button
                             onClick={() => onView(item)}
-                            className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                            className="p-2 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-all cursor-pointer"
                             title="View Profile"
                           >
-                            <User className="h-5 w-5" />
+                            <User className="h-4 w-4" />
                           </button>
                         )}
                         {onEdit && (
                           <button
                             onClick={() => onEdit(item)}
-                            className="p-2.5 text-slate-400 hover:text-medical-teal hover:bg-medical-teal/10 rounded-xl transition-all"
+                            className="p-2 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-all cursor-pointer"
                             title="Edit Record"
                           >
-                            <Edit2 className="h-5 w-5" />
+                            <Edit2 className="h-4 w-4" />
                           </button>
                         )}
                         {onDelete && (
                           <button
                             onClick={() => onDelete(item)}
-                            className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                            className="p-2 text-slate-500 hover:text-[#D32F2F] hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                             title="Delete Record"
                           >
-                            <Trash2 className="h-5 w-5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         )}
-                        <button className="p-2.5 text-slate-300 hover:text-slate-600">
-                          <MoreVertical className="h-5 w-5" />
+                        <button className="p-2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                          <MoreVertical className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -208,29 +216,29 @@ export function DataTable<T extends { id: string }>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length + 1} className="px-8 py-32 text-center">
+                <td colSpan={columns.length + 1} className="px-8 py-24 text-center bg-white">
                   <div className="flex flex-col items-center justify-center">
-                    <div className="h-20 w-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 border border-outline border-dashed">
-                      <Search className="h-10 w-10 text-slate-200" />
+                    <div className="h-16 w-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 border border-slate-200">
+                      <Search className="h-8 w-8 text-slate-400" />
                     </div>
                     {data.length === 0 ? (
                       <>
-                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-widest mb-2">{emptyTitle}</h3>
-                        <p className="text-sm font-medium text-slate-400 max-w-xs mx-auto mb-8">{emptyDescription}</p>
+                        <h3 className="text-base font-black text-[#212121] uppercase tracking-widest mb-1">{emptyTitle}</h3>
+                        <p className="text-xs font-semibold text-[#616161] max-w-xs mx-auto mb-6">{emptyDescription}</p>
                         {onAdd && (
                           <button
                             onClick={onAdd}
-                            className="md-button-filled flex items-center gap-3 px-8"
+                            className="md-button-filled flex items-center gap-2 text-xs py-2.5 px-6"
                           >
-                            <Plus className="h-5 w-5" />
+                            <Plus className="h-4 w-4" />
                             <span>Add First Record</span>
                           </button>
                         )}
                       </>
                     ) : (
                       <>
-                        <p className="text-lg font-black text-slate-900 uppercase tracking-widest mb-2">No Matching Results</p>
-                        <p className="text-sm font-medium text-slate-400 max-w-xs mx-auto">Try adjusting your filters or search keywords to find what you're looking for.</p>
+                        <p className="text-base font-black text-[#212121] uppercase tracking-widest mb-1">No Matching Results</p>
+                        <p className="text-xs font-semibold text-[#616161] max-w-xs mx-auto">Try adjusting your filters or search keywords to find what you're looking for.</p>
                       </>
                     )}
                   </div>
@@ -241,33 +249,31 @@ export function DataTable<T extends { id: string }>({
         </table>
       </div>
 
-      <div className="px-8 py-6 border-t border-outline flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-variant/10">
+      <div className="px-8 py-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/80">
         <div className="flex items-center gap-4">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Showing <span className="text-primary">{startIndex + 1}</span> to <span className="text-primary">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> of <span className="text-primary">{filteredData.length}</span> entries
+          <p className="text-[11px] font-bold text-[#616161] uppercase tracking-widest">
+            Showing <span className="text-[#D32F2F] font-black">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to <span className="text-[#D32F2F] font-black">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> of <span className="text-[#D32F2F] font-black">{filteredData.length}</span> entries
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="md-button-outlined py-2 px-4 flex items-center gap-2 text-xs border-outline disabled:border-slate-100"
+            className="md-button-outlined py-1.5 px-3 flex items-center gap-1.5 text-xs border-slate-200 disabled:opacity-40 cursor-pointer"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5" />
             <span>Previous</span>
           </button>
           
           <div className="flex items-center gap-1">
-            {[...Array(totalPages)].map((_, i) => {
-              const pageNum = i + 1;
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
               const isCurrent = pageNum === currentPage;
-              if (totalPages > 5 && Math.abs(pageNum - currentPage) > 1 && pageNum !== 1 && pageNum !== totalPages) return null;
               return (
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`h-9 w-9 rounded-xl text-xs font-bold transition-all ${
-                    isCurrent ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-400 hover:bg-primary-container hover:text-primary"
+                  className={`h-8 w-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    isCurrent ? "bg-[#D32F2F] text-white shadow-md shadow-red-900/20" : "text-[#424242] hover:bg-slate-200 hover:text-[#212121]"
                   }`}
                 >
                   {pageNum}
@@ -278,11 +284,11 @@ export function DataTable<T extends { id: string }>({
 
           <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-            className="md-button-outlined py-2 px-4 flex items-center gap-2 text-xs border-outline disabled:border-slate-100"
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="md-button-outlined py-1.5 px-3 flex items-center gap-1.5 text-xs border-slate-200 disabled:opacity-40 cursor-pointer"
           >
             <span>Next</span>
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

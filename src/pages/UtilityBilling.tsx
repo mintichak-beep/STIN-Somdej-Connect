@@ -2,13 +2,15 @@ import { useState, useEffect, useMemo } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { weeklyBillService, roomService, studentService, paymentSlipService, notificationService, dormitoryService, allocationService, studentPaymentService } from "../services/app.service";
-import { WeeklyBill, Room, Student, PaymentSlip, Dormitory, Allocation, StudentPayment } from "../types/app";
-import { Droplets, Zap, Plus, CheckCircle, XCircle, Eye, FileText, Calendar, Clock, MapPin, AlertCircle, Search, Info, Users, DollarSign } from "lucide-react";
+import { weeklyBillService, roomService, studentService, paymentSlipService, notificationService, dormitoryService, allocationService, studentPaymentService, bankAccountService } from "../services/app.service";
+import { WeeklyBill, Room, Student, PaymentSlip, Dormitory, Allocation, StudentPayment, BankAccountConfig } from "../types/app";
+import { Droplets, Zap, Plus, CheckCircle, XCircle, Eye, FileText, Calendar, Clock, MapPin, AlertCircle, Search, Info, Users, DollarSign, AlertTriangle, Building, QrCode } from "lucide-react";
 import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { th } from "date-fns/locale";
 import { motion, AnimatePresence } from "motion/react";
 import { StatusChip } from "../components/StatusChip";
+import { AssetImage } from "../components/AssetImage";
+import { deduplicationService } from "../services/deduplication.service";
 
 export function UtilityBilling() {
   const [bills, setBills] = useState<WeeklyBill[]>([]);
@@ -17,6 +19,14 @@ export function UtilityBilling() {
   const [students, setStudents] = useState<Student[]>([]);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [studentPayments, setStudentPayments] = useState<StudentPayment[]>([]);
+  const [bankAccount, setBankAccount] = useState<BankAccountConfig | null>(null);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [bankForm, setBankForm] = useState({
+    accountName: "",
+    bankName: "",
+    accountNumber: "",
+    qrCodeUrl: ""
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSlipModalOpen, setIsSlipModalOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState<WeeklyBill | null>(null);
@@ -27,12 +37,16 @@ export function UtilityBilling() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [billToDelete, setBillToDelete] = useState<WeeklyBill | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [bypassDuplicate, setBypassDuplicate] = useState(false);
 
   const [formData, setFormData] = useState({
     roomId: "",
-    billingWeek: format(new Date(), "yyyy-'W'II"), // Standard week format
+    billingWeek: format(new Date(), "yyyy-'W'II"),
     startDate: format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
     endDate: format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
+    roomFee: 500,
+    waterCharge: 0,
     prevElectricMeter: 0,
     currElectricMeter: 0,
     electricRate: 5,
@@ -55,9 +69,10 @@ export function UtilityBilling() {
     let dormsLoaded = false;
     let allocsLoaded = false;
     let paymentsLoaded = false;
+    let bankLoaded = false;
 
     const checkLoading = () => {
-      if (billsLoaded && roomsLoaded && studentsLoaded && dormsLoaded && allocsLoaded && paymentsLoaded) {
+      if (billsLoaded && roomsLoaded && studentsLoaded && dormsLoaded && allocsLoaded && paymentsLoaded && bankLoaded) {
         setLoading(false);
       }
     };
@@ -98,6 +113,20 @@ export function UtilityBilling() {
       checkLoading();
     });
 
+    const unsubscribeBank = bankAccountService.onSnapshot([], (data) => {
+      if (data.length > 0) {
+        setBankAccount(data[0]);
+        setBankForm({
+          accountName: data[0].accountName,
+          bankName: data[0].bankName,
+          accountNumber: data[0].accountNumber,
+          qrCodeUrl: data[0].qrCodeUrl
+        });
+      }
+      bankLoaded = true;
+      checkLoading();
+    });
+
     return () => {
       unsubscribeBills();
       unsubscribeRooms();
@@ -105,21 +134,27 @@ export function UtilityBilling() {
       unsubscribeDorms();
       unsubscribeAllocs();
       unsubscribePayments();
+      unsubscribeBank();
     };
   }, []);
 
   const handleOpenAdd = () => {
+    setSelectedBill(null);
     setFormData({
       roomId: "",
       billingWeek: format(new Date(), "yyyy-'W'II"),
       startDate: format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
       endDate: format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
+      roomFee: 500,
+      waterCharge: 0,
       prevElectricMeter: 0,
       currElectricMeter: 0,
       electricRate: 5,
       otherCharges: 0,
       dueDate: format(new Date(), "yyyy-MM-dd"),
     });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -145,6 +180,27 @@ export function UtilityBilling() {
     return students.filter(s => occupantIds.includes(s.id));
   }, [formData.roomId, formData.startDate, formData.endDate, allocations, students]);
 
+  
+  const handleOpenEdit = (bill: WeeklyBill) => {
+    setSelectedBill(bill);
+    setFormData({
+      roomId: bill.roomId,
+      billingWeek: bill.billingWeek,
+      startDate: format(new Date(bill.startDate.seconds ? bill.startDate.seconds * 1000 : bill.startDate), "yyyy-MM-dd"),
+      endDate: format(new Date(bill.endDate.seconds ? bill.endDate.seconds * 1000 : bill.endDate), "yyyy-MM-dd"),
+      roomFee: bill.roomFee !== undefined ? bill.roomFee : 500,
+      waterCharge: bill.waterCharge,
+      prevElectricMeter: bill.prevElectricMeter,
+      currElectricMeter: bill.currElectricMeter,
+      electricRate: bill.electricRate,
+      otherCharges: bill.otherCharges !== undefined ? bill.otherCharges : 0,
+      dueDate: format(new Date(bill.dueDate.seconds ? bill.dueDate.seconds * 1000 : bill.dueDate), "yyyy-MM-dd"),
+    });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
+    setIsModalOpen(true);
+  };
+
   const validateFormData = () => {
     if (!formData.roomId) return "กรุณาเลือกห้องพัก";
     if (!formData.billingWeek) return "กรุณาระบุสัปดาห์ที่เรียกเก็บ";
@@ -152,10 +208,12 @@ export function UtilityBilling() {
     if (!formData.endDate) return "กรุณาระบุวันที่สิ้นสุด";
     if (new Date(formData.startDate) > new Date(formData.endDate)) return "วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด";
     if (!formData.dueDate) return "กรุณาระบุวันครบกำหนดชำระเงิน";
+    if (formData.roomFee < 0) return "ค่าห้องพักต้องไม่เป็นค่าติดลบ";
     if (formData.prevElectricMeter < 0) return "มิเตอร์ไฟครั้งก่อนต้องไม่เป็นค่าติดลบ";
     if (formData.currElectricMeter < formData.prevElectricMeter) return "มิเตอร์ไฟครั้งนี้ต้องไม่น้อยกว่ามิเตอร์ไฟครั้งก่อน";
     if (formData.electricRate <= 0) return "อัตราค่าไฟต้องมากกว่า 0 บาท/หน่วย";
-    if (formData.otherCharges < 0) return "ค่าบริการอื่นๆ ต้องไม่น้อยกว่า 0 บาท";
+    if (formData.waterCharge < 0) return "ค่าใช้น้ำต้องไม่น้อยกว่า 0 บาท";
+    if (formData.otherCharges < 0) return "ค่าใช้จ่ายอื่นๆ ต้องไม่น้อยกว่า 0 บาท";
     if (currentOccupants.length === 0) return "ไม่พบนักศึกษาที่พักในห้องนี้ในช่วงเวลาที่ระบุ";
     return null;
   };
@@ -169,24 +227,37 @@ export function UtilityBilling() {
     }
 
     try {
+      if (!bypassDuplicate) {
+        setIsSaving(true);
+        const dup = await deduplicationService.checkDuplicateBeforeSave("utilityBills", formData, selectedBill?.id);
+        if (dup) {
+          const room = rooms.find(r => r.id === formData.roomId);
+          setDuplicateWarning(`A utility bill for room "${room?.roomNumber || 'Selected Room'}" during week ${formData.billingWeek} already exists. Do you want to proceed and create a duplicate?`);
+          setIsSaving(false);
+          return;
+        }
+      }
+
       setIsSaving(true);
       
       const occupantsCount = currentOccupants.length;
-      const waterCharge = occupantsCount * 25; // 25 THB per student
       const electricityUsage = Math.max(0, formData.currElectricMeter - formData.prevElectricMeter);
       const electricityCharge = electricityUsage * formData.electricRate;
-      const totalAmount = waterCharge + electricityCharge + formData.otherCharges;
-      const individualAmount = totalAmount / occupantsCount;
+      const totalAmount = formData.roomFee + formData.waterCharge + electricityCharge + formData.otherCharges;
+      const individualAmount = occupantsCount > 0 ? totalAmount / occupantsCount : 0;
+      const invoiceNumber = selectedBill?.invoiceNumber || `INV-${format(new Date(), "yyyyMMdd")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       const billData: Omit<WeeklyBill, "id"> = {
         roomId: formData.roomId,
+        invoiceNumber,
         billingWeek: formData.billingWeek,
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
         occupantsCount,
         waterUsage: occupantsCount,
         electricityUsage,
-        waterCharge,
+        roomFee: formData.roomFee,
+        waterCharge: formData.waterCharge,
         electricityCharge,
         otherCharges: formData.otherCharges,
         totalAmount,
@@ -199,34 +270,64 @@ export function UtilityBilling() {
         updatedAt: new Date()
       };
 
-      const billId = await weeklyBillService.create(billData as any);
+      let billId = selectedBill?.id;
+      if (selectedBill) {
+        await weeklyBillService.update(selectedBill.id, billData as any);
+      } else {
+        billId = (await weeklyBillService.create(billData as any)) as string;
+      }
       
-      // Automatically create student payment records
       const paymentPromises = currentOccupants.map(student => {
-        const paymentData: Omit<StudentPayment, "id"> = {
-          billId,
-          studentId: student.id,
-          roomId: formData.roomId,
-          billingWeek: formData.billingWeek,
-          individualAmount,
-          paymentStatus: "pending",
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
+        const existingPayment = studentPayments.find(p => p.billId === billId && p.studentId === student.id);
+        if (existingPayment) {
+            return studentPaymentService.update(existingPayment.id, {
+                roomId: formData.roomId,
+                invoiceNumber,
+                billingWeek: formData.billingWeek,
+                roomFee: formData.roomFee / occupantsCount,
+                waterCharge: formData.waterCharge / occupantsCount,
+                electricityCharge: electricityCharge / occupantsCount,
+                otherCharges: formData.otherCharges / occupantsCount,
+                individualAmount,
+                updatedAt: new Date()
+            } as any);
+        } else {
+            const paymentData: Omit<StudentPayment, "id"> = {
+              billId: billId!,
+              studentId: student.id,
+              roomId: formData.roomId,
+              invoiceNumber,
+              billingWeek: formData.billingWeek,
+              roomFee: formData.roomFee / occupantsCount,
+              waterCharge: formData.waterCharge / occupantsCount,
+              electricityCharge: electricityCharge / occupantsCount,
+              otherCharges: formData.otherCharges / occupantsCount,
+              individualAmount,
+              paymentStatus: "pending",
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
 
-        return studentPaymentService.create(paymentData as any).then(() => {
-          // Send notification to each student
-          return notificationService.create({
-            userId: student.id,
-            title: "ใบแจ้งหนี้ค่าน้ำ-ค่าไฟใหม่",
-            message: `คุณมีใบแจ้งหนี้ใหม่สำหรับสัปดาห์ ${formData.billingWeek} ยอดส่วนตัวของคุณคือ ${individualAmount.toLocaleString()} บาท (รวมทั้งห้อง ${totalAmount.toLocaleString()} บาท)`,
-            type: "bill",
-            isRead: false,
-            createdAt: new Date()
-          } as any).catch(err => console.error("Notification failed for", student.id, err));
-        });
+            return studentPaymentService.create(paymentData as any).then(() => {
+              return notificationService.create({
+                userId: student.id,
+                title: "ใบแจ้งหนี้ค่าน้ำ-ค่าไฟ-ค่าห้องพักใหม่",
+                message: `คุณมีใบแจ้งหนี้ใหม่ (เลขอ้างอิง ${invoiceNumber}) สำหรับสัปดาห์ ${formData.billingWeek} ยอดส่วนตัวของคุณคือ ${individualAmount.toLocaleString()} บาท`,
+                type: "bill",
+                isRead: false,
+                createdAt: new Date()
+              } as any).catch(err => console.error("Notification failed for", student.id, err));
+            });
+        }
       });
 
+      if (selectedBill) {
+         const currentStudentIds = currentOccupants.map(s => s.id);
+         const obsoletePayments = studentPayments.filter(p => p.billId === billId && !currentStudentIds.includes(p.studentId));
+         for (const ob of obsoletePayments) {
+            paymentPromises.push(studentPaymentService.delete(ob.id));
+         }
+      }
       await Promise.all(paymentPromises);
 
       showToast("บันทึกใบแจ้งหนี้และสร้างยอดชำระรายบุคคลสำเร็จ");
@@ -236,6 +337,112 @@ export function UtilityBilling() {
       showToast(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleBypassAndSave = async () => {
+    setDuplicateWarning(null);
+    setBypassDuplicate(true);
+    setIsSaving(true);
+    try {
+      const occupantsCount = currentOccupants.length;
+      const electricityUsage = Math.max(0, formData.currElectricMeter - formData.prevElectricMeter);
+      const electricityCharge = electricityUsage * formData.electricRate;
+      const totalAmount = formData.roomFee + formData.waterCharge + electricityCharge + formData.otherCharges;
+      const individualAmount = occupantsCount > 0 ? totalAmount / occupantsCount : 0;
+      const invoiceNumber = selectedBill?.invoiceNumber || `INV-${format(new Date(), "yyyyMMdd")}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const billData: Omit<WeeklyBill, "id"> = {
+        roomId: formData.roomId,
+        invoiceNumber,
+        billingWeek: formData.billingWeek,
+        startDate: new Date(formData.startDate),
+        endDate: new Date(formData.endDate),
+        occupantsCount,
+        waterUsage: occupantsCount,
+        electricityUsage,
+        roomFee: formData.roomFee,
+        waterCharge: formData.waterCharge,
+        electricityCharge,
+        otherCharges: formData.otherCharges,
+        totalAmount,
+        dueDate: new Date(formData.dueDate),
+        paymentStatus: "pending",
+        prevElectricMeter: formData.prevElectricMeter,
+        currElectricMeter: formData.currElectricMeter,
+        electricRate: formData.electricRate,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      let billId = selectedBill?.id;
+      if (selectedBill) {
+        await weeklyBillService.update(selectedBill.id, billData as any);
+      } else {
+        billId = (await weeklyBillService.create(billData as any)) as string;
+      }
+      
+      const paymentPromises = currentOccupants.map(student => {
+        const existingPayment = studentPayments.find(p => p.billId === billId && p.studentId === student.id);
+        if (existingPayment) {
+            return studentPaymentService.update(existingPayment.id, {
+                roomId: formData.roomId,
+                invoiceNumber,
+                billingWeek: formData.billingWeek,
+                roomFee: formData.roomFee / occupantsCount,
+                waterCharge: formData.waterCharge / occupantsCount,
+                electricityCharge: electricityCharge / occupantsCount,
+                otherCharges: formData.otherCharges / occupantsCount,
+                individualAmount,
+                updatedAt: new Date()
+            } as any);
+        } else {
+            const paymentData: Omit<StudentPayment, "id"> = {
+              billId: billId!,
+              studentId: student.id,
+              roomId: formData.roomId,
+              invoiceNumber,
+              billingWeek: formData.billingWeek,
+              roomFee: formData.roomFee / occupantsCount,
+              waterCharge: formData.waterCharge / occupantsCount,
+              electricityCharge: electricityCharge / occupantsCount,
+              otherCharges: formData.otherCharges / occupantsCount,
+              individualAmount,
+              paymentStatus: "pending",
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+
+            return studentPaymentService.create(paymentData as any).then(() => {
+              return notificationService.create({
+                userId: student.id,
+                title: "ใบแจ้งหนี้ค่าน้ำ-ค่าไฟ-ค่าห้องพักใหม่",
+                message: `คุณมีใบแจ้งหนี้ใหม่ (เลขอ้างอิง ${invoiceNumber}) สำหรับสัปดาห์ ${formData.billingWeek} ยอดส่วนตัวของคุณคือ ${individualAmount.toLocaleString()} บาท`,
+                type: "bill",
+                isRead: false,
+                createdAt: new Date()
+              } as any).catch(err => console.error("Notification failed for", student.id, err));
+            });
+        }
+      });
+
+      if (selectedBill) {
+         const currentStudentIds = currentOccupants.map(s => s.id);
+         const obsoletePayments = studentPayments.filter(p => p.billId === billId && !currentStudentIds.includes(p.studentId));
+         for (const ob of obsoletePayments) {
+            paymentPromises.push(studentPaymentService.delete(ob.id));
+         }
+      }
+      await Promise.all(paymentPromises);
+
+      showToast("บันทึกใบแจ้งหนี้และสร้างยอดชำระรายบุคคลสำเร็จ");
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save utility bill:", err);
+      showToast(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
+    } finally {
+      setIsSaving(false);
+      setBypassDuplicate(false);
     }
   };
 
@@ -332,8 +539,8 @@ export function UtilityBilling() {
 
   const computedElectricityUsage = Math.max(0, formData.currElectricMeter - formData.prevElectricMeter);
   const computedElectricityCharge = computedElectricityUsage * formData.electricRate;
-  const computedWaterCharge = currentOccupants.length * 25;
-  const computedTotalAmount = computedWaterCharge + computedElectricityCharge + formData.otherCharges;
+  const computedWaterCharge = formData.waterCharge;
+  const computedTotalAmount = computedWaterCharge + computedElectricityCharge;
   const computedIndividualAmount = currentOccupants.length > 0 ? computedTotalAmount / currentOccupants.length : 0;
 
   return (
@@ -399,7 +606,7 @@ export function UtilityBilling() {
           },
         ]}
         onAdd={handleOpenAdd}
-        onEdit={(bill) => handleViewSlip(bill as WeeklyBill)}
+        onEdit={(bill) => handleOpenEdit(bill as WeeklyBill)}
         onDelete={(bill) => handleOpenDelete(bill as WeeklyBill)}
       />
 
@@ -409,6 +616,34 @@ export function UtilityBilling() {
         title="Issue New Room Invoice"
       >
         <form onSubmit={handleSave} className="space-y-6">
+          {duplicateWarning && (
+            <div className="p-5 bg-amber-50 text-amber-800 text-sm font-medium rounded-2xl border border-amber-200 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-start gap-4">
+                <AlertTriangle className="h-6 w-6 shrink-0 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-950">Duplicate Utility Bill Warning</p>
+                  <p className="text-xs leading-relaxed">{duplicateWarning}</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2.5 mt-1">
+                <button
+                  type="button"
+                  onClick={handleBypassAndSave}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+                >
+                  Confirm & Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-extrabold hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Target Room</label>
@@ -479,13 +714,13 @@ export function UtilityBilling() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Service Surcharges</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Water Charge</label>
               <input
                 type="number"
                 required
                 disabled={isSaving}
-                value={formData.otherCharges}
-                onChange={(e) => setFormData({ ...formData, otherCharges: parseFloat(e.target.value) || 0 })}
+                value={formData.waterCharge}
+                onChange={(e) => setFormData({ ...formData, waterCharge: parseFloat(e.target.value) || 0 })}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
               />
             </div>
@@ -602,7 +837,7 @@ export function UtilityBilling() {
         <div className="space-y-6">
           <div className="aspect-[4/5] w-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 relative group">
             {selectedSlip?.fileUrl ? (
-              <img src={selectedSlip.fileUrl} alt="Payment Slip" referrerPolicy="no-referrer" className="w-full h-full object-contain" />
+              <AssetImage src={selectedSlip.fileUrl} alt="Payment Slip" className="w-full h-full object-contain" fallbackType="slip" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
                 <XCircle className="h-10 w-10 mb-2 opacity-20" />

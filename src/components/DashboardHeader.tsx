@@ -3,6 +3,7 @@ import { Search, Calendar, RefreshCw, LogOut, ShieldAlert, Award, GraduationCap,
 import { useAuth } from '../hooks/useAuth';
 import { DashboardFilters } from '../services/statistics.service';
 import { AcademicYear } from '../types/db';
+import { AssetImage } from './AssetImage';
 
 interface DashboardHeaderProps {
   filters: DashboardFilters;
@@ -74,11 +75,11 @@ export function DashboardHeader({
         <div className="flex items-center gap-4 self-end sm:self-auto">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <img
+              <AssetImage
                 src={user?.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'}
                 alt={user?.displayName}
-                referrerPolicy="no-referrer"
                 className="h-11 w-11 rounded-full border-2 border-red-100 object-cover dark:border-zinc-800"
+                fallbackType={user?.role === 'Teacher' ? 'teacher' : 'student'}
               />
               <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-zinc-950"></span>
             </div>

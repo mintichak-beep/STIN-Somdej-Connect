@@ -31,16 +31,18 @@ import {
   studentService, 
   teacherService, 
   roomService, 
-  vanService, 
   vanTripService,
   weeklyBillService,
   notificationService,
   weeklyRoomAssignmentService,
   allocationService,
-  hospitalService
+  hospitalService,
+  dormitoryService,
+  studentPaymentService
 } from "../services/app.service";
 import { useAuth } from "../hooks/useAuth";
 import { format } from "date-fns";
+import { CuteMedicalBadge, CuteEmptyState, CUTE_MEDICAL_IMAGES } from "../components/CuteMedicalIllustration";
 
 export function Dashboard() {
   const { user: authUser } = useAuth();
@@ -53,35 +55,45 @@ export function Dashboard() {
     occupiedRooms: 0,
     weeklyAssignments: 0,
     todayVanTrips: 0,
-    pendingPayments: 0,
+    pendingUpload: 0,
+    paymentSlipUploaded: 0,
     paidBills: 0
   });
 
   const [hospitalStats, setHospitalStats] = useState<any[]>([]);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [dormitoryName, setDormitoryName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [students, teachers, rooms, vans, vanTrips, bills, notifications, assignments, allocations, hospitals] = await Promise.all([
+        const [students, teachers, rooms, vanTrips, bills, notifications, assignments, allocations, hospitals, dormitories, studentPayments] = await Promise.all([
           studentService.getAll(),
           teacherService.getAll(),
           roomService.getAll(),
-          vanService.getAll(),
           vanTripService.getAll(),
           weeklyBillService.getAll(),
           notificationService.getAll(),
           weeklyRoomAssignmentService.getAll(),
           allocationService.getAll(),
-          hospitalService.getAll()
+          hospitalService.getAll(),
+          dormitoryService.getAll(),
+          studentPaymentService.getAll()
         ]);
 
+        if (dormitories.length > 0) {
+          setDormitoryName(dormitories[0].dormitoryName);
+        }
+
         const today = format(new Date(), 'yyyy-MM-dd');
-        const todayTrips = vanTrips.filter(t => t.tripDate === today).length;
+        const todayTrips = vanTrips.filter(t => t.date === today).length;
         
         const availableRoomsCount = rooms.filter(r => r.status === 'active' && (r.currentOccupancy || 0) < r.capacity).length;
         const occupiedRoomsCount = rooms.filter(r => r.status === 'active' && (r.currentOccupancy || 0) >= r.capacity).length;
+
+        const pendingUploadCount = studentPayments.filter(p => p.paymentStatus === 'pending' || !p.paymentStatus).length;
+        const slipUploadedCount = studentPayments.filter(p => p.paymentStatus === 'payment_slip_uploaded' || p.paymentStatus === 'waiting_verification').length;
 
         setStats({
           totalStudents: students.length,
@@ -90,8 +102,9 @@ export function Dashboard() {
           occupiedRooms: occupiedRoomsCount,
           weeklyAssignments: assignments.filter(a => a.status === 'active').length,
           todayVanTrips: todayTrips,
-          pendingPayments: bills.filter(b => b.paymentStatus === 'waiting_verification').length,
-          paidBills: bills.filter(b => b.paymentStatus === 'paid').length
+          pendingUpload: pendingUploadCount,
+          paymentSlipUploaded: slipUploadedCount,
+          paidBills: studentPayments.filter(p => p.paymentStatus === 'paid').length
         });
 
         // Calculate hospital distribution
@@ -118,8 +131,8 @@ export function Dashboard() {
     { label: "Occupied Rooms", value: stats.occupiedRooms, icon: Building2, trend: "Active", color: "medical-orange" },
     { label: "Weekly Assignments", value: stats.weeklyAssignments, icon: Calendar, trend: "Current", color: "primary" },
     { label: "Today's Van Trips", value: stats.todayVanTrips, icon: Bus, trend: "Scheduled", color: "medical-blue" },
-    { label: "Pending Payments", value: stats.pendingPayments, icon: AlertTriangle, trend: "Action Needed", color: "medical-red" },
-    { label: "Paid Utility Bills", value: stats.paidBills, icon: CheckCircle, trend: "Completed", color: "medical-green" },
+    { label: "Pending Upload", value: stats.pendingUpload, icon: AlertTriangle, trend: "Action Needed", color: "medical-red" },
+    { label: "Payment Slip Uploaded", value: stats.paymentSlipUploaded, icon: CheckCircle2, trend: "Submitted", color: "medical-blue" },
   ];
 
   if (loading) {
@@ -133,17 +146,58 @@ export function Dashboard() {
 
   return (
     <div className="space-y-10 animate-in">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">STIN-Somdej Connect</h1>
-          <p className="text-slate-500 font-medium mt-1">Real-time oversight of institutional logistics and student welfare.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-4 py-2 bg-white border border-outline rounded-2xl shadow-sm">
-            <Calendar className="h-4 w-4 text-primary" />
-            <span className="text-xs font-bold text-slate-700">{format(new Date(), 'MMMM do, yyyy')}</span>
+      <header className="w-full py-4">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-red-800 via-primary to-primary-dark p-6 md:p-8 rounded-[2.5rem] text-white shadow-xl shadow-primary/20 relative overflow-hidden group text-center md:text-left space-y-4 flex flex-col md:flex-row items-center justify-between gap-6"
+        >
+          {/* Subtle Banner Background Decoration */}
+          <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+            <Building2 className="h-40 w-40 rotate-12" />
           </div>
-        </div>
+          
+          <div className="relative z-10 space-y-3 max-w-2xl">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                <Activity className="h-3.5 w-3.5 text-white animate-pulse" />
+                <span className="text-[9px] font-black text-white uppercase tracking-[0.2em]">Institutional Dashboard</span>
+              </div>
+              <CuteMedicalBadge icon="heart" text="Nursing Practice Center" variant="rose" />
+            </div>
+            
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+              Welcome to Queen Savang Vadhana Memorial Hospital
+            </h1>
+            
+            <p className="text-primary-container font-bold text-sm md:text-base opacity-90 uppercase tracking-widest">
+              {dormitoryName.replace("เรือนไม้", "").trim() || "Dormitory Management System"}
+            </p>
+            
+            <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-2xl backdrop-blur-sm">
+                <Calendar className="h-3.5 w-3.5 text-white" />
+                <span className="text-[10px] font-bold text-white">{format(new Date(), 'MMMM do, yyyy')}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-1 w-6 bg-white/30 rounded-full" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80">STIN Nursing Institute</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner Illustration Thumbnail */}
+          <div className="relative z-10 shrink-0 hidden sm:block">
+            <div className="w-32 h-32 md:w-40 md:h-28 rounded-2xl p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-lg overflow-hidden flex items-center justify-center">
+              <img 
+                src={CUTE_MEDICAL_IMAGES.hospitalBanner} 
+                alt="Hospital Banner Illustration"
+                className="w-full h-full object-cover rounded-xl"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          </div>
+        </motion.div>
       </header>
 
       {/* Statistic Cards Grid */}
@@ -243,10 +297,11 @@ export function Dashboard() {
                 </div>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center h-full py-12 opacity-30">
-                <Activity className="h-12 w-12 mb-3" />
-                <p className="text-xs font-bold uppercase tracking-widest">System quiet</p>
-              </div>
+              <CuteEmptyState
+                title="System Quiet"
+                description="ยังไม่มีประวัติกิจกรรมล่าสุดในขณะนี้"
+                className="py-6 border-none bg-transparent shadow-none"
+              />
             )}
           </div>
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,73 +6,91 @@
   --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Material Design 3 Healthcare Palette */
-  --color-primary: #C62828;
-  --color-primary-container: #FFEBEE;
-  --color-on-primary: #FFFFFF;
-  --color-secondary: #BBE2F9;
-  --color-background: #F8FAFC;
+  /* Premium Clean Healthcare Light Palette */
+  --color-primary: #D32F2F;
+  --color-primary-dark: #B71C1C;
+  --color-primary-light: #FF5252;
+  --color-secondary: #424242;
+  --color-accent: #1E88E5;
   --color-surface: #FFFFFF;
-  --color-surface-variant: #F1F3F4;
+  --color-surface-variant: #F8F9FA;
+  --color-background: #FFFFFF;
+  --color-text: #212121;
+  --color-text-muted: #616161;
   --color-outline: #E0E0E0;
-  
-  /* Semantic Status Colors */
-  --color-medical-blue: #1565C0;
-  --color-medical-teal: #00897B;
-  --color-medical-green: #2E7D32;
-  --color-medical-orange: #F9A825;
-  --color-medical-red: #D32F2F;
 
-  --radius-md-3: 16px;
-  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 10px -2px rgba(0, 0, 0, 0.03);
+  --radius-md-3: 18px;
+  --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  --shadow-red-soft: 0 10px 25px -5px rgba(211, 47, 47, 0.2);
 }
 
 @layer base {
   body {
-    @apply bg-background text-slate-900 font-sans antialiased;
+    @apply bg-white text-[#212121] font-sans antialiased selection:bg-[#D32F2F] selection:text-white;
   }
 }
 
 @layer components {
+  /* Modern White Healthcare Cards with Red Accent */
   .md-card {
-    @apply bg-surface rounded-md-3 border border-outline/50 shadow-soft transition-all duration-300;
+    @apply bg-white rounded-[20px] border border-slate-200/80 shadow-lg shadow-slate-100/70 transition-all duration-300 text-[#212121] relative overflow-hidden;
   }
   
+  .glass-card {
+    @apply bg-white/95 backdrop-blur-md rounded-[20px] border border-slate-200/80 shadow-xl shadow-slate-200/40 transition-all duration-300;
+  }
+
+  .card-top-red {
+    @apply border-t-4 border-t-[#D32F2F];
+  }
+
+  /* Animated Modern Healthcare Buttons */
   .md-button-filled {
-    @apply px-6 py-3 bg-primary text-on-primary font-bold rounded-full hover:bg-primary/90 active:scale-95 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:pointer-events-none;
+    @apply px-6 py-3 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white font-extrabold rounded-2xl hover:from-[#C62828] hover:to-[#9A0007] active:scale-95 transition-all duration-200 shadow-md shadow-red-900/20 hover:shadow-lg hover:shadow-red-600/30 disabled:opacity-50 disabled:pointer-events-none cursor-pointer;
   }
 
   .md-button-outlined {
-    @apply px-6 py-3 border-2 border-primary text-primary font-bold rounded-full hover:bg-primary/5 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none;
+    @apply px-6 py-3 border border-slate-300 bg-white text-[#212121] font-bold rounded-2xl hover:bg-slate-50 hover:border-slate-400 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer;
+  }
+
+  .md-button-red-outlined {
+    @apply px-6 py-3 border-2 border-[#D32F2F] bg-white text-[#D32F2F] font-extrabold rounded-2xl hover:bg-red-50 hover:border-[#B71C1C] hover:text-[#B71C1C] active:scale-95 transition-all duration-200 cursor-pointer shadow-sm;
   }
 
   .md-button-text {
-    @apply px-4 py-2 text-primary font-bold rounded-full hover:bg-primary/5 transition-all active:scale-95 disabled:opacity-50;
+    @apply px-4 py-2 text-[#424242] font-semibold rounded-xl hover:bg-slate-100 hover:text-[#212121] transition-all active:scale-95 cursor-pointer;
   }
 
   .md-input {
-    @apply w-full px-5 py-4 bg-surface-variant/50 border border-outline rounded-2xl focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400;
+    @apply w-full px-5 py-3.5 bg-[#F8F9FA] border border-slate-200 rounded-2xl focus:bg-white focus:border-[#D32F2F] focus:ring-4 focus:ring-[#D32F2F]/10 outline-none transition-all font-medium text-[#212121] placeholder:text-slate-400;
   }
 
+  /* Custom Scrollbar for Light Theme */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: #F8F9FA;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+    @apply bg-slate-300 rounded-full hover:bg-[#D32F2F]/60 transition-colors;
   }
 }
 
 .animate-in {
-  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* White Background with Subtle Decorative Medical Pattern Line Art (opacity ~3-5%) */
+.bg-medical-pattern {
+  background-color: #FFFFFF;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><g fill="none" stroke="%23D32F2F" stroke-width="1.5" stroke-opacity="0.04"><path d="M20 20h12v12H20zM26 14v24M14 26h24"/><path d="M100 30c-5-10-20-10-25 0-5-10-20-10-25 0 0 15 25 35 25 35s25-20 25-35z"/><path d="M120 100l8-8 8 16 8-16 8 8"/><circle cx="40" cy="110" r="14"/><path d="M40 96v28M26 110h28"/><rect x="100" y="120" width="30" height="20" rx="3"/><path d="M115 120v-5"/></g></svg>');
 }

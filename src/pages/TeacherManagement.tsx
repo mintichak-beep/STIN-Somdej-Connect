@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { AlertCircle, User, Phone, BookOpen, UserPlus, Camera, X, Upload } from "lucide-react";
+import { AlertCircle, User, Phone, BookOpen, UserPlus, Camera, X, Upload, AlertTriangle } from "lucide-react";
 import { teacherService } from "../services/app.service";
+import { deduplicationService } from "../services/deduplication.service";
 import { Teacher } from "../types/app";
 import { resizeImage } from "../lib/imageUtils";
+import { AssetImage } from "../components/AssetImage";
 
 interface TeacherManagementProps {
   onSelectTeacher?: (id: string) => void;
@@ -18,6 +20,8 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [bypassDuplicate, setBypassDuplicate] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -38,6 +42,8 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
   const handleOpenAdd = () => {
     setSelectedTeacher(null);
     setFormData({ name: "", department: "", phone: "", photoUrl: "" });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -60,6 +66,8 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
       phone: teacher.phone,
       photoUrl: photoUrl
     });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -68,6 +76,15 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
     setIsSaving(true);
     setError(null);
     try {
+      if (!bypassDuplicate) {
+        const dup = await deduplicationService.checkDuplicateBeforeSave("teachers", formData, selectedTeacher?.id);
+        if (dup) {
+          setDuplicateWarning(`An instructor with matching details already exists (Name: ${dup.name}, Department: ${dup.department}). Do you want to proceed and create a duplicate?`);
+          setIsSaving(false);
+          return;
+        }
+      }
+
       if (selectedTeacher) {
         await teacherService.update(selectedTeacher.id, formData);
       } else {
@@ -78,6 +95,25 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
     } catch (err: any) {
       console.error("Save error:", err);
       setError(err.message || "An error occurred while saving the instructor record.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleBypassAndSave = async () => {
+    setDuplicateWarning(null);
+    setBypassDuplicate(true);
+    setIsSaving(true);
+    try {
+      if (selectedTeacher) {
+        await teacherService.update(selectedTeacher.id, formData);
+      } else {
+        await teacherService.create(formData as any);
+      }
+      setIsModalOpen(false);
+      await fetchData();
+    } catch (err: any) {
+      setError(err.message || "An error occurred while saving.");
     } finally {
       setIsSaving(false);
     }
@@ -130,11 +166,11 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary-container overflow-hidden flex items-center justify-center border border-outline shadow-sm">
                   {teacher.photoUrl ? (
-                    <img 
+                    <AssetImage 
                       src={teacher.photoUrl} 
                       alt={teacher.name}
                       className="h-full w-full object-cover"
-                      referrerPolicy="no-referrer"
+                      fallbackType="teacher"
                     />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center bg-slate-100 text-slate-400">
@@ -190,6 +226,34 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
               {error}
             </div>
           )}
+
+          {duplicateWarning && (
+            <div className="p-5 bg-amber-50 text-amber-800 text-sm font-medium rounded-2xl border border-amber-200 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-start gap-4">
+                <AlertTriangle className="h-6 w-6 shrink-0 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-950">Duplicate Detected</p>
+                  <p>{duplicateWarning}</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2.5 mt-1">
+                <button
+                  type="button"
+                  onClick={handleBypassAndSave}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+                >
+                  Confirm & Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-extrabold hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="space-y-8">
             {/* Image Upload Section */}
@@ -197,10 +261,11 @@ export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
               <div className="relative group">
                 <div className="h-32 w-32 rounded-full bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shadow-inner">
                   {formData.photoUrl ? (
-                    <img 
+                    <AssetImage 
                       src={formData.photoUrl} 
                       alt="Preview" 
                       className="h-full w-full object-cover"
+                      fallbackType="teacher"
                     />
                   ) : (
                     <User className="h-12 w-12 text-slate-300" />

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, ImageIcon, RefreshCw } from 'lucide-react';
 import { hospitalStorageService } from '../services/hospital.storage';
+import { AssetImage } from './AssetImage';
 
 interface HospitalImageUploaderProps {
   id?: string;
@@ -91,11 +92,11 @@ export function HospitalImageUploader({ id, value, onChange, disabled }: Hospita
 
         {value ? (
           <>
-            <img
+            <AssetImage
               src={value}
               alt="Hospital Cover"
               className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
+              fallbackType="hospital"
             />
             {!disabled && (
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 text-white transition-opacity duration-200">

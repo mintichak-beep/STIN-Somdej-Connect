@@ -6,6 +6,7 @@ import { HospitalAddressCard } from './HospitalAddressCard';
 import { HospitalMapCard } from './HospitalMapCard';
 import { HospitalStatisticsCard } from './HospitalStatisticsCard';
 import { X, ExternalLink, Calendar, PlusCircle } from 'lucide-react';
+import { AssetImage } from './AssetImage';
 
 interface HospitalDialogProps {
   id?: string;
@@ -29,11 +30,11 @@ export function HospitalDialog({ id, isOpen, onClose, hospital }: HospitalDialog
         
         {/* Header Cover Banner */}
         <div className="h-44 w-full bg-zinc-200 dark:bg-zinc-900 overflow-hidden relative shrink-0">
-          <img
+          <AssetImage
             src={hospital.imageURL || defaultCover}
             alt={hospital.hospitalNameEN}
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            fallbackType="hospital"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10"></div>
           
@@ -49,11 +50,11 @@ export function HospitalDialog({ id, isOpen, onClose, hospital }: HospitalDialog
           {/* Overlapping Info */}
           <div className="absolute bottom-4 left-6 flex items-end gap-4">
             <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-white dark:border-zinc-900 bg-white shadow shrink-0">
-              <img
+              <AssetImage
                 src={hospital.logoURL || defaultLogo}
                 alt={`${hospital.hospitalNameEN} Logo`}
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+                fallbackType="hospital"
               />
             </div>
             <div className="text-white pb-1">

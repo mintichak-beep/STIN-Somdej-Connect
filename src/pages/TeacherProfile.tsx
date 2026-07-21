@@ -3,6 +3,7 @@ import { User, Phone, BookOpen, Camera, X, Shield, Mail, Calendar } from "lucide
 import { useAuth } from "../hooks/useAuth";
 import { motion } from "motion/react";
 import { resizeImage } from "../lib/imageUtils";
+import { AssetImage } from "../components/AssetImage";
 
 export function TeacherProfile() {
   const { user, updateProfile } = useAuth();
@@ -55,7 +56,7 @@ export function TeacherProfile() {
             <div className="relative group">
               <div className="h-40 w-40 rounded-full border-8 border-white bg-slate-50 shadow-2xl overflow-hidden flex items-center justify-center">
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName} className="h-full w-full object-cover" />
+                  <AssetImage src={user.photoURL} alt={user.displayName} className="h-full w-full object-cover" fallbackType="teacher" />
                 ) : (
                   <User className="h-16 w-16 text-slate-300" />
                 )}

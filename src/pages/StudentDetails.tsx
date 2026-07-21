@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { studentService, roomService, weeklyBillService, vanTripService, subjectService, allocationService, vanService, studentPaymentService, weeklyRoomAssignmentService } from "../services/app.service";
-import { Student, Room, WeeklyBill, VanTrip, Subject, Allocation, Van, StudentPayment, WeeklyRoomAssignment } from "../types/app";
+import { studentService, roomService, weeklyBillService, vanTripService, subjectService, allocationService, studentPaymentService, weeklyRoomAssignmentService } from "../services/app.service";
+import { Student, Room, WeeklyBill, VanTrip, Subject, Allocation, StudentPayment, WeeklyRoomAssignment } from "../types/app";
 import { ArrowLeft, User, Home, Receipt, Bus, BookOpen, FileText, Plus, Trash2, Edit2, Eye, Calendar } from "lucide-react";
 import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from "date-fns";
 import { Modal } from "../components/Modal";
@@ -15,7 +15,6 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
   const [selectedWeek, setSelectedWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [payments, setPayments] = useState<StudentPayment[]>([]);
   const [trips, setTrips] = useState<VanTrip[]>([]);
-  const [vans, setVans] = useState<Van[]>([]);
   const [subject, setSubject] = useState<Subject | null>(null);
   
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
@@ -47,10 +46,7 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
         setPayments(allPayments.filter(p => p.studentId === studentId));
         
         const allTrips = await vanTripService.getAll();
-        setTrips(allTrips.filter(t => t.passengers.some(p => p.personId === studentId)));
-        
-        const allVans = await vanService.getAll();
-        setVans(allVans);
+        setTrips(allTrips.filter(t => t.studentIds?.includes(studentId)));
       }
       setLoading(false);
     };
@@ -246,13 +242,12 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
                     </thead>
                     <tbody>
                         {trips.map(t => {
-                            const van = vans.find(v => v.id === t.vanId);
                             return (
                                 <tr key={t.id} className="border-t border-slate-100">
-                                    <td className="p-2">{t.tripDate}</td>
+                                    <td className="p-2">{t.date}</td>
                                     <td className="p-2">{t.destination}</td>
-                                    <td className="p-2">{t.subject}</td>
-                                    <td className="p-2">{van?.plateNumber || "-"}</td>
+                                    <td className="p-2">{t.notes}</td>
+                                    <td className="p-2">{t.licensePlate || "-"}</td>
                                 </tr>
                             );
                         })}

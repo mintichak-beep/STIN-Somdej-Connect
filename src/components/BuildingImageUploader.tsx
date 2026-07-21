@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { buildingStorageService } from '../services/building.storage';
+import { AssetImage } from './AssetImage';
 
 interface BuildingImageUploaderProps {
   id?: string;
@@ -88,11 +89,11 @@ export function BuildingImageUploader({
 
       {value ? (
         <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 group aspect-video">
-          <img
+          <AssetImage
             src={value}
             alt="Uploaded Building"
             className="h-full w-full object-cover"
-            referrerPolicy="no-referrer"
+            fallbackType="hospital"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
             <button

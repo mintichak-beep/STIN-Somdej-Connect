@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { studentService, roomService, dormitoryService, weeklyBillService, studentPaymentService, weeklyRoomAssignmentService, vanTripService, vanService } from "../services/app.service";
-import { Student, Room, Dormitory, WeeklyBill, StudentPayment, WeeklyRoomAssignment, VanTrip, Van } from "../types/app";
-import { User, Home, Users, AlertCircle, Droplets, Zap, FileText, ArrowRight, Bus, MapPin, Clock, Calendar, Phone } from "lucide-react";
-import { startOfWeek, isWithinInterval, format } from "date-fns";
+import { studentService, roomService, dormitoryService, studentPaymentService, weeklyRoomAssignmentService, vanTripService, dutyScheduleService } from "../services/app.service";
+import { Student, Room, Dormitory, StudentPayment, WeeklyRoomAssignment, VanTrip, DutySchedule } from "../types/app";
+import { User, Home, Users, AlertCircle, Droplets, Zap, FileText, ArrowRight, Bus, MapPin, Clock, Calendar, Phone, Navigation } from "lucide-react";
+import { startOfWeek, isWithinInterval, format, parseISO } from "date-fns";
+import { CuteMedicalBadge, CuteEmptyState, CuteMedicalLoadingCard, CUTE_MEDICAL_IMAGES } from "../components/CuteMedicalIllustration";
 
 interface StudentDashboardProps {
   onNavigateToBills: () => void;
@@ -17,7 +18,7 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
   const [roommates, setRoommates] = useState<Student[]>([]);
   const [latestPayment, setLatestPayment] = useState<StudentPayment | null>(null);
   const [myTrips, setMyTrips] = useState<VanTrip[]>([]);
-  const [vans, setVans] = useState<Van[]>([]);
+  const [myDuties, setMyDuties] = useState<DutySchedule[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
     let billsUnsub = () => {};
     let assignmentsUnsub = () => {};
     let tripsUnsub = () => {};
-    let vansUnsub = () => {};
+    let dutiesUnsub = () => {};
 
     const now = new Date();
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
@@ -93,16 +94,15 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
     // Load Van Trips for this student
     tripsUnsub = vanTripService.onSnapshot([], (tripsList) => {
       const studentTrips = tripsList.filter(trip => 
-        trip.passengers?.some(p => p.personId === studentId)
-      ).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime());
+        trip.studentIds?.includes(studentId)
+      ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setMyTrips(studentTrips);
     });
 
-    // Load Vans
-    vansUnsub = vanService.onSnapshot([], (vansList) => {
-      setVans(vansList);
+    // Load Duties
+    dutiesUnsub = dutyScheduleService.onSnapshot([], (list) => {
+      setMyDuties(list.filter(d => d.assignedStudents.includes(studentId) && d.status === 'Upcoming'));
     });
-    // ...
 
     // Set loading to false after a slight timeout to ensure snapshots register
     const timer = setTimeout(() => {
@@ -116,7 +116,7 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
       billsUnsub();
       assignmentsUnsub();
       tripsUnsub();
-      vansUnsub();
+      dutiesUnsub();
       clearTimeout(timer);
     };
   }, []);
@@ -144,9 +144,8 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 bg-white dark:bg-zinc-900 rounded-3xl border border-slate-100 dark:border-zinc-800">
-        <div className="h-10 w-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">กำลังโหลดข้อมูลระบบนักศึกษา...</p>
+      <div className="py-20">
+        <CuteMedicalLoadingCard text="กำลังโหลดข้อมูลระบบนักศึกษาพยาบาล..." />
       </div>
     );
   }
@@ -154,31 +153,48 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Welcome Banner */}
-      <div className="bg-medical-blue rounded-[40px] p-8 sm:p-12 text-white relative overflow-hidden shadow-2xl shadow-medical-blue/20">
-        <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-white/5 blur-3xl -mr-20 -mt-20"></div>
-        <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-medical-teal/10 blur-2xl -ml-10 -mb-10"></div>
+      <div className="bg-gradient-to-r from-sky-800 via-medical-blue to-indigo-900 rounded-[40px] p-8 sm:p-12 text-white relative overflow-hidden shadow-2xl shadow-medical-blue/20 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-white/5 blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-medical-teal/10 blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
         
-        <div className="relative z-10 space-y-6">
-          <div className="inline-flex rounded-full bg-white/10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-50 border border-white/10 backdrop-blur-md">
-            Student Portal • Institutional Access
+        <div className="relative z-10 space-y-6 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-full bg-white/10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-50 border border-white/10 backdrop-blur-md">
+              Student Portal • Institutional Access
+            </div>
+            <CuteMedicalBadge icon="heart" text="Nursing Student" variant="rose" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
               {displayStudent.fullName}
             </h1>
-            <p className="text-sm sm:text-base text-blue-100/80 font-medium">
-              ID: {displayStudent.studentId}
+            <p className="text-sm sm:text-base text-blue-100/90 font-bold">
+              Student ID: {displayStudent.studentId}
             </p>
           </div>
-          <button 
-            onClick={onChangeStudent}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-all cursor-pointer border border-white/10"
-          >
-            Change Student
-          </button>
-          <p className="text-sm text-blue-100/60 max-w-2xl leading-relaxed">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={onChangeStudent}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-all cursor-pointer border border-white/20 shadow-xs"
+            >
+              Change Student / สลับบัญชีนักศึกษา
+            </button>
+          </div>
+          <p className="text-sm text-blue-100/80 max-w-2xl leading-relaxed">
             Access your institutional profile, dormitory assignments, and manage utility transactions through this centralized clinical education portal.
           </p>
+        </div>
+
+        {/* Banner Character Thumbnail */}
+        <div className="relative z-10 shrink-0 hidden sm:block">
+          <div className="w-36 h-36 rounded-3xl p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden flex items-center justify-center">
+            <img 
+              src={CUTE_MEDICAL_IMAGES.nurseDoctor}
+              alt="Cute Nurse and Doctor"
+              className="w-full h-full object-cover rounded-2xl"
+              referrerPolicy="no-referrer"
+            />
+          </div>
         </div>
       </div>
 
@@ -275,116 +291,73 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
                 <Bus className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 tracking-tight">My Transportation</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Clinical Rotation Transit Details</p>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">Shuttle Service</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">My Assigned Shuttle Trips</p>
               </div>
             </div>
 
             {myTrips.length === 0 ? (
-              <div className="p-12 text-center bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                <div className="bg-white h-16 w-16 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                  <Bus className="h-8 w-8 text-slate-200" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-400">No transportation has been assigned.</p>
-                  <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Institutional shuttle schedule is clear</p>
-                </div>
-              </div>
+              <CuteEmptyState
+                title="ไม่มีตารางรถตู้รับ-ส่งในขณะนี้"
+                description="ติดต่อเจ้าหน้าที่หรือตรวจสอบตารางการฝึกปฏิบัติงานเพื่อดูข้อมูลเพิ่มเติม"
+                className="py-8"
+              />
             ) : (
-              <div className="space-y-6">
-                {myTrips.slice(0, 1).map((trip) => {
-                  const van = vans.find(v => v.id === trip.vanId);
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {myTrips.map((trip) => {
                   return (
-                    <div key={trip.id} className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-                      {/* Trip Info Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Vehicle and Driver */}
-                        <div className="space-y-6">
-                          <div className="p-6 bg-medical-blue/5 rounded-2xl border border-medical-blue/10 flex items-center gap-4 group hover:bg-medical-blue/10 transition-all">
-                            <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-medical-blue group-hover:scale-110 transition-transform">
-                              <Bus className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Van Number</p>
-                              <p className="text-base font-bold text-slate-800">Van #{van?.vanNumber || "N/A"}</p>
-                              <p className="text-xs font-mono font-black text-medical-blue">{van?.plateNumber || "Pending"}</p>
-                            </div>
-                          </div>
+                    <div key={trip.id} className="bg-slate-50/50 rounded-[2.5rem] border border-slate-100 p-8 space-y-6 group hover:bg-white hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
+                      <div className="flex justify-between items-start">
+                        <div className="flex flex-col">
+                          <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-blue-500`}>
+                            {trip.status || 'Scheduled'} Trip
+                          </span>
+                          <h4 className="text-xl font-black text-slate-900 tracking-tight">{trip.destination}</h4>
+                          <span className="text-xs font-semibold text-slate-500 mt-1">{trip.date || (trip as any).tripDate}</span>
+                        </div>
+                        <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                          <Navigation className="h-6 w-6" />
+                        </div>
+                      </div>
 
-                          <div className="p-6 bg-medical-teal/5 rounded-2xl border border-medical-teal/10 flex items-center gap-4 group hover:bg-medical-teal/10 transition-all">
-                            <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-medical-teal group-hover:scale-110 transition-transform">
-                              <User className="h-6 w-6" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Driver Name</p>
-                              <p className="text-base font-bold text-slate-800 truncate">{van?.driverName || "Assigning..."}</p>
-                              {van?.driverPhone && (
-                                <a href={`tel:${van.driverPhone}`} className="text-xs font-bold text-medical-teal hover:underline flex items-center gap-1 mt-0.5">
-                                  <Phone className="h-3 w-3" />
-                                  {van.driverPhone}
-                                </a>
-                              )}
-                            </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-50 shadow-sm">
+                          <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                            <Bus className="h-5 w-5" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vehicle Plate</span>
+                            <span className="text-sm font-black text-slate-900">{trip.licensePlate || "N/A"}</span>
                           </div>
                         </div>
 
-                        {/* Schedule Info */}
-                        <div className="space-y-6">
-                          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400">
-                              <Calendar className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Departure Schedule</p>
-                              <p className="text-base font-bold text-slate-800">{trip.tripDate}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <Clock className="h-3 w-3 text-medical-blue" />
-                                <span className="text-xs font-black text-medical-blue">{trip.departureTime}</span>
-                              </div>
-                            </div>
+                        <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-50 shadow-sm">
+                          <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
+                            <User className="h-5 w-5" />
                           </div>
-
-                          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400">
-                              <Clock className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Return Schedule</p>
-                              <p className="text-base font-bold text-slate-800">{trip.tripDate}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <Clock className="h-3 w-3 text-medical-teal" />
-                                <span className="text-xs font-black text-medical-teal">{trip.returnTime}</span>
-                              </div>
-                            </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Driver Details</span>
+                            <span className="text-sm font-black text-slate-900">{trip.driverName || "Assigning..."}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Destination & Subject Card */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4 border-t border-slate-50">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Destination</span>
-                          <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 flex items-center gap-3">
-                            <MapPin className="h-5 w-5 text-indigo-500" />
-                            <p className="font-bold text-slate-700">{trip.destination}</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-white rounded-2xl border border-slate-50 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Departure</span>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-primary" />
+                            <span className="text-sm font-black text-slate-900">{trip.departureTime}</span>
                           </div>
                         </div>
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Subject / Purpose</span>
-                          <div className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-100/50 flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-emerald-500" />
-                            <p className="font-bold text-slate-700 truncate" title={trip.subject}>{trip.subject}</p>
+                        <div className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Return</span>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-primary" />
+                            <span className="text-sm font-black text-slate-900">{trip.returnTime}</span>
                           </div>
                         </div>
                       </div>
-
-                      {myTrips.length > 1 && (
-                        <div className="flex justify-center pt-2">
-                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
-                            + {myTrips.length - 1} More upcoming trips in transit portal
-                          </p>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -396,6 +369,53 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
 
         {/* Right Column: Roommates list & Bills summary */}
         <div className="space-y-8">
+          
+          {/* Duty Schedule Summary */}
+          <div className="bg-white rounded-[40px] border border-slate-100 p-8 shadow-sm space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Duty Schedule</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Next Assignment</p>
+              </div>
+            </div>
+
+            {myDuties.length > 0 ? (
+              <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{myDuties[0].dutyType}</p>
+                    <p className="text-sm font-black text-slate-900">{format(parseISO(myDuties[0].dutyDate), 'EEEE, MMM do')}</p>
+                  </div>
+                  <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate">{myDuties[0].dutyLocation}</span>
+                </div>
+                <div className="text-[10px] font-black text-slate-900 bg-white p-2 rounded-xl border border-slate-100 text-center">
+                  {myDuties[0].startTime} - {myDuties[0].endTime}
+                </div>
+              </div>
+            ) : (
+              <CuteEmptyState
+                title="ไม่มีเวรปฏิบัติงาน"
+                description="ยังไม่มีตารางเวรที่ได้รับมอบหมายในขณะนี้"
+                className="py-6 border-none bg-transparent shadow-none"
+              />
+            )}
+            
+            <button
+              onClick={() => {}} // This will be handled by sidebar navigation
+              className="w-full py-4 text-[10px] font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-2xl uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              Full Schedule <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
           
           {/* Roommates Card */}
           <div className="bg-white rounded-[40px] border border-slate-100 p-8 shadow-sm space-y-8">
@@ -470,19 +490,17 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12 space-y-6">
-                <div className="bg-slate-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto">
-                  <FileText className="h-8 w-8 text-slate-200" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No Active Invoices</p>
-                  <p className="text-[10px] text-slate-300 font-medium">Utility ledger for this unit is currently clear.</p>
-                </div>
+              <div className="space-y-4">
+                <CuteEmptyState
+                  title="ไม่มีรายการค้างชำระ"
+                  description="ยอดค่าใช้จ่ายสำหรับหอพักและสาธารณูปโภคเรียบร้อยแล้ว"
+                  className="py-6 border-none bg-transparent shadow-none"
+                />
                 <button
                   onClick={onNavigateToBills}
-                  className="w-full py-4 text-[10px] font-bold text-medical-blue bg-medical-blue/5 hover:bg-medical-blue/10 rounded-2xl uppercase tracking-widest transition-all cursor-pointer"
+                  className="w-full py-3 text-[10px] font-bold text-medical-blue bg-medical-blue/5 hover:bg-medical-blue/10 rounded-2xl uppercase tracking-widest transition-all cursor-pointer"
                 >
-                  View History
+                  ดูประวัติการชำระเงิน
                 </button>
               </div>
             )}

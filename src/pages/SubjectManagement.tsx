@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { AlertCircle, BookOpen, Calendar, Hash, Building2, CheckCircle2, XCircle } from "lucide-react";
+import { AlertCircle, BookOpen, Calendar, Hash, Building2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { subjectService } from "../services/app.service";
+import { deduplicationService } from "../services/deduplication.service";
+import { RelationshipService } from "../services/relationship.service";
 import { Subject } from "../types/app";
 import { StatusChip } from "../components/StatusChip";
 
@@ -15,6 +17,9 @@ export function SubjectManagement() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [integrityError, setIntegrityError] = useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [bypassDuplicate, setBypassDuplicate] = useState(false);
 
   const [formData, setFormData] = useState({
     subjectCode: "",
@@ -46,6 +51,8 @@ export function SubjectManagement() {
       department: "Nursing Fundamentals",
       status: "active"
     });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -59,6 +66,8 @@ export function SubjectManagement() {
       department: subject.department,
       status: subject.status
     });
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -67,6 +76,16 @@ export function SubjectManagement() {
     setIsSaving(true);
     setError(null);
     try {
+      if (!bypassDuplicate) {
+        // We use checkDuplicateBeforeSave for "courses" (collection covers both subjects and courses on identical rules)
+        const dup = await deduplicationService.checkDuplicateBeforeSave("courses", formData, selectedSubject?.id);
+        if (dup) {
+          setDuplicateWarning(`A course with matching Course Code already exists (Code: ${dup.courseCode}, Name: ${dup.courseName}). Do you want to proceed and create a duplicate?`);
+          setIsSaving(false);
+          return;
+        }
+      }
+
       if (selectedSubject) {
         await subjectService.update(selectedSubject.id, formData);
       } else {
@@ -81,8 +100,37 @@ export function SubjectManagement() {
     }
   };
 
+  const handleBypassAndSave = async () => {
+    setDuplicateWarning(null);
+    setBypassDuplicate(true);
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (selectedSubject) {
+        await subjectService.update(selectedSubject.id, formData);
+      } else {
+        await subjectService.create(formData as any);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Save subject error:", err);
+      setError(err.message || "An error occurred while saving the course record.");
+    } finally {
+      setIsSaving(false);
+      setBypassDuplicate(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (selectedSubject) {
+      setIntegrityError(null);
+      const check = await RelationshipService.checkCourseDeletion(selectedSubject.id);
+      if (!check.canDelete) {
+        setIsDeleteOpen(false);
+        setIntegrityError(check.message || "Cannot delete course because related records exist.");
+        return;
+      }
+
       try {
         setLoading(true);
         await subjectService.delete(selectedSubject.id);
@@ -97,6 +145,21 @@ export function SubjectManagement() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {integrityError && (
+        <div className="p-4 bg-rose-50 text-rose-900 text-xs font-bold rounded-2xl border border-rose-200 flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0" />
+            <span>{integrityError}</span>
+          </div>
+          <button 
+            onClick={() => setIntegrityError(null)} 
+            className="px-3 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg text-[10px] font-black cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <DataTable
         title="Clinical Course Directory"
         description="Comprehensive index of nursing curricula, theoretical modules, and practical clinical courses."
@@ -162,6 +225,34 @@ export function SubjectManagement() {
             <div className="p-5 bg-medical-red/5 text-medical-red text-sm font-bold rounded-2xl border border-medical-red/20 flex items-center gap-4 animate-in fade-in slide-in-from-top-1">
               <AlertCircle className="h-6 w-6 shrink-0" />
               {error}
+            </div>
+          )}
+
+          {duplicateWarning && (
+            <div className="p-5 bg-amber-50 text-amber-800 text-sm font-medium rounded-2xl border border-amber-200 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-start gap-4">
+                <AlertTriangle className="h-6 w-6 shrink-0 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-950">Duplicate Detected</p>
+                  <p className="text-xs leading-relaxed">{duplicateWarning}</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2.5 mt-1">
+                <button
+                  type="button"
+                  onClick={handleBypassAndSave}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+                >
+                  Confirm & Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-extrabold hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
           

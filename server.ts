@@ -7,7 +7,7 @@ import fs from "fs";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 console.log(`Starting server with NODE_ENV=${process.env.NODE_ENV}`);
 

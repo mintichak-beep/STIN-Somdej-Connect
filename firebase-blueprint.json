@@ -138,6 +138,132 @@
       "type": "string",
       "isRead": "boolean",
       "createdAt": "timestamp"
+    },
+    "timetables": {
+      "academicYear": "string",
+      "semester": "string",
+      "subjectId": "string",
+      "practiceSiteId": "string",
+      "studentGroupId": "string",
+      "startDate": "timestamp",
+      "endDate": "timestamp",
+      "weeklySchedule": "array",
+      "numberOfStudents": "number",
+      "assignedTeacherId": "string",
+      "notes": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "practiceSites": {
+      "code": "string",
+      "name": "string",
+      "hospitalType": "string",
+      "province": "string",
+      "district": "string",
+      "address": "string",
+      "contactPerson": "string",
+      "phoneNumber": "string",
+      "email": "string",
+      "availableDepartments": "array",
+      "maxStudentCapacity": "number",
+      "notes": "string?",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "welcomeSettings": {
+      "key": "string",
+      "value": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "loginImages": {
+      "imageType": "string",
+      "imageUrl": "string",
+      "updatedAt": "string",
+      "updatedBy": "string"
+    },
+    "dutySchedules": {
+      "dutyDate": "string",
+      "startTime": "string",
+      "endTime": "string",
+      "dutyType": "string",
+      "dutyLocation": "string",
+      "dormitoryId": "string",
+      "assignedStudents": "array",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "academicSchedules": {
+      "academicYear": "string",
+      "semester": "string",
+      "courseCode": "string",
+      "courseName": "string",
+      "instructor": "string",
+      "department": "string",
+      "startDate": "string",
+      "endDate": "string",
+      "milestones": "array",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "clinicalSites": {
+      "name": "string",
+      "type": "string",
+      "address": "string",
+      "phone": "string",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "wards": {
+      "clinicalSiteId": "string",
+      "name": "string",
+      "department": "string",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "clinicalSchedules": {
+      "academicYear": "string",
+      "semester": "string",
+      "courseId": "string",
+      "studentGroupId": "string",
+      "clinicalSiteId": "string",
+      "wardId": "string",
+      "instructorId": "string",
+      "startDate": "string",
+      "endDate": "string",
+      "status": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "dutyAssignments": {
+      "scheduleId": "string",
+      "studentId": "string",
+      "date": "string",
+      "shift": "string",
+      "subShift": "string?",
+      "instructorId": "string",
+      "remarks": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "studentGroups": {
+      "name": "string",
+      "studentIds": "array",
+      "courseId": "string?",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "appImages": {
+      "imageName": "string",
+      "imageType": "string",
+      "imageUrl": "string",
+      "updatedAt": "timestamp",
+      "createdAt": "timestamp"
     }
   }
 }

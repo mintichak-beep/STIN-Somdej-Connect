@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { AlertCircle, User, Phone, Hash, BookOpen, GraduationCap, Users, Edit2, Trash2, Plus } from "lucide-react";
+import { AlertCircle, User, Phone, Hash, BookOpen, GraduationCap, Users, Edit2, Trash2, Plus, AlertTriangle } from "lucide-react";
 import { studentService, subjectService, subjectGroupService, teacherService, trainingSiteService } from "../services/app.service";
+import { deduplicationService } from "../services/deduplication.service";
 import { Student, Subject, SubjectGroup, Teacher, TrainingSite } from "../types/app";
 import { StatusChip } from "../components/StatusChip";
 import { excelUtils } from "../lib/excel";
@@ -22,6 +23,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [bypassDuplicate, setBypassDuplicate] = useState(false);
 
   // Subject Group states
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -277,6 +280,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
       groupId: ""
     });
     setSubjectSearch("");
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -296,6 +301,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     });
     const sub = subjects.find(s => s.id === student.subjectId);
     setSubjectSearch(sub ? `${sub.subjectName} (${sub.subjectCode})` : "");
+    setDuplicateWarning(null);
+    setBypassDuplicate(false);
     setIsModalOpen(true);
   };
 
@@ -378,16 +385,17 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     };
 
     try {
-      // Check for duplicate student ID
-      const existingStudents = await studentService.getAll();
-      const duplicate = existingStudents.find(
-        (s) => s.studentId === formData.studentId && (!selectedStudent || s.id !== selectedStudent.id)
-      );
-      if (duplicate) {
-        throw new Error("Student ID already exists.");
+      if (!bypassDuplicate) {
+        const dup = await deduplicationService.checkDuplicateBeforeSave("students", formData, selectedStudent?.id);
+        if (dup) {
+          setDuplicateWarning(`A student with matching Student ID already exists (ID: ${dup.studentId}, Name: ${dup.firstName} ${dup.lastName}). Do you want to proceed and create a duplicate?`);
+          setIsSaving(false);
+          return;
+        }
       }
 
       // Check capacity
+      const existingStudents = await studentService.getAll();
       if (formData.groupId) {
         const group = subjectGroups.find(g => g.id === formData.groupId);
         if (group && group.capacity) {
@@ -408,6 +416,42 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     } catch (err: any) {
       console.error("Save error:", err);
       setError(err.message || "An error occurred while saving the record.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleBypassAndSave = async () => {
+    setDuplicateWarning(null);
+    setBypassDuplicate(true);
+    setIsSaving(true);
+    
+    const data = {
+      ...formData,
+      fullName: `${formData.firstName} ${formData.lastName}`
+    };
+
+    try {
+      const existingStudents = await studentService.getAll();
+      if (formData.groupId) {
+        const group = subjectGroups.find(g => g.id === formData.groupId);
+        if (group && group.capacity) {
+          const currentCount = existingStudents.filter(s => s.groupId === formData.groupId && s.id !== selectedStudent?.id).length;
+          if (currentCount >= group.capacity) {
+            throw new Error(`Subject Group "${group.groupName}" has reached its maximum capacity of ${group.capacity} students.`);
+          }
+        }
+      }
+
+      if (selectedStudent) {
+        await studentService.update(selectedStudent.id, data);
+      } else {
+        await studentService.create(data as any);
+      }
+      setIsModalOpen(false);
+      await fetchData();
+    } catch (err: any) {
+      setError(err.message || "An error occurred while saving.");
     } finally {
       setIsSaving(false);
     }
@@ -880,6 +924,34 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
             <div className="p-5 bg-medical-red/5 text-medical-red text-sm font-bold rounded-2xl border border-medical-red/20 flex items-center gap-4 animate-in fade-in slide-in-from-top-1">
               <AlertCircle className="h-6 w-6 shrink-0" />
               {error}
+            </div>
+          )}
+
+          {duplicateWarning && (
+            <div className="p-5 bg-amber-50 text-amber-800 text-sm font-medium rounded-2xl border border-amber-200 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-start gap-4">
+                <AlertTriangle className="h-6 w-6 shrink-0 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-950">Duplicate Detected</p>
+                  <p>{duplicateWarning}</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2.5 mt-1">
+                <button
+                  type="button"
+                  onClick={handleBypassAndSave}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+                >
+                  Confirm & Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-extrabold hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
           

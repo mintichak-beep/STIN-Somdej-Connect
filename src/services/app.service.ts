@@ -1,12 +1,12 @@
+import { Announcement, AppImage, BankAccountConfig } from "../types/app";
 import { FirestoreService } from "./firestore.service";
-import { Student, Teacher, Hospital, Room, Van, VanTrip, Allocation, Dormitory, WeeklyBill, StudentPayment, PaymentSlip, Notification, Subject, TrainingGroup, TrainingSite, PracticeAssignment, Course, WeeklyRoomAssignment, SubjectGroup } from "../types/app";
+import { Student, Teacher, Hospital, Room, Van, VanTrip, Allocation, Dormitory, WeeklyBill, StudentPayment, PaymentSlip, Notification, Subject, TrainingGroup, TrainingSite, PracticeAssignment, Course, WeeklyRoomAssignment, SubjectGroup, ShuttleRoute, ShuttleAssignment, DutySchedule, AcademicSchedule, ClinicalSite, Ward, ClinicalSchedule, DutyAssignment, StudentGroup } from "../types/app";
 
 export const studentService = new FirestoreService<Student>("students");
 export const teacherService = new FirestoreService<Teacher>("teachers");
 export const hospitalService = new FirestoreService<Hospital>("hospitals");
 export const dormitoryService = new FirestoreService<Dormitory>("dormitories");
 export const roomService = new FirestoreService<Room>("rooms");
-export const vanService = new FirestoreService<Van>("vans");
 export const vanTripService = new FirestoreService<VanTrip>("vanTrips");
 export const allocationService = new FirestoreService<Allocation>("allocations");
 export const weeklyBillService = new FirestoreService<WeeklyBill>("utilityBills");
@@ -17,6 +17,17 @@ export const subjectService = new FirestoreService<Subject>("subjects");
 export const subjectGroupService = new FirestoreService<SubjectGroup>("subjectGroups");
 export const trainingGroupService = new FirestoreService<TrainingGroup>("trainingGroups");
 export const trainingSiteService = new FirestoreService<TrainingSite>("trainingSites");
+export const clinicalSiteService = new FirestoreService<ClinicalSite>("clinicalSites");
+export const wardService = new FirestoreService<Ward>("wards");
+export const clinicalScheduleService = new FirestoreService<ClinicalSchedule>("clinicalSchedules");
+export const dutyAssignmentService = new FirestoreService<DutyAssignment>("dutyAssignments");
+export const studentGroupService = new FirestoreService<StudentGroup>("studentGroups");
 export const practiceAssignmentService = new FirestoreService<PracticeAssignment>("practiceAssignments");
 export const courseService = new FirestoreService<Course>("courses");
 export const weeklyRoomAssignmentService = new FirestoreService<WeeklyRoomAssignment>("weeklyRoomAssignments");
+export const dutyScheduleService = new FirestoreService<DutySchedule>("dutySchedules");
+export const academicScheduleService = new FirestoreService<AcademicSchedule>("academicSchedules");
+export const announcementService = new FirestoreService<Announcement>("announcements");
+export const appImageService = new FirestoreService<AppImage>("appImages");
+export const bankAccountService = new FirestoreService<BankAccountConfig>("bankAccounts");
+

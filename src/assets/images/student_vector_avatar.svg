@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <!-- Soft Drop Shadow for Depth -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3E2723" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#D32F2F" flood-opacity="0.25"/>
+    </filter>
+    
+    <!-- Soft Gradients for Pastel Aesthetic -->
+    <radialGradient id="pinkCircleGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF0F3"/>
+      <stop offset="100%" stop-color="#FCE4EC"/>
+    </radialGradient>
+
+    <linearGradient id="uniformGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F5F7FA"/>
+    </linearGradient>
+
+    <linearGradient id="notebookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E53935"/>
+      <stop offset="100%" stop-color="#C62828"/>
+    </linearGradient>
+
+    <clipPath id="circleClip">
+      <circle cx="200" cy="200" r="165"/>
+    </clipPath>
+  </defs>
+
+  <!-- Base White Card with Rounded Corners -->
+  <rect width="400" height="400" rx="36" fill="#FFFFFF"/>
+
+  <!-- Background Pink Circle with Clipped Faint Hospital Silhouettes -->
+  <g clip-path="url(#circleClip)">
+    <circle cx="200" cy="200" r="165" fill="url(#pinkCircleGrad)"/>
+
+    <!-- Faint Hospital & Medical Campus Silhouettes -->
+    <g fill="#F8BBD0" opacity="0.45">
+      <!-- Main Hospital Building Center Background -->
+      <rect x="140" y="90" width="120" height="150" rx="6"/>
+      <rect x="175" y="70" width="50" height="25" rx="4"/>
+      <!-- Hospital Cross on Roof -->
+      <path d="M 195 73 H 205 V 87 H 195 Z M 190 78 H 210 V 82 H 190 Z" fill="#F48FB1"/>
+      <!-- Building Windows -->
+      <rect x="155" y="105" width="22" height="18" rx="3" fill="#FFF0F3"/>
+      <rect x="189" y="105" width="22" height="18" rx="3" fill="#FFF0F3"/>
+      <rect x="223" y="105" width="22" height="18" rx="3" fill="#FFF0F3"/>
+      
+      <rect x="155" y="135" width="22" height="18" rx="3" fill="#FFF0F3"/>
+      <rect x="189" y="135" width="22" height="18" rx="3" fill="#FFF0F3"/>
+      <rect x="223" y="135" width="22" height="18" rx="3" fill="#FFF0F3"/>
+
+      <!-- Side Medical Campus Towers -->
+      <rect x="75" y="130" width="75" height="110" rx="8"/>
+      <rect x="250" y="120" width="80" height="120" rx="8"/>
+      
+      <circle cx="112" cy="155" r="10" fill="#FFF0F3"/>
+      <circle cx="290" cy="150" r="12" fill="#FFF0F3"/>
+    </g>
+
+    <!-- Subtle Soft Light Blue Cloud/Aura Elements -->
+    <circle cx="85" cy="100" r="28" fill="#E1F5FE" opacity="0.6"/>
+    <circle cx="320" cy="110" r="34" fill="#E1F5FE" opacity="0.6"/>
+  </g>
+
+  <!-- CHARACTER VECTOR GROUP -->
+  <g filter="url(#softShadow)">
+
+    <!-- Low Ponytail Hair (Back) -->
+    <path d="M 165 190 C 140 210 135 245 142 265 C 150 250 168 230 178 210 Z" fill="#3E2723"/>
+    <!-- Red Hairband for Ponytail -->
+    <ellipse cx="162" cy="215" rx="7" ry="5" fill="#D32F2F"/>
+
+    <!-- Red Backpack Strap (Over Right Shoulder) -->
+    <path d="M 128 260 C 122 280 120 320 124 350" stroke="#D32F2F" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <path d="M 128 260 C 122 280 120 320 124 350" stroke="#B71C1C" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.3"/>
+
+    <!-- Upper Body & Shoulders (Nursing Uniform) -->
+    <!-- Base Body Silhouette -->
+    <path d="M 120 360 C 120 280 150 250 200 250 C 250 250 280 280 280 360 Z" fill="url(#uniformGrad)"/>
+
+    <!-- Red Trim on Shoulder & V-Neck Line -->
+    <path d="M 170 250 L 200 295 L 230 250" fill="none" stroke="#D32F2F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Inner Collar -->
+    <path d="M 180 250 L 200 278 L 220 250" fill="#F5CBA7"/>
+
+    <!-- Red Cross Badge on Left Chest -->
+    <g transform="translate(242, 280)" filter="url(#badgeShadow)">
+      <circle cx="0" cy="0" r="11" fill="#FFFFFF" stroke="#ECEFF1" stroke-width="1"/>
+      <circle cx="0" cy="0" r="9" fill="#D32F2F"/>
+      <!-- White Cross inside badge -->
+      <path d="M -3 -1 H 3 V 1 H -3 Z M -1 -3 H 1 V 3 H -1 Z" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Neck -->
+    <rect x="187" y="222" width="26" height="34" rx="10" fill="#F5CBA7"/>
+    <!-- Neck Shadow -->
+    <path d="M 187 232 C 195 240 205 240 213 232 V 242 H 187 Z" fill="#E5A985" opacity="0.4"/>
+
+    <!-- Head & Face (Front-facing) -->
+    <ellipse cx="200" cy="180" rx="50" ry="52" fill="#FFE0B2"/>
+    <path d="M 152 170 C 152 215 172 230 200 230 C 228 230 248 215 248 170 Z" fill="#F5CBA7"/>
+
+    <!-- Ears -->
+    <circle cx="150" cy="180" r="10" fill="#F5CBA7"/>
+    <circle cx="250" cy="180" r="10" fill="#F5CBA7"/>
+
+    <!-- Eyes (Cute Sparkly Eyes) -->
+    <ellipse cx="178" cy="176" rx="6" ry="8" fill="#3E2723"/>
+    <circle cx="176" cy="173" r="2.5" fill="#FFFFFF"/>
+    
+    <ellipse cx="222" cy="176" rx="6" ry="8" fill="#3E2723"/>
+    <circle cx="220" cy="173" r="2.5" fill="#FFFFFF"/>
+
+    <!-- Eyebrows -->
+    <path d="M 170 162 C 176 159 184 161 186 164" stroke="#3E2723" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M 230 162 C 224 159 216 161 214 164" stroke="#3E2723" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Soft Cute Blush Cheeks -->
+    <ellipse cx="168" cy="188" rx="8" ry="5" fill="#FF8A80" opacity="0.45"/>
+    <ellipse cx="232" cy="188" rx="8" ry="5" fill="#FF8A80" opacity="0.45"/>
+
+    <!-- Cute Friendly Smile -->
+    <path d="M 191 192 C 194 200 206 200 209 192" stroke="#3E2723" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+    <!-- Dark Brown Hair (Front Bangs & Frame) -->
+    <!-- Side Hair Framing Face -->
+    <path d="M 150 165 C 148 135 170 120 200 120 C 230 120 252 135 250 165 C 248 145 235 132 200 132 C 165 132 152 145 150 165 Z" fill="#3E2723"/>
+    <path d="M 150 155 C 148 175 156 195 158 200 C 161 185 158 165 162 150 Z" fill="#3E2723"/>
+    <path d="M 250 155 C 252 175 244 195 242 200 C 239 185 242 165 238 150 Z" fill="#3E2723"/>
+
+    <!-- White Nurse Cap with Red Stripe -->
+    <g transform="translate(200, 122)">
+      <!-- Cap Base Curved Fold -->
+      <path d="M -42 10 C -25 -15 25 -15 42 10 C 30 2 18 -2 0 -2 C -18 -2 -30 2 -42 10 Z" fill="#ECEFF1"/>
+      <path d="M -40 8 C -25 -18 25 -18 40 8 C 28 -2 16 -5 0 -5 C -16 -5 -28 -2 -40 8 Z" fill="#FFFFFF"/>
+      
+      <!-- Red Horizontal Stripe on Nurse Cap -->
+      <path d="M -32 -2 C -20 -10 20 -10 32 -2 L 30 2 C 18 -6 -18 -6 -30 2 Z" fill="#D32F2F"/>
+      
+      <!-- Tiny Red Cross Symbol on Nurse Cap center -->
+      <path d="M -3 -12 H 3 V -8 H -3 Z M -1 -14 H 1 V -6 H -1 Z" fill="#D32F2F"/>
+    </g>
+
+    <!-- Hands & Red Notebook Held with Both Hands -->
+    <g transform="translate(200, 325)">
+      <!-- Red Notebook -->
+      <rect x="-42" y="-35" width="84" height="65" rx="8" fill="url(#notebookGrad)"/>
+      <!-- White Pages Edge -->
+      <rect x="-38" y="-31" width="6" height="57" rx="2" fill="#FFFFFF" opacity="0.9"/>
+      <!-- Bookmark / Decorative Cross on Notebook Cover -->
+      <rect x="0" y="-22" width="22" height="28" rx="4" fill="#FFFFFF" opacity="0.2"/>
+      <path d="M 11 -16 L 11 -2 A 1 1 0 0 0 11 -16 M 6 -9 L 16 -9" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- Left Hand Holding Notebook -->
+      <ellipse cx="-40" cy="0" rx="11" ry="14" fill="#F5CBA7" transform="rotate(-15, -40, 0)"/>
+      <circle cx="-45" cy="-4" r="4" fill="#FFE0B2"/>
+
+      <!-- Right Hand Holding Notebook -->
+      <ellipse cx="40" cy="0" rx="11" ry="14" fill="#F5CBA7" transform="rotate(15, 40, 0)"/>
+      <circle cx="45" cy="-4" r="4" fill="#FFE0B2"/>
+    </g>
+
+  </g>
+</svg>

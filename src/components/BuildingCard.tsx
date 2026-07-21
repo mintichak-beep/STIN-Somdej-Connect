@@ -3,6 +3,7 @@ import { Building } from '../types/db';
 import { BuildingStatusChip } from './BuildingStatusChip';
 import { ActionMenu, ActionMenuItem } from './ActionMenu';
 import { MapPin, Layers, DoorOpen, Bed, UserCheck, Eye } from 'lucide-react';
+import { AssetImage } from './AssetImage';
 
 interface BuildingCardProps {
   key?: string | number;
@@ -59,11 +60,11 @@ export function BuildingCard({
     >
       {/* Cover Image */}
       <div className="h-32 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-950 relative shrink-0">
-        <img
+        <AssetImage
           src={building.imageURL || defaultCover}
           alt={building.buildingName}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          referrerPolicy="no-referrer"
+          fallbackType="hospital"
         />
         <div className="absolute top-3 left-3">
           <BuildingStatusChip status={building.status} />
