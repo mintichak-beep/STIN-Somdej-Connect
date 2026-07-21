@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { StudentManagement } from './pages/StudentManagement';
@@ -19,8 +19,10 @@ import { MyTransportation } from './pages/MyTransportation';
 import { TeacherManagement } from './pages/TeacherManagement';
 import { TeacherProfile } from './pages/TeacherProfile';
 import { TeacherDetails } from './pages/TeacherDetails';
+import { useAuth } from './hooks/useAuth';
 
 export default function App() {
+  const { user } = useAuth();
   const [role, setRole] = useState<'Teacher' | 'Student' | null>(() => {
     return localStorage.getItem('user_role') as 'Teacher' | 'Student' | null;
   });
@@ -76,6 +78,8 @@ export default function App() {
           return <VanManagement />;
         case 'van-trips':
           return <VanTrips />;
+        case 'my-transportation':
+          return <MyTransportation userId={user?.uid || 'dev-teacher-id'} role="Teacher" />;
         case 'teachers':
           return <TeacherManagement onSelectTeacher={(id) => {
             setSelectedTeacherId(id);
@@ -108,7 +112,7 @@ export default function App() {
         case 'student-utilities':
           return <StudentUtilities studentId={selectedStudentId} />;
         case 'my-transportation':
-          return <MyTransportation studentId={selectedStudentId} />;
+          return <MyTransportation userId={selectedStudentId} role="Student" />;
         default:
           return <StudentDashboard studentId={selectedStudentId} onChangeStudent={handleChangeStudent} onNavigateToBills={() => setActiveTab('student-utilities')} />;
       }

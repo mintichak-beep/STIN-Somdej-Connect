@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { vanTripService, vanService, studentService } from "../services/app.service";
-import { VanTrip, Van, Student } from "../types/app";
-import { Bus, MapPin, Clock, Calendar, Phone, User, Info, AlertCircle } from "lucide-react";
+import { vanTripService, vanService, studentService, teacherService } from "../services/app.service";
+import { VanTrip, Van, Student, Teacher } from "../types/app";
+import { Bus, MapPin, Clock, Calendar, Phone, User, Info, AlertCircle, Users } from "lucide-react";
 import { format } from "date-fns";
 
-export function MyTransportation({ studentId }: { studentId: string }) {
+export function MyTransportation({ userId, role }: { userId: string, role: 'Teacher' | 'Student' }) {
   const [trips, setTrips] = useState<VanTrip[]>([]);
   const [vans, setVans] = useState<Van[]>([]);
-  const [student, setStudent] = useState<Student | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,20 +17,16 @@ export function MyTransportation({ studentId }: { studentId: string }) {
     let vansUnsub = () => {};
     let studentsUnsub = () => {};
 
-    // Load Student
+    // Load Data
     studentsUnsub = studentService.onSnapshot([], (studentsList) => {
-      const currentStudent = studentsList.find(s => s.id === studentId);
-      if (currentStudent) {
-        setStudent(currentStudent);
-      }
+      setStudents(studentsList);
     });
-
-    // Load Van Trips
+    teachersUnsub = teacherService.onSnapshot([], (teachersList) => {
+      setTeachers(teachersList);
+    });
     tripsUnsub = vanTripService.onSnapshot([], (tripsList) => {
       setTrips(tripsList);
     });
-
-    // Load Vans
     vansUnsub = vanService.onSnapshot([], (vansList) => {
       setVans(vansList);
     });
@@ -42,6 +39,7 @@ export function MyTransportation({ studentId }: { studentId: string }) {
       tripsUnsub();
       vansUnsub();
       studentsUnsub();
+      teachersUnsub();
       clearTimeout(timer);
     };
   }, []);
@@ -55,9 +53,9 @@ export function MyTransportation({ studentId }: { studentId: string }) {
     );
   }
 
-  // Filter trips where current student is a passenger
+  // Filter trips where current user is a passenger
   const myTrips = trips.filter(trip => 
-    student && trip.passengers.some(p => p.personId === student.id)
+    trip.passengers.some(p => p.personId === userId)
   ).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime());
 
   return (
@@ -183,6 +181,31 @@ export function MyTransportation({ studentId }: { studentId: string }) {
                     </div>
                   </div>
                 </div>
+
+                {role === 'Teacher' && (
+                  <div className="p-8 bg-white border-b border-slate-50">
+                    <h5 className="text-xs font-black uppercase tracking-widest text-slate-800 flex items-center gap-2 mb-4">
+                      <Users className="h-4 w-4 text-medical-teal" />
+                      Passenger List ({trip.passengers.length})
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">
+                      {trip.passengers.map((p) => {
+                        const student = students.find(s => s.id === p.personId);
+                        const teacher = teachers.find(t => t.id === p.personId);
+                        return (
+                          <div key={p.personId} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                            <span className="text-xs font-bold text-slate-700">
+                              {student?.fullName || teacher?.name || "Unknown User"}
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-white px-2 py-0.5 rounded-lg border border-slate-100">
+                              {p.role}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Van & Driver Info */}
                 <div className="p-8 mt-auto bg-white border-t border-slate-50 grid grid-cols-2 gap-8">

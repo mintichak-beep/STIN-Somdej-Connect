@@ -84,7 +84,7 @@ export function WelcomePage({ onSelectRole, onSelectStudent }: WelcomePageProps)
                 <div className="flex-1 rounded-[2.5rem] bg-white p-8 shadow-2xl shadow-blue-900/10 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-blue-900/20 duration-500 border border-white/50">
                   <div className="h-40 w-40 rounded-full overflow-hidden mb-6 bg-red-50/50 border-8 border-slate-50 shadow-inner flex items-center justify-center">
                     <img 
-                      src="/src/assets/images/teacher_avatar_nurse_1784626164325.jpg" 
+                      src="/src/assets/images/teacher_avatar_nurse_v3_1784630348949.jpg" 
                       alt="Teacher" 
                       className="h-full w-full object-cover scale-110" 
                       referrerPolicy="no-referrer" 
@@ -109,7 +109,7 @@ export function WelcomePage({ onSelectRole, onSelectStudent }: WelcomePageProps)
                 <div className="flex-1 rounded-[2.5rem] bg-white p-8 shadow-2xl shadow-blue-900/10 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-blue-900/20 duration-500 border border-white/50">
                   <div className="h-40 w-40 rounded-full overflow-hidden mb-6 bg-red-50/50 border-8 border-slate-50 shadow-inner flex items-center justify-center">
                     <img 
-                      src="/src/assets/images/student_avatar_nurse_1784626179720.jpg" 
+                      src="/src/assets/images/student_avatar_nurse_v3_1784630551819.jpg" 
                       alt="Student" 
                       className="h-full w-full object-cover scale-110" 
                       referrerPolicy="no-referrer" 
@@ -215,7 +215,7 @@ export function WelcomePage({ onSelectRole, onSelectStudent }: WelcomePageProps)
         {/* Main Illustration Collage */}
         <div className="relative z-10 w-full h-full flex items-center justify-center">
           <img 
-            src="/src/assets/images/medical_icons_set_1784626145017.jpg" 
+            src="/src/assets/images/medical_illustration_bg_1784609439820.jpg" 
             alt="Medical Illustrations" 
             className="max-w-[120%] w-[120%] object-contain drop-shadow-2xl animate-in zoom-in-95 duration-1000" 
             referrerPolicy="no-referrer" 

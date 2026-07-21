@@ -93,6 +93,7 @@ export function AppLayout({
     { id: "room-assignments", label: "Practice Schedule", emoji: "📅" },
     { id: "rooms", label: "Rooms", emoji: "🛏️" },
     { id: "vans", label: "Vans", emoji: "🚐" },
+    { id: "my-transportation", label: "My Transportation", emoji: "🚐" },
     { id: "utility-billing", label: "Utility Bills", emoji: "💧" },
     { id: "payment-verification", label: "Payments", emoji: "💳" },
     { id: "reports", label: "Reports", emoji: "📊" },

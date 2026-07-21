@@ -23,12 +23,7 @@ export function MyPractice() {
           const studentAssignments = allData.filter(a => a.studentId === student.id);
           setAssignments(studentAssignments);
         } else {
-          // Fallback for dev/simulated users
-          const mockStudentId = user.email?.split("@")[0] || "";
-          const studentAssignments = allData.filter(
-            (a) => a.studentId === mockStudentId || mockStudentId.includes("student")
-          );
-          setAssignments(studentAssignments);
+          setAssignments([]);
         }
       }
       setLoading(false);
