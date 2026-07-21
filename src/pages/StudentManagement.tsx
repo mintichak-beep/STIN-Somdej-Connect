@@ -3,8 +3,8 @@ import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { AlertCircle, User, Phone, Hash, BookOpen, GraduationCap, Users, Edit2, Trash2, Plus } from "lucide-react";
-import { studentService, subjectService, subjectGroupService } from "../services/app.service";
-import { Student, Subject, SubjectGroup } from "../types/app";
+import { studentService, subjectService, subjectGroupService, teacherService, trainingSiteService } from "../services/app.service";
+import { Student, Subject, SubjectGroup, Teacher, TrainingSite } from "../types/app";
 import { StatusChip } from "../components/StatusChip";
 import { excelUtils } from "../lib/excel";
 
@@ -12,6 +12,8 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
   const [students, setStudents] = useState<Student[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectGroups, setSubjectGroups] = useState<SubjectGroup[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [trainingSites, setTrainingSites] = useState<TrainingSite[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<'all' | 'grouped' | 'groups'>('all');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +29,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
   const [selectedGroup, setSelectedGroup] = useState<SubjectGroup | null>(null);
   const [groupFormData, setGroupFormData] = useState({
     groupName: "",
-    subjectId: ""
+    subjectId: "",
+    hospitalId: "",
+    teacherId: "",
+    startDate: "",
+    endDate: "",
+    capacity: 0
   });
   const [groupError, setGroupError] = useState<string | null>(null);
 
@@ -55,8 +62,26 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     setLoading(true);
     try {
       const data = await studentService.getAll();
-      const sortedData = [...data].sort((a, b) => (a.studentId || "").localeCompare(b.studentId || ""));
-      setStudents(sortedData);
+      const sortedData = [...data].sort((a, b) => {
+        const idA = a.studentId || "";
+        const idB = b.studentId || "";
+        const prefixA = idA.substring(0, 4);
+        const prefixB = idB.substring(0, 4);
+        
+        if (prefixA === prefixB) return idA.localeCompare(idB);
+        if (prefixA === "6710") return -1;
+        if (prefixB === "6710") return 1;
+        if (prefixA === "6610") return -1;
+        if (prefixB === "6610") return 1;
+        return idA.localeCompare(idB);
+      });
+
+      const indexedData = sortedData.map((s, idx) => ({
+        ...s,
+        displayIndex: idx + 1
+      }));
+
+      setStudents(indexedData as any);
     } catch (err) {
       console.error("fetchData error:", err);
     } finally {
@@ -69,8 +94,26 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     
     // Subscribe to students in real-time
     const unsubscribeStudents = studentService.onSnapshot([], (data) => {
-      const sortedData = [...data].sort((a, b) => (a.studentId || "").localeCompare(b.studentId || ""));
-      setStudents(sortedData);
+      const sortedData = [...data].sort((a, b) => {
+        const idA = a.studentId || "";
+        const idB = b.studentId || "";
+        const prefixA = idA.substring(0, 4);
+        const prefixB = idB.substring(0, 4);
+        
+        if (prefixA === prefixB) return idA.localeCompare(idB);
+        if (prefixA === "6710") return -1;
+        if (prefixB === "6710") return 1;
+        if (prefixA === "6610") return -1;
+        if (prefixB === "6610") return 1;
+        return idA.localeCompare(idB);
+      });
+      
+      const indexedData = sortedData.map((s, idx) => ({
+        ...s,
+        displayIndex: idx + 1
+      }));
+      
+      setStudents(indexedData as any);
       setLoading(false);
     });
 
@@ -84,22 +127,42 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
       setSubjectGroups(data);
     });
 
+    // Subscribe to teachers in real-time
+    const unsubscribeTeachers = teacherService.onSnapshot([], (data) => {
+      setTeachers(data);
+    });
+
+    // Subscribe to training sites in real-time
+    const unsubscribeSites = trainingSiteService.onSnapshot([], (data) => {
+      setTrainingSites(data);
+    });
+
     return () => {
       unsubscribeStudents();
       unsubscribeSubjects();
       unsubscribeGroups();
+      unsubscribeTeachers();
+      unsubscribeSites();
     };
   }, []);
 
   const handleExport = () => {
-    const exportData = students.map(({ id, createdAt, updatedAt, ...rest }) => {
-      const matchedSubject = subjects.find(s => s.id === rest.subjectId);
-      const matchedGroup = subjectGroups.find(g => g.id === rest.groupId);
+    const exportData = students.map((s: any) => {
+      const matchedSubject = subjects.find(sub => sub.id === s.subjectId);
+      const matchedGroup = subjectGroups.find(g => g.id === s.groupId);
       return {
-        ...rest,
-        subjectCode: matchedSubject ? matchedSubject.subjectCode : "",
-        subjectName: matchedSubject ? matchedSubject.subjectName : "",
-        groupName: matchedGroup ? matchedGroup.groupName : ""
+        "No.": s.displayIndex,
+        "Student ID": s.studentId,
+        "Title": s.title || "",
+        "First Name": s.firstName,
+        "Last Name": s.lastName,
+        "Clinical Course": matchedSubject ? matchedSubject.subjectName : "",
+        "Subject Code": matchedSubject ? matchedSubject.subjectCode : "",
+        "Group": matchedGroup ? matchedGroup.groupName : "",
+        "Phone": s.phone,
+        "Email": s.email || "",
+        "Notes": s.notes || "",
+        "Status": s.status
       };
     });
     excelUtils.exportToExcel(exportData, "students_list");
@@ -155,7 +218,19 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
                 const groupName = String(item["Group"]).toLowerCase();
                 const matchedGroup = subjectGroups.find(g => g.subjectId === mappedSubjectId && g.groupName.toLowerCase() === groupName);
                 if (matchedGroup) {
-                  mappedGroupId = matchedGroup.id;
+                  // Check capacity during import
+                  if (matchedGroup.capacity) {
+                    const currentCount = existingStudents.filter(s => s.groupId === matchedGroup.id).length;
+                    // Count already imported in this session too
+                    const sessionImported = 0; // Simplified, would need more tracking
+                    if (currentCount >= matchedGroup.capacity) {
+                      console.warn(`Skipping student ${studentId} assignment to group ${matchedGroup.groupName} - Capacity reached`);
+                    } else {
+                      mappedGroupId = matchedGroup.id;
+                    }
+                  } else {
+                    mappedGroupId = matchedGroup.id;
+                  }
                 }
               }
             }
@@ -229,7 +304,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     setSelectedGroup(null);
     setGroupFormData({
       groupName: "",
-      subjectId: ""
+      subjectId: "",
+      hospitalId: "",
+      teacherId: "",
+      startDate: "",
+      endDate: "",
+      capacity: 10 // Default capacity
     });
     setGroupError(null);
     setIsGroupModalOpen(true);
@@ -239,7 +319,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     setSelectedGroup(group);
     setGroupFormData({
       groupName: group.groupName,
-      subjectId: group.subjectId
+      subjectId: group.subjectId,
+      hospitalId: group.hospitalId || "",
+      teacherId: group.teacherId || "",
+      startDate: group.startDate || "",
+      endDate: group.endDate || "",
+      capacity: group.capacity || 0
     });
     setGroupError(null);
     setIsGroupModalOpen(true);
@@ -300,6 +385,17 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
       );
       if (duplicate) {
         throw new Error("Student ID already exists.");
+      }
+
+      // Check capacity
+      if (formData.groupId) {
+        const group = subjectGroups.find(g => g.id === formData.groupId);
+        if (group && group.capacity) {
+          const currentCount = existingStudents.filter(s => s.groupId === formData.groupId && s.id !== selectedStudent?.id).length;
+          if (currentCount >= group.capacity) {
+            throw new Error(`Subject Group "${group.groupName}" has reached its maximum capacity of ${group.capacity} students.`);
+          }
+        }
       }
 
       if (selectedStudent) {
@@ -382,8 +478,17 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
           emptyDescription="No student records found. Click 'Add Student' to register your first nursing student."
           columns={[
             { 
+              header: "No.", 
+              accessor: (item: any) => (
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {item.displayIndex}
+                </span>
+              ),
+              className: "w-16"
+            },
+            { 
               header: "Student ID", 
-              accessor: (item) => (
+              accessor: (item: any) => (
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center text-primary font-black">
                     {item.studentId.slice(-2)}
@@ -531,15 +636,39 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {subjectGroupsList.map(g => {
                         const groupStudents = students.filter(s => s.subjectId === sub.id && s.groupId === g.id);
+                        const matchedSite = trainingSites.find(site => site.id === g.hospitalId);
+                        const matchedTeacher = teachers.find(t => t.id === g.teacherId);
+                        const isFull = g.capacity ? groupStudents.length >= g.capacity : false;
+
                         return (
-                          <div key={g.id} className="bg-slate-50/40 border border-slate-100 rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                          <div key={g.id} className={`bg-slate-50/40 border ${isFull ? 'border-medical-red/20 ring-1 ring-medical-red/5' : 'border-slate-100'} rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition-all duration-300 relative overflow-hidden`}>
+                            {isFull && (
+                              <div className="absolute top-0 right-0 px-3 py-1 bg-medical-red text-white text-[8px] font-black uppercase tracking-widest rounded-bl-xl z-10 shadow-sm">
+                                FULL
+                              </div>
+                            )}
                             <div>
-                              <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-extrabold text-slate-800">{g.groupName}</span>
-                                <span className="px-2.5 py-0.5 bg-slate-200/55 text-slate-600 rounded-lg text-[10px] font-black">
-                                  {groupStudents.length} {groupStudents.length === 1 ? "Student" : "Students"}
+                                <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black ${isFull ? 'bg-medical-red/10 text-medical-red' : 'bg-slate-200/55 text-slate-600'}`}>
+                                  {groupStudents.length} / {g.capacity || "∞"}
                                 </span>
                               </div>
+                              
+                              <div className="mb-4 space-y-1">
+                                <div className="text-[10px] font-bold text-slate-500 truncate" title={matchedSite?.name}>
+                                  🏥 {matchedSite ? matchedSite.name : "No Practice Site"}
+                                </div>
+                                <div className="text-[10px] font-bold text-slate-400">
+                                  👨‍🏫 {matchedTeacher ? matchedTeacher.name : "No Teacher"}
+                                </div>
+                                {(g.startDate || g.endDate) && (
+                                  <div className="text-[9px] font-bold text-slate-400 mt-1">
+                                    📅 {g.startDate || "?"} - {g.endDate || "?"}
+                                  </div>
+                                )}
+                              </div>
+
                               <div className="space-y-2.5">
                                 {groupStudents.map(student => (
                                   <div 
@@ -549,6 +678,7 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
                                   >
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-bold text-slate-800 group-hover/item:text-primary transition-colors truncate">
+                                        <span className="text-[10px] text-slate-400 mr-1.5 font-black">{(student as any).displayIndex}.</span>
                                         {student.title ? `${student.title} ` : ''}{student.firstName} {student.lastName}
                                       </p>
                                       <p className="text-[9px] font-mono font-bold text-slate-400 tracking-wider mt-0.5">
@@ -628,16 +758,21 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="border-b border-outline">
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Group Name</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clinical Course</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Students</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Group Details</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Practice Site / Teacher</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Schedule</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capacity</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {subjectGroups.map((group) => {
                     const matchedSubject = subjects.find(s => s.id === group.subjectId);
+                    const matchedSite = trainingSites.find(s => s.id === group.hospitalId);
+                    const matchedTeacher = teachers.find(t => t.id === group.teacherId);
                     const groupStudentsCount = students.filter(s => s.subjectId === group.subjectId && s.groupId === group.id).length;
+                    const isFull = group.capacity ? groupStudentsCount >= group.capacity : false;
+                    
                     return (
                       <tr key={group.id} className="border-b border-outline hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
@@ -645,23 +780,47 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
                             <div className="h-9 w-9 rounded-full bg-primary/5 text-primary flex items-center justify-center font-extrabold text-xs">
                               {group.groupName.slice(0, 2).toUpperCase()}
                             </div>
-                            <span className="font-extrabold text-slate-800 text-sm">{group.groupName}</span>
+                            <div>
+                              <div className="font-extrabold text-slate-800 text-sm">{group.groupName}</div>
+                              {matchedSubject ? (
+                                <div className="text-[10px] text-slate-400 font-mono tracking-wider uppercase mt-0.5">{matchedSubject.subjectCode} - {matchedSubject.subjectName}</div>
+                              ) : (
+                                <div className="text-[10px] text-slate-300 italic font-mono uppercase mt-0.5">Unknown Subject</div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          {matchedSubject ? (
-                            <div className="max-w-[280px] truncate">
-                              <div className="text-xs font-bold text-slate-700 truncate">{matchedSubject.subjectName}</div>
-                              <div className="text-[10px] text-slate-400 font-mono tracking-wider uppercase mt-0.5">{matchedSubject.subjectCode}</div>
+                          <div className="space-y-1">
+                            <div className="text-xs font-bold text-slate-700 truncate max-w-[200px]">
+                              {matchedSite ? matchedSite.name : "No Practice Site"}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                              {matchedTeacher ? matchedTeacher.name : "Unassigned Teacher"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {group.startDate && group.endDate ? (
+                            <div className="text-[10px] font-bold text-slate-600">
+                              {group.startDate} - {group.endDate}
                             </div>
                           ) : (
-                            <span className="text-slate-300 italic text-xs">Unknown Subject</span>
+                            <span className="text-[10px] text-slate-300 italic">No period set</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-black">
-                            {groupStudentsCount} {groupStudentsCount === 1 ? "student" : "students"}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-black w-fit ${isFull ? 'bg-medical-red/10 text-medical-red' : 'bg-slate-100 text-slate-600'}`}>
+                              {groupStudentsCount} / {group.capacity || "∞"}
+                            </span>
+                            <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full transition-all ${isFull ? 'bg-medical-red' : 'bg-primary'}`}
+                                style={{ width: `${Math.min((groupStudentsCount / (group.capacity || 1)) * 100, 100)}%` }}
+                              />
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-3">
@@ -962,40 +1121,109 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
             </div>
           )}
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="md-label flex items-center gap-2">
-                <Users className="h-3 w-3" />
-                Group Name *
-              </label>
-              <input
-                required
-                placeholder="e.g. Group A, Cohort 1"
-                value={groupFormData.groupName}
-                onChange={(e) => setGroupFormData({ ...groupFormData, groupName: e.target.value })}
-                className="md-input"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <Users className="h-3 w-3" />
+                  Group Name *
+                </label>
+                <input
+                  required
+                  placeholder="e.g. Group A, Cohort 1"
+                  value={groupFormData.groupName}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, groupName: e.target.value })}
+                  className="md-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <BookOpen className="h-3 w-3" />
+                  Clinical Course *
+                </label>
+                <select
+                  required
+                  value={groupFormData.subjectId}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, subjectId: e.target.value })}
+                  className="md-input appearance-none bg-no-repeat bg-[right_1rem_center]"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundSize: '1.2rem' }}
+                >
+                  <option value="">-- Select Clinical Course --</option>
+                  {subjects.map(s => (
+                    <option key={s.id} value={s.id}>{s.subjectName} ({s.subjectCode})</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="md-label flex items-center gap-2">
-                <BookOpen className="h-3 w-3" />
-                Clinical Course *
-              </label>
-              <select
-                required
-                value={groupFormData.subjectId}
-                onChange={(e) => setGroupFormData({ ...groupFormData, subjectId: e.target.value })}
-                className="md-input appearance-none bg-no-repeat bg-[right_1rem_center]"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundSize: '1.2rem' }}
-              >
-                <option value="">-- Select Clinical Course --</option>
-                {subjects.map(s => (
-                  <option key={s.id} value={s.id}>{s.subjectName} ({s.subjectCode})</option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <Plus className="h-3 w-3" />
+                  Practice Site
+                </label>
+                <select
+                  value={groupFormData.hospitalId}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, hospitalId: e.target.value })}
+                  className="md-input appearance-none bg-no-repeat bg-[right_1rem_center]"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundSize: '1.2rem' }}
+                >
+                  <option value="">-- Select Practice Site --</option>
+                  {trainingSites.map(site => (
+                    <option key={site.id} value={site.id}>{site.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <User className="h-3 w-3" />
+                  Assigned Teacher
+                </label>
+                <select
+                  value={groupFormData.teacherId}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, teacherId: e.target.value })}
+                  className="md-input appearance-none bg-no-repeat bg-[right_1rem_center]"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundSize: '1.2rem' }}
+                >
+                  <option value="">-- Select Teacher --</option>
+                  {teachers.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="md-label">Start Date</label>
+                <input
+                  type="date"
+                  value={groupFormData.startDate}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, startDate: e.target.value })}
+                  className="md-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="md-label">End Date</label>
+                <input
+                  type="date"
+                  value={groupFormData.endDate}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, endDate: e.target.value })}
+                  className="md-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="md-label">Student Capacity</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 10"
+                  value={groupFormData.capacity}
+                  onChange={(e) => setGroupFormData({ ...groupFormData, capacity: parseInt(e.target.value) || 0 })}
+                  className="md-input"
+                />
+              </div>
+            </div>
 
           <div className="flex justify-end gap-3 mt-10 pt-6 border-t border-outline">
             <button

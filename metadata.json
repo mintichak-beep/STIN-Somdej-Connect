@@ -1,6 +1,6 @@
 {
   "name": "STIN-Somdej Connect",
-  "description": "ระบบจัดการหอพักนักศึกษา ตรวจสอบหลักฐานการชำระเงิน และอัปโหลดสลิปออนไลน์สำหรับวิทยาลัยพยาบาล",
+  "description": "ระบบประสานงานแหล่งฝึก รพ. สมเด็จพระบรมราชเทวี ณ ศรีราชา",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

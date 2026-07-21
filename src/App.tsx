@@ -17,6 +17,8 @@ import { StudentDashboard } from './pages/StudentDashboard';
 import { StudentUtilities } from './pages/StudentUtilities';
 import { MyTransportation } from './pages/MyTransportation';
 import { TeacherManagement } from './pages/TeacherManagement';
+import { TeacherProfile } from './pages/TeacherProfile';
+import { TeacherDetails } from './pages/TeacherDetails';
 
 export default function App() {
   const [role, setRole] = useState<'Teacher' | 'Student' | null>(() => {
@@ -26,6 +28,7 @@ export default function App() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(() => {
     return localStorage.getItem('selected_student_id');
   });
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
 
   const handleSelectRole = (selectedRole: 'Teacher' | 'Student') => {
     localStorage.setItem('user_role', selectedRole);
@@ -53,7 +56,7 @@ export default function App() {
   };
 
   if (!role) {
-    return <WelcomePage onSelectRole={handleSelectRole} />;
+    return <WelcomePage onSelectRole={handleSelectRole} onSelectStudent={handleSelectStudent} />;
   }
 
   const renderContent = () => {
@@ -74,7 +77,14 @@ export default function App() {
         case 'van-trips':
           return <VanTrips />;
         case 'teachers':
-          return <TeacherManagement />;
+          return <TeacherManagement onSelectTeacher={(id) => {
+            setSelectedTeacherId(id);
+            setActiveTab('teacher-details');
+          }} />;
+        case 'teacher-details':
+          return <TeacherDetails teacherId={selectedTeacherId!} onBack={() => setActiveTab('teachers')} />;
+        case 'profile':
+          return <TeacherProfile />;
         case 'subjects':
           return <SubjectManagement />;
         case 'utility-billing':

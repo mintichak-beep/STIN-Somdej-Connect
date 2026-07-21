@@ -49,7 +49,7 @@ app.post("/api/analyze-pdf", async (req, res) => {
   try {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash", // Use a valid model name
+      model: "gemini-3.5-flash",
       contents: `Analyze the following text extracted from a PDF document named "${filename}". 
       Return a structured analysis in JSON format with the following fields:
       - executiveSummary: A brief overview of the document.

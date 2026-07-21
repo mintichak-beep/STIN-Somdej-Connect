@@ -2,11 +2,16 @@ import { useState, useEffect } from "react";
 import { DataTable } from "../components/DataTable";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { AlertCircle, User, Phone, BookOpen, UserPlus } from "lucide-react";
+import { AlertCircle, User, Phone, BookOpen, UserPlus, Camera, X, Upload } from "lucide-react";
 import { teacherService } from "../services/app.service";
 import { Teacher } from "../types/app";
+import { resizeImage } from "../lib/imageUtils";
 
-export function TeacherManagement() {
+interface TeacherManagementProps {
+  onSelectTeacher?: (id: string) => void;
+}
+
+export function TeacherManagement({ onSelectTeacher }: TeacherManagementProps) {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -17,7 +22,8 @@ export function TeacherManagement() {
   const [formData, setFormData] = useState({
     name: "",
     department: "",
-    phone: ""
+    phone: "",
+    photoUrl: ""
   });
 
   const fetchData = async () => {
@@ -31,16 +37,28 @@ export function TeacherManagement() {
 
   const handleOpenAdd = () => {
     setSelectedTeacher(null);
-    setFormData({ name: "", department: "", phone: "" });
+    setFormData({ name: "", department: "", phone: "", photoUrl: "" });
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (teacher: Teacher) => {
+  const handleOpenEdit = async (teacher: Teacher) => {
     setSelectedTeacher(teacher);
+    let photoUrl = teacher.photoUrl || "";
+    
+    // If it's a large base64 image, try to resize it immediately to fix existing oversized documents
+    if (photoUrl.startsWith("data:image/") && photoUrl.length > 500000) {
+      try {
+        photoUrl = await resizeImage(photoUrl, 400, 0.7);
+      } catch (err) {
+        console.error("Failed to auto-resize existing image:", err);
+      }
+    }
+
     setFormData({
       name: teacher.name,
       department: teacher.department,
-      phone: teacher.phone
+      phone: teacher.phone,
+      photoUrl: photoUrl
     });
     setIsModalOpen(true);
   };
@@ -65,6 +83,29 @@ export function TeacherManagement() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64 = reader.result as string;
+          // Resize and compress to stay under Firestore limits
+          const resized = await resizeImage(base64, 400, 0.7);
+          setFormData({ ...formData, photoUrl: resized });
+        } catch (err) {
+          console.error("Image processing error:", err);
+          setError("Failed to process image. Please try another one.");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, photoUrl: "" });
+  };
+
   const handleDelete = async () => {
     if (selectedTeacher) {
       await teacherService.delete(selectedTeacher.id);
@@ -87,13 +128,19 @@ export function TeacherManagement() {
             header: "Faculty Member", 
             accessor: (teacher) => (
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-outline shadow-sm">
-                  <img 
-                    src="/src/assets/images/nursing_instructor_icon_1784479023431.jpg" 
-                    alt={teacher.name}
-                    className="h-full w-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="h-12 w-12 rounded-full bg-primary-container overflow-hidden flex items-center justify-center border border-outline shadow-sm">
+                  {teacher.photoUrl ? (
+                    <img 
+                      src={teacher.photoUrl} 
+                      alt={teacher.name}
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-slate-100 text-slate-400">
+                      <User className="h-6 w-6" />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-sm font-extrabold text-slate-900 block">{teacher.name}</span>
@@ -128,6 +175,7 @@ export function TeacherManagement() {
           setSelectedTeacher(teacher);
           setIsDeleteOpen(true);
         }}
+        onView={(teacher) => onSelectTeacher?.(teacher.id)}
       />
 
       <Modal
@@ -143,47 +191,85 @@ export function TeacherManagement() {
             </div>
           )}
           
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="md-label flex items-center gap-2">
-                <User className="h-3 w-3" />
-                Full Name
-              </label>
-              <input
-                required
-                placeholder="e.g. Dr. Jane Smith"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="md-input"
-              />
+          <div className="space-y-8">
+            {/* Image Upload Section */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative group">
+                <div className="h-32 w-32 rounded-full bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shadow-inner">
+                  {formData.photoUrl ? (
+                    <img 
+                      src={formData.photoUrl} 
+                      alt="Preview" 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-12 w-12 text-slate-300" />
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 p-2.5 bg-primary text-white rounded-full shadow-lg cursor-pointer hover:bg-primary/90 transition-all hover:scale-110 active:scale-95 group-hover:ring-4 ring-primary/20">
+                  <Camera className="h-5 w-5" />
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                  />
+                </label>
+                {formData.photoUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute -top-1 -right-1 p-1.5 bg-medical-red text-white rounded-full shadow-md hover:bg-medical-red/90 transition-all hover:scale-110"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Profile Photo (Auto-compressed)</p>
             </div>
 
-            <div className="space-y-2">
-              <label className="md-label flex items-center gap-2">
-                <BookOpen className="h-3 w-3" />
-                Department
-              </label>
-              <input
-                required
-                placeholder="e.g. Fundamental Nursing"
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                className="md-input"
-              />
-            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <User className="h-3 w-3" />
+                  Full Name
+                </label>
+                <input
+                  required
+                  placeholder="e.g. Dr. Jane Smith"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="md-input"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="md-label flex items-center gap-2">
-                <Phone className="h-3 w-3" />
-                Contact Number
-              </label>
-              <input
-                required
-                placeholder="e.g. 0812345678"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="md-input"
-              />
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <BookOpen className="h-3 w-3" />
+                  Department
+                </label>
+                <input
+                  required
+                  placeholder="e.g. Fundamental Nursing"
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  className="md-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="md-label flex items-center gap-2">
+                  <Phone className="h-3 w-3" />
+                  Contact Number
+                </label>
+                <input
+                  required
+                  placeholder="e.g. 0812345678"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="md-input"
+                />
+              </div>
             </div>
           </div>
 

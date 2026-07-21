@@ -32,6 +32,11 @@ export interface SubjectGroup {
   id: string;
   groupName: string;
   subjectId: string;
+  hospitalId?: string;
+  teacherId?: string;
+  startDate?: string;
+  endDate?: string;
+  capacity?: number;
   createdAt?: any;
   updatedAt?: any;
 }
@@ -41,6 +46,7 @@ export interface Teacher {
   name: string;
   department: string;
   phone: string;
+  photoUrl?: string;
   createdAt: any;
   updatedAt: any;
 }

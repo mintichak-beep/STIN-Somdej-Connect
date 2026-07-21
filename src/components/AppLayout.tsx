@@ -86,6 +86,7 @@ export function AppLayout({
 
   const adminMenuItems = [
     { id: "dashboard", label: "Dashboard", emoji: "🏥" },
+    { id: "profile", label: "My Profile", emoji: "👤" },
     { id: "students", label: "Students", emoji: "🎓" },
     { id: "teachers", label: "Teachers", emoji: "👨‍🏫" },
     { id: "subjects", label: "Subjects", emoji: "📚" },
@@ -270,8 +271,8 @@ export function AppLayout({
               </div>
               <div className="flex flex-col">
                 <h1 className="text-lg font-black text-white tracking-tight leading-tight">STIN-Somdej Connect</h1>
-                <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-white/80 uppercase tracking-widest">
-                  {activeItem?.label || "Overview"}
+                <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-white/80 uppercase tracking-widest mt-0.5">
+                  Overview • {activeItem?.label || "Overview"}
                 </div>
               </div>
             </div>
@@ -337,19 +338,22 @@ export function AppLayout({
               <LogOut className="h-3.5 w-3.5" />
               Switch Role
             </button>
-            <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-white leading-tight truncate max-w-32">{user?.displayName?.split(' ')[0]}</p>
+                <p className="text-xs font-bold text-white leading-tight truncate max-w-32 group-hover:text-white/80 transition-colors">{user?.displayName?.split(' ')[0]}</p>
                 <p className="text-[9px] font-bold text-white/80 uppercase tracking-widest">{role}</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden text-primary">
+              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden text-primary group-hover:ring-2 ring-white/50 transition-all">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <User className="h-5 w-5" />
                 )}
               </div>
-            </div>
+            </button>
           </div>
         </header>
 
