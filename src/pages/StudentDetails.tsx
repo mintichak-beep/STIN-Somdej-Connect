@@ -99,7 +99,7 @@ export function StudentDetails({ studentId, onBack }: { studentId: string, onBac
             <div className="bg-red-100 p-4 rounded-full"><User className="w-8 h-8 text-red-600"/></div>
             <div>
                 <h1 className="text-2xl font-black text-zinc-900">{student.fullName}</h1>
-                <p className="text-zinc-500 font-bold text-sm">{student.studentId} | ชั้นปี {student.yearLevel} | กลุ่ม {student.classGroup}</p>
+                <p className="text-zinc-500 font-bold text-sm">{student.studentId}</p>
             </div>
         </div>
         <div className="flex border-b border-slate-100">

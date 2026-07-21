@@ -106,10 +106,8 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
   const displayStudent = student || {
     studentId: "6612001",
     fullName: "มินทรา รักษ์ดี",
-    yearLevel: "2",
-    classGroup: "กลุ่ม A",
     phone: "081-234-5678",
-    status: "active"
+    status: "active" as "active" | "inactive"
   };
 
   const displayDorm = dormitory?.dormitoryName || "หอพักหญิง 1 (เรือนรักกัลยา)";
@@ -150,7 +148,7 @@ export function StudentDashboard({ onNavigateToBills, studentId, onChangeStudent
               {displayStudent.fullName}
             </h1>
             <p className="text-sm sm:text-base text-blue-100/80 font-medium">
-              ID: {displayStudent.studentId} • Year {displayStudent.yearLevel} {displayStudent.classGroup} • Nursing Major
+              ID: {displayStudent.studentId}
             </p>
           </div>
           <button 

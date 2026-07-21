@@ -1,19 +1,17 @@
 export interface Student {
   id: string;
   studentId: string;
+  title?: string;
   firstName: string;
   lastName: string;
   fullName: string;
-  yearLevel: string;
-  classGroup: string;
-  faculty?: string;
-  major?: string;
   phone: string;
+  email?: string;
+  notes?: string;
   status: 'active' | 'inactive';
   subjectId?: string;
   groupId?: string;
   roomId?: string;
-  notes?: string;
   createdAt: any;
   updatedAt: any;
 }

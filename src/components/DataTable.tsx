@@ -32,6 +32,7 @@ interface DataTableProps<T> {
   onView?: (item: T) => void;
   onImport?: () => void;
   onExport?: () => void;
+  onDownloadTemplate?: () => void;
   searchPlaceholder?: string;
   searchFields: (keyof T)[];
   emptyTitle?: string;
@@ -49,6 +50,7 @@ export function DataTable<T extends { id: string }>({
   onView,
   onImport,
   onExport,
+  onDownloadTemplate,
   searchPlaceholder = "Search records...",
   searchFields,
   emptyTitle = "No Records Available",
@@ -78,6 +80,15 @@ export function DataTable<T extends { id: string }>({
             <p className="text-sm font-medium text-slate-500 mt-1">{description}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {onDownloadTemplate && (
+              <button
+                onClick={onDownloadTemplate}
+                className="md-button-text flex items-center gap-2 border border-outline hover:bg-surface-variant/50"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download Template</span>
+              </button>
+            )}
             {onImport && (
               <button
                 onClick={onImport}

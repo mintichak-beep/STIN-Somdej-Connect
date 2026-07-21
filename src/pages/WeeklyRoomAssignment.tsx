@@ -258,7 +258,7 @@ export function WeeklyRoomAssignmentPage() {
                     >
                       <div>
                         <div className="text-sm font-black text-slate-900">{s.fullName}</div>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{s.studentId} • {s.faculty}</div>
+                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{s.studentId}</div>
                       </div>
                       <Plus className="h-4 w-4 text-primary" />
                     </button>

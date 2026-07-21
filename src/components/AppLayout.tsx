@@ -85,29 +85,30 @@ export function AppLayout({
   }, [user, role]);
 
   const adminMenuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "students", label: "Students", icon: Users },
-    { id: "teachers", label: "Teachers", icon: UserCheck },
-    { id: "subjects", label: "Subjects", icon: BookOpen },
-    { id: "room-assignments", label: "Weekly Room Assignment", icon: Calendar },
-    { id: "rooms", label: "Room Management", icon: Home },
-    { id: "van-trips", label: "Transport Schedule", icon: MapPin },
-    { id: "vans", label: "Van Management", icon: Bus },
-    { id: "utility-billing", label: "Utility Bills", icon: Droplets },
-    { id: "payment-verification", label: "Payments", icon: ClipboardList },
-    { id: "reports", label: "Reports", icon: BarChart3 },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "dashboard", label: "Dashboard", emoji: "🏥" },
+    { id: "students", label: "Students", emoji: "🎓" },
+    { id: "teachers", label: "Teachers", emoji: "👨‍🏫" },
+    { id: "subjects", label: "Subjects", emoji: "📚" },
+    { id: "room-assignments", label: "Practice Schedule", emoji: "📅" },
+    { id: "rooms", label: "Rooms", emoji: "🛏️" },
+    { id: "vans", label: "Vans", emoji: "🚐" },
+    { id: "utility-billing", label: "Utility Bills", emoji: "💧" },
+    { id: "payment-verification", label: "Payments", emoji: "💳" },
+    { id: "reports", label: "Reports", emoji: "📊" },
+    { id: "settings", label: "Settings", emoji: "⚙️" },
   ];
 
   const studentMenuItems = [
-    { id: "dashboard", label: "My Profile", icon: User },
-    { id: "subjects", label: "My Subject", icon: BookOpen },
-    { id: "rooms", label: "My Room", icon: Home },
-    { id: "my-transportation", label: "My Transportation", icon: Bus },
-    { id: "student-utilities", label: "My Utility Bills", icon: Droplets },
-    { id: "payment-history", label: "Payment History", icon: Clock },
-    { id: "upload-slip", label: "Upload Payment Slip", icon: FileText },
-    { id: "announcements", label: "Announcements", icon: Megaphone },
+    { id: "home", label: "Home", emoji: "🏠" },
+    { id: "dashboard", label: "My Profile", emoji: "👤" },
+    { id: "subjects", label: "My Subject", emoji: "📖" },
+    { id: "schedule", label: "My Schedule", emoji: "📅" },
+    { id: "rooms", label: "My Room", emoji: "🛏️" },
+    { id: "my-transportation", label: "My Transportation", emoji: "🚐" },
+    { id: "student-utilities", label: "My Utility Bills", emoji: "💧" },
+    { id: "payment-history", label: "Payment History", emoji: "🧾" },
+    { id: "upload-slip", label: "Upload Slip", emoji: "📤" },
+    { id: "announcements", label: "Announcements", emoji: "📢" },
   ];
 
   const menuItems = role === "Teacher" ? adminMenuItems : studentMenuItems;
@@ -121,7 +122,6 @@ export function AppLayout({
   };
 
   const SidebarItem = ({ item }: { item: typeof menuItems[0] }) => {
-    const Icon = item.icon;
     const isActive = activeTab === item.id;
     return (
       <button
@@ -135,7 +135,9 @@ export function AppLayout({
             : "text-slate-500 hover:bg-primary-container hover:text-primary"
         }`}
       >
-        <Icon className={`h-5 w-5 shrink-0 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
+        <span className={`text-xl shrink-0 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
+          {item.emoji}
+        </span>
         <AnimatePresence mode="wait">
           {!isSidebarCollapsed && (
             <motion.span
@@ -158,12 +160,16 @@ export function AppLayout({
   };
 
   return (
-    <div className="flex h-screen w-screen bg-background overflow-hidden font-sans">
-      {/* Sidebar - Desktop */}
+    <div 
+      className="flex h-screen w-screen overflow-hidden font-sans bg-background relative"
+      style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjQzYyODI4IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMDQiPgogICAgPHBhdGggZD0iTTEwLDEwIGgxMCB2MTAgaDEwIHYxMCBoLTEwIHYxMCBoLTEwIHYtMTAgaC0xMCB2LTEwIGgxMCB6Ii8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIxMCIgLz4KICAgIDxwYXRoIGQ9Ik00NSw2MCB2MTUgYTUsNSAwIDAsMCAxMCwwIHYtMTUiIC8+CiAgICA8cmVjdCB4PSI3NSIgeT0iMjAiIHdpZHRoPSIxNSIgaGVpZ2h0PSIyNSIgcng9IjIiIC8+CiAgICA8cGF0aCBkPSJNODAsMjAgdi01IGg1IHY1IiAvPgogICAgPHJlY3QgeD0iMjAiIHk9IjcwIiB3aWR0aD0iMTAiIGhlaWdodD0iMjAiIHJ4PSI1IiAvPgogICAgPGxpbmUgeDE9IjIwIiB5MT0iODAiIHgyPSIzMCIgeTI9IjgwIiAvPgogIDwvZz4KPC9zdmc+')" }}
+    >
+      <div className="relative z-10 flex h-full w-full">
+        {/* Sidebar - Desktop */}
       <motion.aside
         initial={false}
         animate={{ width: isSidebarCollapsed ? 88 : 280 }}
-        className="hidden md:flex flex-col border-r border-outline bg-surface h-full z-40 transition-all duration-300 ease-in-out relative"
+        className="hidden md:flex flex-col border-r border-outline bg-surface h-full z-40 transition-all duration-300 ease-in-out relative shadow-sm"
       >
         <div className="p-6 flex items-center justify-between mb-2">
           <AnimatePresence mode="wait">
@@ -174,12 +180,12 @@ export function AppLayout({
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-3 overflow-hidden"
               >
-                <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 shrink-0">
-                  <Building2 className="h-6 w-6" />
+                <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
+                  <span className="text-2xl font-black leading-none pt-1">+</span>
                 </div>
                 <div>
-                  <h2 className="text-sm font-extrabold tracking-tight text-slate-900 leading-tight">STIN-Somdej Connect</h2>
-                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Dormitory & Hospital</p>
+                  <h2 className="text-sm font-extrabold tracking-tight text-slate-900 leading-tight">Menu</h2>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Navigation</p>
                 </div>
               </motion.div>
             )}
@@ -229,10 +235,10 @@ export function AppLayout({
             >
               <div className="p-6 flex items-center justify-between border-b border-outline">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white">
-                    <Building2 className="h-6 w-6" />
+                  <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                    <span className="text-2xl font-black leading-none pt-1">+</span>
                   </div>
-                  <h2 className="text-lg font-bold text-slate-900">STIN-Somdej Connect</h2>
+                  <h2 className="text-lg font-bold text-slate-900">Menu</h2>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-full">
                   <X className="h-6 w-6 text-slate-400" />
@@ -250,44 +256,46 @@ export function AppLayout({
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top App Bar */}
-        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-surface border-b border-outline z-30 sticky top-0">
+        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-primary border-b border-primary/20 z-30 sticky top-0 shadow-md">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 hover:bg-slate-100 rounded-xl text-slate-500 md:hidden cursor-pointer"
+              className="p-2 hover:bg-white/10 rounded-xl text-white md:hidden cursor-pointer"
             >
               <Menu className="h-6 w-6" />
             </button>
             <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold text-slate-900">{activeItem?.label || "Overview"}</h1>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface-variant rounded-full text-[10px] font-extrabold text-slate-500 uppercase tracking-widest border border-outline">
-                Dormitory Management System
+              <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm shrink-0">
+                <span className="text-2xl font-black leading-none pt-1">+</span>
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-lg font-black text-white tracking-tight leading-tight">STIN-Somdej Connect</h1>
+                <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-white/80 uppercase tracking-widest">
+                  {activeItem?.label || "Overview"}
+                </div>
               </div>
             </div>
           </div>
-
           <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center bg-surface-variant/50 border border-outline rounded-2xl px-4 py-2 w-64 focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all">
-              <Search className="h-4 w-4 text-slate-400" />
-              <input type="text" placeholder="Global search..." className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full ml-2 text-slate-600 outline-none" />
+            <div className="hidden lg:flex items-center bg-white/10 border border-white/20 rounded-2xl px-4 py-2 w-64 focus-within:ring-2 focus-within:ring-white/50 focus-within:bg-white/20 transition-all text-white placeholder-white/50">
+              <Search className="h-4 w-4 text-white/70" />
+              <input type="text" placeholder="Global search..." className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full ml-2 text-white outline-none placeholder-white/60" />
             </div>
-
             <div className="flex items-center gap-2">
-              <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors cursor-pointer">
+              <button className="p-2.5 hover:bg-white/10 rounded-xl text-white transition-colors cursor-pointer">
                 <MessageSquare className="h-5 w-5" />
               </button>
               
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors relative cursor-pointer"
+                  className="p-2.5 hover:bg-white/10 rounded-xl text-white transition-colors relative cursor-pointer"
                 >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-primary rounded-full ring-2 ring-surface" />
+                    <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-white rounded-full ring-2 ring-primary" />
                   )}
                 </button>
-
                 <AnimatePresence>
                   {showNotifications && (
                     <motion.div
@@ -296,13 +304,13 @@ export function AppLayout({
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className="absolute right-0 mt-3 w-80 bg-surface rounded-2xl shadow-2xl border border-outline z-50 overflow-hidden"
                     >
-                      <div className="p-4 border-b border-outline flex justify-between items-center bg-surface-variant/30">
+                      <div className="p-4 border-b border-outline flex justify-between items-center bg-surface-variant/30 text-slate-900">
                         <h4 className="text-sm font-bold text-slate-900">Notifications</h4>
                         <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-slate-600">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
-                      <div className="max-h-96 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                      <div className="max-h-96 overflow-y-auto p-2 space-y-1 custom-scrollbar text-left text-slate-900">
                         {notifications.length === 0 ? (
                           <div className="py-12 text-center text-slate-400 text-xs">No notifications yet</div>
                         ) : (
@@ -320,27 +328,25 @@ export function AppLayout({
                 </AnimatePresence>
               </div>
             </div>
-
-            <div className="h-8 w-px bg-outline" />
+            <div className="h-8 w-px bg-white/20" />
             
             <button
               onClick={onSwitchRole}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors"
             >
               <LogOut className="h-3.5 w-3.5" />
               Switch Role
             </button>
-
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-32">{user?.displayName?.split(' ')[0]}</p>
-                <p className="text-[9px] font-bold text-primary uppercase tracking-widest">{role}</p>
+                <p className="text-xs font-bold text-white leading-tight truncate max-w-32">{user?.displayName?.split(' ')[0]}</p>
+                <p className="text-[9px] font-bold text-white/80 uppercase tracking-widest">{role}</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-primary-container flex items-center justify-center border border-primary/10 overflow-hidden">
+              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden text-primary">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <User className="h-5 w-5 text-primary" />
+                  <User className="h-5 w-5" />
                 )}
               </div>
             </div>
@@ -362,6 +368,7 @@ export function AppLayout({
             </motion.div>
           </AnimatePresence>
         </main>
+      </div>
       </div>
     </div>
   );

@@ -37,13 +37,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
 
   const [formData, setFormData] = useState({
     studentId: "",
+    title: "",
     firstName: "",
     lastName: "",
-    yearLevel: "1",
-    classGroup: "",
-    faculty: "",
-    major: "",
     phone: "",
+    email: "",
+    notes: "",
     status: "active" as "active" | "inactive",
     subjectId: "",
     groupId: ""
@@ -106,49 +105,84 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     excelUtils.exportToExcel(exportData, "students_list");
   };
 
+  const handleDownloadTemplate = () => {
+    const template = [{
+      "Student ID": "",
+      "Title": "",
+      "First Name": "",
+      "Last Name": "",
+      "Subject": "",
+      "Group": "",
+      "Phone": "",
+      "Email": "",
+      "Notes": ""
+    }];
+    excelUtils.exportToExcel(template, "student_import_template");
+  };
+
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         const data = await excelUtils.importFromExcel(file);
-        const existingSubjects = await subjectService.getAll();
-        const existingGroups = await subjectGroupService.getAll();
+        
+        // Fetch existing students to check for duplicates
+        const existingStudents = await studentService.getAll();
+        const existingIds = new Set(existingStudents.map(s => s.studentId));
+        
+        let importedCount = 0;
+        let skippedCount = 0;
+
         for (const item of data) {
-          const matchedSubject = existingSubjects.find(
-            s => s.subjectCode === String(item.subjectCode || item.subjectId || "") ||
-                 s.subjectName === String(item.subjectName || item.subject || "")
-          );
+          const studentId = String(item["Student ID"] || "");
           
-          let matchedGroupId = "";
-          if (matchedSubject) {
-            const subjectGroupsForSub = existingGroups.filter(g => g.subjectId === matchedSubject.id);
-            const importedGroupName = item.groupName || item.group || item.subjectGroup || "";
-            const matchedGroup = subjectGroupsForSub.find(
-              g => g.groupName.toLowerCase() === String(importedGroupName).toLowerCase()
-            );
-            if (matchedGroup) {
-              matchedGroupId = matchedGroup.id!;
-            } else if (subjectGroupsForSub.length > 0) {
-              matchedGroupId = subjectGroupsForSub[0].id!;
+          if (!studentId || existingIds.has(studentId)) {
+            skippedCount++;
+            continue;
+          }
+
+          // Map subject and group
+          let mappedSubjectId = "";
+          let mappedGroupId = "";
+          
+          if (item["Subject"]) {
+            const subjectName = String(item["Subject"]).toLowerCase();
+            const matchedSubject = subjects.find(s => s.subjectName.toLowerCase() === subjectName || s.subjectCode.toLowerCase() === subjectName);
+            if (matchedSubject) {
+              mappedSubjectId = matchedSubject.id;
+              
+              if (item["Group"]) {
+                const groupName = String(item["Group"]).toLowerCase();
+                const matchedGroup = subjectGroups.find(g => g.subjectId === mappedSubjectId && g.groupName.toLowerCase() === groupName);
+                if (matchedGroup) {
+                  mappedGroupId = matchedGroup.id;
+                }
+              }
             }
           }
 
           await studentService.create({
-            studentId: String(item.studentId || ""),
-            firstName: item.firstName || "",
-            lastName: item.lastName || "",
-            fullName: `${item.firstName || ""} ${item.lastName || ""}`,
-            yearLevel: String(item.yearLevel || "1"),
-            classGroup: item.classGroup || "",
-            phone: String(item.phone || ""),
+            studentId: studentId,
+            title: item["Title"] || "",
+            firstName: item["First Name"] || "",
+            lastName: item["Last Name"] || "",
+            fullName: `${item["First Name"] || ""} ${item["Last Name"] || ""}`,
+            phone: String(item["Phone"] || ""),
+            email: item["Email"] || "",
+            notes: item["Notes"] || "",
             status: "active",
-            subjectId: matchedSubject ? matchedSubject.id : "",
-            groupId: matchedGroupId
+            subjectId: mappedSubjectId,
+            groupId: mappedGroupId
           } as any);
+          
+          existingIds.add(studentId);
+          importedCount++;
         }
+        alert(`Import complete. Imported: ${importedCount}, Skipped: ${skippedCount}`);
         fetchData();
       } catch (error) {
         console.error("Import error:", error);
+        alert("Import failed. Please check the file format.");
       }
     }
   };
@@ -157,13 +191,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     setSelectedStudent(null);
     setFormData({
       studentId: "",
+      title: "",
       firstName: "",
       lastName: "",
-      yearLevel: "1",
-      classGroup: "",
-      faculty: "",
-      major: "",
       phone: "",
+      email: "",
+      notes: "",
       status: "active",
       subjectId: "",
       groupId: ""
@@ -176,13 +209,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
     setSelectedStudent(student);
     setFormData({
       studentId: student.studentId,
+      title: student.title || "",
       firstName: student.firstName,
       lastName: student.lastName,
-      yearLevel: student.yearLevel,
-      classGroup: student.classGroup,
-      faculty: student.faculty || "",
-      major: student.major || "",
       phone: student.phone,
+      email: student.email || "",
+      notes: student.notes || "",
       status: student.status,
       subjectId: student.subjectId || "",
       groupId: student.groupId || ""
@@ -365,20 +397,10 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
               header: "Full Name", 
               accessor: (item) => (
                 <div className="space-y-0.5">
-                  <div className="text-sm font-extrabold text-slate-900">{item.fullName}</div>
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.faculty || 'N/A'} • {item.major || 'N/A'}</div>
+                  <div className="text-sm font-extrabold text-slate-900">{item.title ? `${item.title} ` : ''}{item.firstName} {item.lastName}</div>
                 </div>
               ),
               sortable: true
-            },
-            { 
-              header: "Year / Group", 
-              accessor: (item) => (
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-black tracking-tight">YEAR {item.yearLevel}</span>
-                  <span className="px-2 py-1 bg-primary/5 text-primary rounded text-[10px] font-black tracking-tight">{item.classGroup}</span>
-                </div>
-              ) 
             },
             { 
               header: "Clinical Assignment", 
@@ -405,9 +427,17 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
             { 
               header: "Contact", 
               accessor: (item) => (
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Phone className="h-3 w-3" />
-                  <span className="text-xs font-bold">{item.phone}</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Phone className="h-3 w-3" />
+                    <span className="text-xs font-bold">{item.phone}</span>
+                  </div>
+                  {item.email && (
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <span className="h-3 w-3 text-center text-[10px] font-black">@</span>
+                      <span className="text-xs font-bold">{item.email}</span>
+                    </div>
+                  )}
                 </div>
               ) 
             },
@@ -425,6 +455,7 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
           onView={(student) => onSelectStudent(student.id)}
           onImport={() => document.getElementById("excel-import")?.click()}
           onExport={handleExport}
+          onDownloadTemplate={handleDownloadTemplate}
         />
       )}
 
@@ -518,15 +549,12 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
                                   >
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-bold text-slate-800 group-hover/item:text-primary transition-colors truncate">
-                                        {student.fullName}
+                                        {student.title ? `${student.title} ` : ''}{student.firstName} {student.lastName}
                                       </p>
                                       <p className="text-[9px] font-mono font-bold text-slate-400 tracking-wider mt-0.5">
                                         {student.studentId}
                                       </p>
                                     </div>
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase bg-slate-100 px-2 py-0.5 rounded ml-2 shrink-0">
-                                      Y{student.yearLevel}
-                                    </span>
                                   </div>
                                 ))}
                                 {groupStudents.length === 0 && (
@@ -727,20 +755,24 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="md-label">Faculty</label>
+                <label className="md-label flex items-center gap-2">
+                  <User className="h-3 w-3" />
+                  Title
+                </label>
                 <input
-                  placeholder="e.g. Nursing"
-                  value={formData.faculty}
-                  onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
+                  placeholder="e.g. Mr., Ms."
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="md-input"
                 />
               </div>
               <div className="space-y-2">
-                <label className="md-label">Major</label>
+                <label className="md-label">Email</label>
                 <input
-                  placeholder="e.g. Professional Nursing"
-                  value={formData.major}
-                  onChange={(e) => setFormData({ ...formData, major: e.target.value })}
+                  type="email"
+                  placeholder="e.g. email@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="md-input"
                 />
               </div>
@@ -775,34 +807,14 @@ export function StudentManagement({ onSelectStudent }: { onSelectStudent: (stude
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-2">
-                <label className="md-label flex items-center gap-2">
-                  <GraduationCap className="h-3 w-3" />
-                  Academic Year
-                </label>
-                <select
-                  value={formData.yearLevel}
-                  onChange={(e) => setFormData({ ...formData, yearLevel: e.target.value })}
-                  className="md-input appearance-none bg-no-repeat bg-[right_1rem_center]"
-                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundSize: '1.2rem' }}
-                >
-                  <option value="1">Year 1</option>
-                  <option value="2">Year 2</option>
-                  <option value="3">Year 3</option>
-                  <option value="4">Year 4</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="md-label flex items-center gap-2">
-                  <Users className="h-3 w-3" />
-                  Class Group
-                </label>
-                <input
-                  placeholder="e.g. Clinical Group A"
-                  value={formData.classGroup}
-                  onChange={(e) => setFormData({ ...formData, classGroup: e.target.value })}
-                  className="md-input"
+                <label className="md-label">Notes</label>
+                <textarea
+                  placeholder="Any additional notes..."
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="md-input min-h-[100px] resize-none"
                 />
               </div>
             </div>

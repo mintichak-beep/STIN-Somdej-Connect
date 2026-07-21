@@ -87,7 +87,11 @@ app.post("/api/analyze-pdf", async (req, res) => {
 
 async function startServer() {
   try {
-    if (process.env.NODE_ENV !== "production") {
+    // Determine if we are running in production mode
+    // Cloud Run always sets K_SERVICE. NODE_ENV is typically 'production' in deployed environments.
+    const isProduction = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "prod" || !!process.env.K_SERVICE;
+    
+    if (!isProduction) {
       const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         server: { middlewareMode: true },
